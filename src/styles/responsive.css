@@ -1,0 +1,361 @@
+@media (max-width: 1190px) {
+  .site-header__main {
+    grid-template-columns: 200px minmax(0, 1fr) 68px;
+  }
+
+  .site-search {
+    display: none;
+  }
+
+  .site-nav {
+    gap: 12px;
+  }
+
+  .site-nav__link {
+    font-size: 0.67rem;
+  }
+
+  .home-product-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .product-card--showcase .product-card__media {
+    min-height: 164px;
+  }
+
+  .product-card--showcase h2 {
+    min-height: 2.75em;
+    font-size: 0.81rem;
+  }
+
+  .product-card--showcase .product-card__price-row strong {
+    font-size: 0.88rem;
+  }
+
+  .product-card--showcase .button {
+    font-size: 0.65rem;
+  }
+
+  .order-option {
+    grid-template-columns: 68px 1fr;
+  }
+
+  .order-option .button {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 930px) {
+  .topbar__nav a:nth-child(-n + 2) {
+    display: none;
+  }
+
+  .site-header__main {
+    grid-template-columns: 1fr auto;
+    min-height: 72px;
+  }
+
+  .menu-toggle {
+    display: inline-grid;
+    place-items: center;
+  }
+
+  .site-header__tools {
+    margin-right: 42px;
+  }
+
+  .site-nav {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    display: none;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0;
+    padding: 8px 24px 16px;
+    border-top: 1px solid var(--cmid-line);
+    background: var(--cmid-panel);
+    box-shadow: 0 10px 18px rgb(44 33 18 / 9%);
+  }
+
+  .site-nav--open {
+    display: flex;
+  }
+
+  .site-nav__link {
+    min-height: 43px;
+    font-size: 0.75rem;
+  }
+
+  .site-nav__link::after {
+    right: auto;
+    width: 28px;
+  }
+
+  .category-bar {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .order-options {
+    grid-template-columns: 1fr;
+  }
+
+  .order-option + .order-option {
+    border-top: 1px solid #ded3c2;
+    border-left: 0;
+  }
+
+  .about-cmid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-cmid > img {
+    min-height: 280px;
+    max-height: 400px;
+  }
+
+  .site-footer__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .site-footer__brand,
+  .site-footer__contact {
+    grid-column: span 3;
+  }
+
+  .site-footer__brand p {
+    max-width: 330px;
+  }
+}
+
+@media (max-width: 720px) {
+  .topbar__inner,
+  .site-header__main,
+  .site-footer__grid,
+  .site-footer__bottom,
+  .trang-chu__hero-content,
+  .trang-chu__container,
+  .products-page {
+    width: min(100% - 32px, 1240px);
+  }
+
+  .topbar__inner {
+    justify-content: center;
+    min-height: 30px;
+  }
+
+  .topbar__contact a:last-child,
+  .topbar__nav,
+  .header-icon {
+    display: none;
+  }
+
+  .site-header__main {
+    min-height: 66px;
+  }
+
+  .brand__mark {
+    width: 31px;
+    height: 41px;
+  }
+
+  .brand strong {
+    font-size: 1.04rem;
+  }
+
+  .brand small {
+    font-size: 0.48rem;
+  }
+
+  .site-header__tools {
+    display: none;
+  }
+
+  .menu-toggle {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .trang-chu__hero {
+    min-height: 510px;
+    background-position: 59% center;
+  }
+
+  .trang-chu__hero-overlay {
+    background: linear-gradient(90deg, rgb(6 6 5 / 86%), rgb(9 8 6 / 54%));
+  }
+
+  .trang-chu__hero-content {
+    padding: 76px 0 84px;
+  }
+
+  .trang-chu__hero-content h1 {
+    max-width: 460px;
+    font-size: clamp(2.2rem, 10vw, 3.3rem);
+  }
+
+  .trang-chu__hero-content p {
+    max-width: 360px;
+    font-size: 0.87rem;
+  }
+
+  .category-bar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px 5px;
+    margin-top: -24px;
+    padding: 17px 11px;
+  }
+
+  .category-shortcut {
+    font-size: 0.65rem;
+  }
+
+  .section-space {
+    padding-top: 44px;
+  }
+
+  .section-heading h2 {
+    font-size: 1.85rem;
+  }
+
+  .section-heading--center h2::before,
+  .section-heading--center h2::after {
+    width: 18px;
+    margin-right: 8px;
+    margin-left: 8px;
+  }
+
+  .home-product-grid,
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px;
+  }
+
+  .product-card--showcase .product-card__media {
+    min-height: 145px;
+  }
+
+  .order-option {
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 13px;
+    padding: 18px;
+  }
+
+  .order-option__icon {
+    width: 54px;
+    height: 54px;
+  }
+
+  .order-option__icon svg {
+    width: 33px;
+  }
+
+  .about-cmid__content {
+    padding: 31px 22px;
+  }
+
+  .brand-strip {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding: 12px 18px;
+    font-size: 1.05rem;
+    white-space: nowrap;
+  }
+
+  .experience-3d {
+    min-height: 318px;
+    background-position: 64% center;
+  }
+
+  .experience-3d::before {
+    background: linear-gradient(90deg, rgb(25 26 25 / 97%) 0%, rgb(25 26 25 / 76%) 65%, rgb(25 26 25 / 25%));
+  }
+
+  .experience-3d__content {
+    min-height: 318px;
+    padding: 28px 25px;
+  }
+
+  .featured-projects__heading,
+  .news-section {
+    align-items: start;
+    flex-direction: column;
+    gap: 13px;
+  }
+
+  .project-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .news-list {
+    width: 100%;
+  }
+
+  .news-section {
+    padding-bottom: 48px;
+  }
+
+  .site-footer__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 29px 18px;
+    padding-top: 36px;
+  }
+
+  .site-footer__brand,
+  .site-footer__contact {
+    grid-column: span 2;
+  }
+
+  .site-footer__bottom {
+    align-items: start;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 0;
+  }
+
+  .products-page {
+    padding: 46px 0 58px;
+  }
+
+  .page-heading {
+    align-items: start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .trang-gioi-thieu {
+    width: min(100% - 32px, 780px);
+    min-height: 58vh;
+    margin: 0 auto;
+    padding: 52px 0;
+  }
+}
+
+@media (max-width: 430px) {
+  .trang-chu__hero-actions .button {
+    width: 100%;
+  }
+
+  .about-cmid__values {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 10px;
+  }
+
+  .product-card__body {
+    padding: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

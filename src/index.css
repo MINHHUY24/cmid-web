@@ -1,0 +1,8 @@
+@import './styles/global.css';
+@import './styles/layout.css';
+@import './styles/components.css';
+@import './styles/trang-chu.css';
+@import './styles/trang-san-pham.css';
+@import './styles/trang-chi-tiet-san-pham.css';
+@import './styles/trang-gioi-thieu.css';
+@import './styles/responsive.css';

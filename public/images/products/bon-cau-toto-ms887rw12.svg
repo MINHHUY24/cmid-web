@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800" role="img" aria-labelledby="title description">
+  <title id="title">Bồn cầu TOTO MS887RW12</title>
+  <desc id="description">Ảnh placeholder cho Bồn cầu TOTO MS887RW12</desc>
+  <rect width="800" height="800" fill="#F5F0E7"/>
+  <rect x="68" y="68" width="664" height="664" rx="28" fill="none" stroke="#D8C7A5" stroke-width="2"/>
+  <path d="M136 172H664" stroke="#B69256" stroke-width="3"/>
+  <text x="400" y="142" text-anchor="middle" fill="#9A7740" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="4">CMID PLACEHOLDER</text>
+  <path d="M279 295H454C476 295 493 312 493 334V401H279V295Z" fill="#FCFBF8" stroke="#2D2B28" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M287 402H531C545 402 556 414 554 428C545 489 505 518 437 518H350C304 518 270 488 266 442C264 420 273 402 287 402Z" fill="#FCFBF8" stroke="#2D2B28" stroke-width="10"/>
+  <path d="M365 402C365 428 384 447 410 447H472" fill="none" stroke="#B69256" stroke-width="10" stroke-linecap="round"/>
+  <path d="M332 520V544H502V520" fill="none" stroke="#2D2B28" stroke-width="10" stroke-linejoin="round"/>
+  <text x="400" y="606" text-anchor="middle" fill="#2D2B28" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="700">Bồn cầu TOTO</text>
+  <text x="400" y="645" text-anchor="middle" fill="#2D2B28" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="700">MS887RW12</text>
+  <circle cx="400" cy="686" r="5" fill="#B69256"/>
+</svg>

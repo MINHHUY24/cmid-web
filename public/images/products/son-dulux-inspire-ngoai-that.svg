@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800" role="img" aria-labelledby="title description">
+  <title id="title">Sơn Dulux Inspire Ngoại thất</title>
+  <desc id="description">Ảnh placeholder cho Sơn Dulux Inspire Ngoại thất</desc>
+  <rect width="800" height="800" fill="#F5F0E7"/>
+  <rect x="68" y="68" width="664" height="664" rx="28" fill="none" stroke="#D8C7A5" stroke-width="2"/>
+  <path d="M136 172H664" stroke="#B69256" stroke-width="3"/>
+  <text x="400" y="142" text-anchor="middle" fill="#9A7740" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="4">CMID PLACEHOLDER</text>
+  <path d="M286 300H514L490 490H310L286 300Z" fill="#F9F8F4" stroke="#2D2B28" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M313 300V267H487V300" fill="none" stroke="#2D2B28" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M292 348H508" stroke="#B69256" stroke-width="13"/>
+  <path d="M338 421C376 372 432 372 470 421" fill="none" stroke="#6C7882" stroke-width="14" stroke-linecap="round"/>
+  <text x="400" y="450" text-anchor="middle" fill="#2D2B28" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="700">DULUX</text>
+  <text x="400" y="575" text-anchor="middle" fill="#2D2B28" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="700">Sơn Dulux Inspire</text>
+  <text x="400" y="614" text-anchor="middle" fill="#2D2B28" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="700">Ngoại thất</text>
+  <circle cx="400" cy="668" r="5" fill="#B69256"/>
+</svg>

@@ -1,0 +1,130 @@
+:root {
+  --cmid-ink: #20211f;
+  --cmid-muted: #77746e;
+  --cmid-paper: #fbfaf7;
+  --cmid-panel: #ffffff;
+  --cmid-line: #e6e1d8;
+  --cmid-gold: #b38d50;
+  --cmid-gold-dark: #8d6d3d;
+  --cmid-dark: #1c1c1a;
+  --cmid-radius: 10px;
+  color: var(--cmid-ink);
+  background: #11110f;
+  font-family: Arial, Helvetica, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input,
+a {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.app-shell {
+  width: min(100%, 1440px);
+  min-height: 100vh;
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--cmid-paper);
+}
+
+.site-main {
+  min-height: 60vh;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #ffffff;
+  background: var(--cmid-dark);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.015em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.button--small {
+  min-height: 33px;
+  padding: 0.42rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+}
+
+.button--gold {
+  border-color: var(--cmid-gold);
+  color: #fffdf9;
+  background: var(--cmid-gold);
+}
+
+.button--gold:hover {
+  border-color: var(--cmid-gold-dark);
+  background: var(--cmid-gold-dark);
+}
+
+.button--outline-light {
+  border-color: rgb(255 255 255 / 60%);
+  color: #ffffff;
+  background: rgb(29 27 23 / 18%);
+}
+
+.button--outline-light:hover {
+  border-color: #ffffff;
+  background: rgb(255 255 255 / 13%);
+}
