@@ -1,5 +1,6 @@
 import {
   Armchair,
+  ArrowLeft,
   ArrowRight,
   Buildings,
   Chair,
@@ -16,7 +17,7 @@ import {
   Toilet,
   Wall,
 } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import aboutImage from "../assets/images/khong-gian-trung-bay-vat-lieu.jpg";
 import projectGreenImage from "../assets/images/du-an-khu-do-thi-xanh.jpg";
@@ -31,139 +32,116 @@ import { SectionHeading } from "../components/common/TieuDeMuc";
 import { StatusPanel } from "../components/common/KhunTranThai";
 import { ProductCard } from "../components/product/TheSanPham";
 import { useProducts } from "../hooks/useProducts";
-import type { Product } from "../types/product";
-
-type BoLocSanPham = {
-  label: string;
-  matches: (product: Product) => boolean;
-};
+import { useLanguage } from "../contexts/NgonNguContext";
+import { getAdminProjects } from "./admin/admin-local-store";
 
 const danhMucNhanh = [
   {
-    label: "Xi măng & Bê tông",
-    to: "/products",
+    to: "/products?category=xi-mang-vat-lieu-tho",
     icon: <Wall size={32} weight="thin" />,
   },
   {
-    label: "Gạch ốp lát",
-    to: "/products",
+    to: "/products?category=gach-op-lat",
     icon: <GridFour size={32} weight="thin" />,
   },
   {
-    label: "Sơn & Chống thấm",
-    to: "/products",
+    to: "/products?category=son-chong-tham",
     icon: <PaintBrush size={32} weight="thin" />,
   },
   {
-    label: "Thiết bị vệ sinh",
-    to: "/products",
+    to: "/products?category=thiet-bi-ve-sinh",
     icon: <Toilet size={32} weight="thin" />,
   },
   {
-    label: "Đá tự nhiên",
-    to: "/products",
+    to: "/products?category=da-tu-nhien",
     icon: <Cube size={32} weight="thin" />,
   },
   {
-    label: "Cửa & Phụ kiện",
-    to: "/products",
+    to: "/products?category=cua-phu-kien",
     icon: <DoorOpen size={32} weight="thin" />,
   },
   {
-    label: "Trần & Vách",
-    to: "/products",
+    to: "/products?category=tran-vach",
     icon: <Buildings size={32} weight="thin" />,
   },
   {
-    label: "Nội thất phòng khách",
-    to: "/products",
+    to: "/products?category=noi-that-phong-khach",
     icon: <Armchair size={32} weight="thin" />,
   },
   {
-    label: "Nội thất phòng ăn",
-    to: "/products",
+    to: "/products?category=noi-that-phong-an",
     icon: <Chair size={32} weight="thin" />,
   },
   {
-    label: "Nội thất văn phòng",
-    to: "/products",
+    to: "/products?category=noi-that-van-phong",
     icon: <Storefront size={32} weight="thin" />,
   },
   {
-    label: "Xem tất cả",
     to: "/products",
     icon: <GridFour size={32} weight="thin" />,
-  },
-];
-
-const boLocSanPham: BoLocSanPham[] = [
-  { label: "Tất cả", matches: () => true },
-  {
-    label: "Vật liệu xây dựng",
-    matches: (product) =>
-      /xi măng|gạch|sơn/i.test(product.category?.name ?? ""),
-  },
-  {
-    label: "Thiết bị & Hoàn thiện",
-    matches: (product) =>
-      /thiết bị|vệ sinh/i.test(product.category?.name ?? ""),
-  },
-  {
-    label: "Nội thất",
-    matches: (product) => /nội thất/i.test(product.category?.name ?? ""),
   },
 ];
 
 const duAnNoiBat = [
   {
-    title: "Khu đô thị xanh",
-    location: "TP. Thủ Đức, TP. Hồ Chí Minh",
     image: projectGreenImage,
   },
   {
-    title: "Tháp đô thị",
-    location: "Quận 1, TP. Hồ Chí Minh",
     image: projectTowerImage,
   },
   {
-    title: "Khu căn hộ ven sông",
-    location: "TP. Thủ Đức, TP. Hồ Chí Minh",
     image: projectRiversideImage,
   },
   {
-    title: "Đô thị sinh thái",
-    location: "Phía Nam, TP. Hồ Chí Minh",
     image: projectPlanningImage,
   },
 ];
 
 const tinTuc = [
   {
-    title: "Xu hướng gạch ốp lát cho không gian hiện đại",
-    date: "10/04/2026",
     image: aboutImage,
   },
   {
-    title: "Thiết kế phòng khách sang trọng với vật liệu tự nhiên",
-    date: "08/04/2026",
     image: projectRiversideImage,
   },
   {
-    title: "Giải pháp chống thấm hiệu quả mùa mưa",
-    date: "05/04/2026",
     image: projectGreenImage,
   },
 ];
 
+const thuongHieu = [
+  "INSEE",
+  "VICOSTONE",
+  "TOTO",
+  "Dulux",
+  "HÄFELE",
+  "AN CƯỜNG",
+  "CAESAR",
+];
+
 export function TrangChuPage() {
   const { products, isLoading, errorMessage, retry } = useProducts();
-  const [boLocDangChon, setBoLocDangChon] = useState("Tất cả");
-  const activeFilter = boLocSanPham.find(
-    (filter) => filter.label === boLocDangChon,
-  );
-  const sanPhamHienThi = activeFilter
-    ? products.filter(activeFilter.matches)
-    : products;
+  const { content, language } = useLanguage();
+  const { home, common } = content;
+  const productScrollerRef = useRef<HTMLDivElement>(null);
+  const featuredProjects = [
+    ...getAdminProjects(language),
+    ...home.projects.map((project, index) => ({
+      ...project,
+      image: duAnNoiBat[index]?.image ?? projectPlanningImage,
+    })),
+  ].slice(0, 4);
+
+  function scrollFeaturedProducts(direction: -1 | 1) {
+    const productScroller = productScrollerRef.current;
+
+    if (!productScroller) return;
+
+    productScroller.scrollBy({
+      left: direction * productScroller.clientWidth * 0.82,
+      behavior: "smooth",
+    });
+  }
 
   return (
     <div className="trang-chu">
@@ -173,29 +151,37 @@ export function TrangChuPage() {
       >
         <div className="trang-chu__hero-overlay" />
         <div className="trang-chu__hero-content">
-          <h1>
-            Giải pháp vật liệu xây dựng <span>& nội thất cao cấp</span>
-          </h1>
-          <p>
-            CMID mang đến những sản phẩm chính hãng, chất lượng vượt trội cho
-            mọi không gian sống và công trình.
-          </p>
-          <div className="trang-chu__hero-actions">
-            <Link className="button button--gold" to="/products">
-              Khám phá sản phẩm
-              <ArrowRight size={18} weight="bold" aria-hidden="true" />
-            </Link>
-            <Link className="button button--outline-light" to="/lien-he">
-              Yêu cầu báo giá
-            </Link>
+          <div className="trang-chu__hero-panel">
+            <h1>
+              {home.heroTitle}
+              <br />
+              <span>{home.heroHighlight}</span>
+            </h1>
+            <p>{home.heroDescription}</p>
+            <div className="trang-chu__hero-actions">
+              <Link className="button button--gold" to="/products">
+                {home.browseProducts}
+                <ArrowRight size={18} weight="bold" aria-hidden="true" />
+              </Link>
+              <Link className="button button--outline-light" to="/lien-he">
+                {home.requestQuote}
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
       <div className="trang-chu__container">
-        <nav className="category-bar" aria-label="Danh mục sản phẩm">
-          {danhMucNhanh.map((category) => (
-            <CategoryShortcut key={category.label} {...category} />
+        <nav
+          className="category-bar"
+          aria-label={content.product.filter.category}
+        >
+          {danhMucNhanh.map((category, index) => (
+            <CategoryShortcut
+              key={home.categories[index]}
+              {...category}
+              label={home.categories[index]}
+            />
           ))}
         </nav>
 
@@ -203,86 +189,92 @@ export function TrangChuPage() {
           className="home-products section-space"
           aria-labelledby="san-pham-noi-bat"
         >
-          <SectionHeading id="san-pham-noi-bat" title="Sản phẩm nổi bật" />
-          <div className="product-filters" aria-label="Lọc sản phẩm">
-            {boLocSanPham.map((filter) => (
-              <button
-                key={filter.label}
-                type="button"
-                className={
-                  boLocDangChon === filter.label
-                    ? "product-filter product-filter--active"
-                    : "product-filter"
-                }
-                onClick={() => setBoLocDangChon(filter.label)}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
+          <SectionHeading id="san-pham-noi-bat" title={home.featuredTitle} />
 
           {isLoading ? (
             <div
               className="home-products__skeleton"
-              aria-label="Đang tải sản phẩm"
+              aria-label={home.loading}
             />
           ) : null}
 
           {!isLoading && errorMessage ? (
-            <StatusPanel title="Không thể tải sản phẩm" tone="error">
+            <StatusPanel title={home.loadFailed} tone="error">
               <p>{errorMessage}</p>
               <button
                 className="button button--small"
                 type="button"
                 onClick={retry}
               >
-                Thử lại
+                {common.retry}
               </button>
             </StatusPanel>
           ) : null}
 
-          {!isLoading && !errorMessage && sanPhamHienThi.length === 0 ? (
-            <StatusPanel title="Chưa có sản phẩm thuộc nhóm này" />
+          {!isLoading && !errorMessage && products.length === 0 ? (
+            <StatusPanel title={home.emptyFeatured} />
           ) : null}
 
-          {!isLoading && !errorMessage && sanPhamHienThi.length > 0 ? (
-            <div className="home-product-grid">
-              {sanPhamHienThi.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  variant="showcase"
-                />
-              ))}
+          {!isLoading && !errorMessage && products.length > 0 ? (
+            <div className="home-products__carousel">
+              <button
+                className="home-products__control home-products__control--previous"
+                type="button"
+                aria-label={home.previousProduct}
+                onClick={() => scrollFeaturedProducts(-1)}
+              >
+                <ArrowLeft size={18} weight="bold" aria-hidden="true" />
+              </button>
+              <div
+                ref={productScrollerRef}
+                className="home-product-grid"
+                aria-label={home.featuredTitle}
+              >
+                {products.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    variant="showcase"
+                  />
+                ))}
+              </div>
+              <button
+                className="home-products__control home-products__control--next"
+                type="button"
+                aria-label={home.nextProduct}
+                onClick={() => scrollFeaturedProducts(1)}
+              >
+                <ArrowRight size={18} weight="bold" aria-hidden="true" />
+              </button>
             </div>
           ) : null}
         </section>
 
-        <section className="order-options" aria-label="Phương thức mua hàng">
+        <section className="order-options" aria-label="Purchase options">
           <div className="order-option">
             <div className="order-option__icon" aria-hidden="true">
               <ShoppingCart size={42} weight="thin" />
             </div>
             <div>
-              <h2>Mua trực tiếp</h2>
-              <p>Sản phẩm có sẵn, giao hàng nhanh chóng.</p>
+              <h2>{home.direct.title}</h2>
+              <p>{home.direct.description}</p>
               <ul>
                 <li>
-                  <Check size={15} weight="bold" aria-hidden="true" /> Đặt hàng
-                  dễ dàng
+                  <Check size={15} weight="bold" aria-hidden="true" />{" "}
+                  {home.direct.points[0]}
                 </li>
                 <li>
-                  <Check size={15} weight="bold" aria-hidden="true" /> Thanh
-                  toán linh hoạt
+                  <Check size={15} weight="bold" aria-hidden="true" />{" "}
+                  {home.direct.points[1]}
                 </li>
                 <li>
-                  <Check size={15} weight="bold" aria-hidden="true" /> Giao hàng
-                  toàn quốc
+                  <Check size={15} weight="bold" aria-hidden="true" />{" "}
+                  {home.direct.points[2]}
                 </li>
               </ul>
             </div>
             <Link className="button button--gold" to="/products">
-              Mua ngay
+              {home.direct.action}
             </Link>
           </div>
           <div className="order-option">
@@ -290,90 +282,81 @@ export function TrangChuPage() {
               <ClipboardText size={42} weight="thin" />
             </div>
             <div>
-              <h2>Yêu cầu báo giá</h2>
-              <p>Giải pháp tối ưu cho công trình và dự án.</p>
+              <h2>{home.quote.title}</h2>
+              <p>{home.quote.description}</p>
               <ul>
                 <li>
-                  <Check size={15} weight="bold" aria-hidden="true" /> Báo giá
-                  nhanh chóng
+                  <Check size={15} weight="bold" aria-hidden="true" />{" "}
+                  {home.quote.points[0]}
                 </li>
                 <li>
-                  <Check size={15} weight="bold" aria-hidden="true" /> Chiết
-                  khấu dự án
+                  <Check size={15} weight="bold" aria-hidden="true" />{" "}
+                  {home.quote.points[1]}
                 </li>
                 <li>
-                  <Check size={15} weight="bold" aria-hidden="true" /> Tư vấn
-                  chuyên sâu
+                  <Check size={15} weight="bold" aria-hidden="true" />{" "}
+                  {home.quote.points[2]}
                 </li>
               </ul>
             </div>
             <Link className="button button--gold" to="/lien-he">
-              Gửi yêu cầu
+              {home.quote.action}
             </Link>
           </div>
         </section>
 
         <section className="about-cmid section-space" aria-labelledby="ve-cmid">
-          <img
-            src={aboutImage}
-            alt="Không gian trưng bày vật liệu và nội thất CMID"
-          />
+          <img src={aboutImage} alt="CMID materials and interiors showroom" />
           <div className="about-cmid__content">
             <SectionHeading
               alignment="left"
               id="ve-cmid"
-              title="Về CMID"
-              description="CMID đồng hành cùng khách hàng từ khâu chọn vật liệu đến hoàn thiện không gian sống và công trình."
+              title={home.aboutTitle}
+              description={home.aboutDescription}
             />
             <div className="about-cmid__values">
               <div>
                 <Medal size={30} weight="thin" aria-hidden="true" />
-                <span>
-                  Sản phẩm
-                  <br />
-                  chính hãng
-                </span>
+                <span>{home.values[0]}</span>
               </div>
               <div>
                 <Sparkle size={30} weight="thin" aria-hidden="true" />
-                <span>
-                  Chất lượng
-                  <br />
-                  hàng đầu
-                </span>
+                <span>{home.values[1]}</span>
               </div>
               <div>
                 <Cube size={30} weight="thin" aria-hidden="true" />
-                <span>
-                  Giải pháp
-                  <br />
-                  đa dạng
-                </span>
+                <span>{home.values[2]}</span>
               </div>
               <div>
                 <Storefront size={30} weight="thin" aria-hidden="true" />
-                <span>
-                  Dịch vụ
-                  <br />
-                  chuyên nghiệp
-                </span>
+                <span>{home.values[3]}</span>
               </div>
             </div>
             <Link className="button button--gold" to="/ve-cmid">
-              Tìm hiểu về CMID
+              {home.learnAbout}
               <ArrowRight size={17} weight="bold" aria-hidden="true" />
             </Link>
           </div>
         </section>
 
-        <section className="brand-strip" aria-label="Đối tác và thương hiệu">
-          <span>INSEE</span>
-          <span>VICOSTONE</span>
-          <span>TOTO</span>
-          <span>Dulux</span>
-          <span>HÄFELE</span>
-          <span>AN CƯỜNG</span>
-          <span>CAESAR</span>
+        <section className="brand-strip" aria-label={home.brandsLabel}>
+          <div className="brand-strip__track">
+            {[...thuongHieu, ...thuongHieu].map((brand, index) => (
+              <span
+                key={`${brand}-${index}`}
+                className={
+                  brand === "TOTO"
+                    ? "brand-strip__item brand-strip__item--toto"
+                    : brand === "Dulux"
+                      ? "brand-strip__item brand-strip__item--dulux"
+                      : "brand-strip__item"
+                }
+                aria-hidden={index >= thuongHieu.length ? true : undefined}
+              >
+                {brand}
+              </span>
+            ))}
+          </div>
         </section>
 
         <section
@@ -381,14 +364,11 @@ export function TrangChuPage() {
           style={{ backgroundImage: `url(${modelImage})` }}
         >
           <div className="experience-3d__content">
-            <p>Trải nghiệm 3D</p>
-            <h2>Kiến tạo không gian của bạn</h2>
-            <span>
-              Khám phá sản phẩm trong không gian trực quan và hình dung vẻ đẹp
-              của ngôi nhà.
-            </span>
+            <p>{home.experienceEyebrow}</p>
+            <h2>{home.experienceTitle}</h2>
+            <span>{home.experienceDescription}</span>
             <Link className="button button--gold" to="/products">
-              Trải nghiệm ngay
+              {home.experienceAction}
               <ArrowRight size={17} weight="bold" aria-hidden="true" />
             </Link>
           </div>
@@ -402,15 +382,18 @@ export function TrangChuPage() {
             <SectionHeading
               id="du-an-tieu-bieu"
               alignment="left"
-              title="Dự án tiêu biểu"
+              title={home.projectsTitle}
             />
             <Link className="text-link" to="/du-an">
-              Xem tất cả dự án <ArrowRight size={16} aria-hidden="true" />
+              {home.allProjects} <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </div>
           <div className="project-grid">
-            {duAnNoiBat.map((project) => (
-              <ProjectCard key={project.title} {...project} />
+            {featuredProjects.map((project) => (
+              <ProjectCard
+                key={`${project.title}-${project.location}`}
+                {...project}
+              />
             ))}
           </div>
         </section>
@@ -423,19 +406,19 @@ export function TrangChuPage() {
             <SectionHeading
               id="tin-tuc-cam-hung"
               alignment="left"
-              title="Tin tức & cảm hứng"
+              title={home.newsTitle}
             />
             <Link className="text-link" to="/tin-tuc-su-kien">
-              Xem tất cả tin tức <ArrowRight size={16} aria-hidden="true" />
+              {home.allNews} <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </div>
           <div className="news-list">
-            {tinTuc.map((article) => (
-              <article key={article.title} className="news-item">
+            {tinTuc.map((article, index) => (
+              <article key={home.news[index].title} className="news-item">
                 <img src={article.image} alt="" />
                 <div>
-                  <h3>{article.title}</h3>
-                  <p>{article.date}</p>
+                  <h3>{home.news[index].title}</h3>
+                  <p>{home.news[index].date}</p>
                 </div>
               </article>
             ))}

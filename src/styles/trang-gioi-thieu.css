@@ -11,7 +11,7 @@
 .trang-gioi-thieu__nhan {
   margin: 0 0 11px;
   color: var(--cmid-gold-dark);
-  font-size: 0.72rem;
+  font-size: calc(0.72rem + 2px);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -20,7 +20,7 @@
 .trang-gioi-thieu h1 {
   margin: 0;
   color: #34312c;
-  font-family: Georgia, serif;
+  font-family: var(--cmid-font);
   font-size: clamp(2.4rem, 5vw, 4.4rem);
   font-weight: 400;
   letter-spacing: -0.045em;
@@ -30,7 +30,7 @@
   max-width: 600px;
   margin: 18px 0 28px;
   color: #716b63;
-  font-size: 1rem;
+  font-size: calc(1rem + 2px);
   line-height: 1.65;
 }
 

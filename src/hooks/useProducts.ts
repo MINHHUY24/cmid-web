@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { ADMIN_PRODUCTS_UPDATED_EVENT, mergeAdminProducts } from '../pages/admin/admin-local-store'
 import { getProducts } from '../services/product.service'
 import type { Product } from '../types/product'
 
@@ -26,14 +27,19 @@ export function useProducts(): UseProductsResult {
         const response = await getProducts()
 
         if (isCurrentRequest) {
-          setProducts(response)
+          setProducts(mergeAdminProducts(response))
         }
       } catch (error: unknown) {
         if (isCurrentRequest) {
+          const localProducts = mergeAdminProducts([])
+
+          setProducts(localProducts)
           setErrorMessage(
-            error instanceof Error
-              ? error.message
-              : 'Không thể tải danh sách sản phẩm.',
+            localProducts.length > 0
+              ? null
+              : error instanceof Error
+                ? error.message
+                : 'Không thể tải danh sách sản phẩm.',
           )
         }
       } finally {
@@ -49,6 +55,18 @@ export function useProducts(): UseProductsResult {
       isCurrentRequest = false
     }
   }, [reloadKey])
+
+  useEffect(() => {
+    function syncCustomProducts() {
+      setProducts((currentProducts) => mergeAdminProducts(currentProducts))
+    }
+
+    window.addEventListener(ADMIN_PRODUCTS_UPDATED_EVENT, syncCustomProducts)
+
+    return () => {
+      window.removeEventListener(ADMIN_PRODUCTS_UPDATED_EVENT, syncCustomProducts)
+    }
+  }, [])
 
   const retry = useCallback(() => {
     setReloadKey((currentKey) => currentKey + 1)

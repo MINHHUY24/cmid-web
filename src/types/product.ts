@@ -5,12 +5,14 @@ export type ProductStatus = 'ACTIVE' | 'INACTIVE' | 'DRAFT'
 export interface ProductCategory {
   id: number
   name: string
+  nameEn?: string | null
   slug: string
 }
 
 export interface ProductBrand {
   id: number
   name: string
+  nameEn?: string | null
   slug: string
 }
 
@@ -39,12 +41,18 @@ export interface Product {
   id: number
   sku: string
   name: string
+  nameEn?: string | null
   slug: string
   description: string | null
+  descriptionEn?: string | null
   price: string | null
   unit: string | null
   saleType: SaleType
   status: ProductStatus
+  stock?: number | null
+  isFeatured?: boolean
+  materialIds?: string[]
+  supplierId?: string | null
   category: ProductCategory | null
   brand: ProductBrand | null
   images: ProductImage[]

@@ -1,39 +1,50 @@
 import {
+  ArrowLeft,
+  ArrowRight,
   CaretRight,
   Check,
   Cube,
   House,
   Minus,
-  Phone,
   Plus,
   ShoppingCartSimple,
-} from '@phosphor-icons/react'
-import { useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { CamKetDichVu } from '../components/common/CamKetDichVu'
-import { StatusPanel } from '../components/common/KhunTranThai'
-import { TheSanPhamLienQuan } from '../components/product/TheSanPhamLienQuan'
-import { ThuVienAnhSanPham } from '../components/product/ThuVienAnhSanPham'
-import { SALE_TYPE_LABELS } from '../constants/product'
-import { useProducts } from '../hooks/useProducts'
-import type { Product } from '../types/product'
-import { formatCurrency } from '../utils/formatCurrency'
+} from "@phosphor-icons/react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { CamKetDichVu } from "../components/common/CamKetDichVu";
+import { StatusPanel } from "../components/common/KhunTranThai";
+import { TheSanPhamLienQuan } from "../components/product/TheSanPhamLienQuan";
+import { ThuVienAnhSanPham } from "../components/product/ThuVienAnhSanPham";
+import { useCart } from "../contexts/GioHangContext";
+import { useLanguage } from "../contexts/NgonNguContext";
+import { useProducts } from "../hooks/useProducts";
+import type { Product } from "../types/product";
+import { formatCurrency } from "../utils/formatCurrency";
+import {
+  getBrandName,
+  getCategoryName,
+  getProductDescription,
+  getProductName,
+} from "../utils/localizeProduct";
 
-type TabChiTiet = 'mo-ta' | 'thong-so' | 'huong-dan' | 'chinh-sach'
+type TabChiTiet = "mo-ta" | "thong-so" | "huong-dan" | "chinh-sach";
 
-const tabChiTiet: Array<{ id: TabChiTiet; label: string }> = [
-  { id: 'mo-ta', label: 'Mô tả' },
-  { id: 'thong-so', label: 'Thông số kỹ thuật' },
-  { id: 'huong-dan', label: 'Hướng dẫn' },
-  { id: 'chinh-sach', label: 'Chính sách bán hàng' },
-]
+const tabChiTiet: TabChiTiet[] = [
+  "mo-ta",
+  "thong-so",
+  "huong-dan",
+  "chinh-sach",
+];
 
-function createDescription(product: Product): string {
-  if (product.description) {
-    return product.description
+function createDescription(
+  description: string | null,
+  fallback: string,
+): string {
+  if (description) {
+    return description;
   }
 
-  return `${product.name} là lựa chọn phù hợp cho không gian cần tính thẩm mỹ, độ bền và sự đồng bộ trong hoàn thiện. CMID hỗ trợ tư vấn giải pháp theo nhu cầu sử dụng thực tế của công trình.`
+  return fallback;
 }
 
 function getRelatedProducts(products: Product[], product: Product): Product[] {
@@ -41,147 +52,214 @@ function getRelatedProducts(products: Product[], product: Product): Product[] {
     (currentProduct) =>
       currentProduct.id !== product.id &&
       currentProduct.category?.id === product.category?.id,
-  )
+  );
   const remainingProducts = products.filter(
     (currentProduct) =>
       currentProduct.id !== product.id &&
       !sameCategoryProducts.some(
         (relatedProduct) => relatedProduct.id === currentProduct.id,
       ),
-  )
+  );
 
-  return [...sameCategoryProducts, ...remainingProducts].slice(0, 5)
+  return [...sameCategoryProducts, ...remainingProducts];
 }
 
 export function TrangChiTietSanPham() {
-  const { id } = useParams()
-  const { products, isLoading, errorMessage, retry } = useProducts()
-  const [activeTab, setActiveTab] = useState<TabChiTiet>('mo-ta')
-  const [quantity, setQuantity] = useState(1)
-  const [isAddedToCart, setIsAddedToCart] = useState(false)
-  const productId = Number(id)
-  const product = products.find((currentProduct) => currentProduct.id === productId)
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { products, isLoading, errorMessage, retry } = useProducts();
+  const [activeTab, setActiveTab] = useState<TabChiTiet>("mo-ta");
+  const [quantity, setQuantity] = useState(1);
+  const [isAddedToCart, setIsAddedToCart] = useState(false);
+  const relatedProductsScrollerRef = useRef<HTMLDivElement>(null);
+  const { addItem, dismissCartToast } = useCart();
+  const { content, language } = useLanguage();
+  const { productDetail } = content;
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [id]);
+
+  const productId = Number(id);
+  const product = products.find(
+    (currentProduct) => currentProduct.id === productId,
+  );
   const relatedProducts = useMemo(
     () => (product ? getRelatedProducts(products, product) : []),
     [product, products],
-  )
+  );
+
+  function scrollRelatedProducts(direction: -1 | 1) {
+    const relatedProductsScroller = relatedProductsScrollerRef.current;
+
+    if (!relatedProductsScroller) return;
+
+    relatedProductsScroller.scrollBy({
+      left: direction * relatedProductsScroller.clientWidth * 0.82,
+      behavior: "smooth",
+    });
+  }
 
   if (isLoading) {
     return (
       <div className="product-detail-shell product-detail-shell--status">
-        <StatusPanel title="Đang tải thông tin sản phẩm…" />
+        <StatusPanel title={productDetail.loading} />
       </div>
-    )
+    );
   }
 
   if (errorMessage) {
     return (
       <div className="product-detail-shell product-detail-shell--status">
-        <StatusPanel title="Không thể tải thông tin sản phẩm" tone="error">
+        <StatusPanel title={productDetail.loadFailed} tone="error">
           <p>{errorMessage}</p>
-          <button className="button button--small" type="button" onClick={retry}>
-            Thử lại
+          <button
+            className="button button--small"
+            type="button"
+            onClick={retry}
+          >
+            {content.common.retry}
           </button>
         </StatusPanel>
       </div>
-    )
+    );
   }
 
   if (!product) {
     return (
       <div className="product-detail-shell product-detail-shell--status">
-        <StatusPanel title="Không tìm thấy sản phẩm">
-          <p>Sản phẩm này không tồn tại hoặc đã được cập nhật.</p>
+        <StatusPanel title={productDetail.notFound}>
+          <p>{productDetail.notFoundDescription}</p>
           <Link className="button button--small button--gold" to="/products">
-            Quay lại danh sách sản phẩm
+            {productDetail.backToCatalog}
           </Link>
         </StatusPanel>
       </div>
-    )
+    );
   }
 
-  const primaryImage = product.images.find((image) => image.isPrimary) ?? product.images[0]
-  const isDirectOrder = product.saleType === 'DIRECT_ORDER'
-  const actionPath = isDirectOrder
-    ? `/lien-he?mua-san-pham=${product.id}`
-    : `/lien-he?bao-gia-san-pham=${product.id}`
-  const actionLabel = isDirectOrder ? 'Mua ngay' : 'Yêu cầu báo giá'
+  const primaryImage =
+    product.images.find((image) => image.isPrimary) ?? product.images[0];
+  const productName = getProductName(product, language);
+  const categoryName = getCategoryName(product.category, language);
+  const brandName = getBrandName(product.brand, language);
+  const productDescription = getProductDescription(product, language);
+  const isDirectOrder = product.saleType === "DIRECT_ORDER";
+  const actionPath = `/lien-he?bao-gia-san-pham=${product.id}`;
+  const actionLabel = isDirectOrder
+    ? productDetail.buyNow
+    : productDetail.requestQuote;
   const detailSpecs = [
-    { label: 'Tình trạng', value: product.status === 'ACTIVE' ? 'Còn hàng' : 'Đặt hàng' },
-    { label: 'Loại bán', value: SALE_TYPE_LABELS[product.saleType] },
-    { label: 'Danh mục', value: product.category?.name ?? 'Đang cập nhật' },
-    { label: 'Thương hiệu', value: product.brand?.name ?? 'CMID' },
-    { label: 'Đơn vị tính', value: product.unit ?? 'Đang cập nhật' },
-    { label: 'Mô hình 3D', value: product.models3D.length > 0 ? 'Có sẵn' : 'Chưa có' },
-  ]
+    {
+      label: productDetail.specs.availability,
+      value:
+        product.status === "ACTIVE"
+          ? content.product.inStock
+          : content.product.madeToOrder,
+    },
+    {
+      label: productDetail.specs.purchaseType,
+      value:
+        product.saleType === "DIRECT_ORDER"
+          ? content.product.directOrder
+          : content.product.quote,
+    },
+    {
+      label: productDetail.specs.category,
+      value: categoryName ?? productDetail.specs.updating,
+    },
+    { label: productDetail.specs.brand, value: brandName ?? "CMID" },
+    {
+      label: productDetail.specs.unit,
+      value: product.unit ?? productDetail.specs.updating,
+    },
+    {
+      label: productDetail.specs.model3D,
+      value:
+        product.models3D.length > 0
+          ? productDetail.specs.yes
+          : productDetail.specs.no,
+    },
+  ];
 
   return (
     <div className="trang-chi-tiet-san-pham">
       <div className="product-detail-shell">
-        <nav className="product-detail-breadcrumb" aria-label="Đường dẫn trang">
-          <Link aria-label="Trang chủ" to="/">
+        <nav className="product-detail-breadcrumb" aria-label="Breadcrumb">
+          <Link aria-label={content.common.home} to="/">
             <House size={15} weight="fill" aria-hidden="true" />
           </Link>
           <CaretRight size={14} aria-hidden="true" />
-          <Link to="/products">Sản phẩm</Link>
+          <Link to="/products">{content.common.products}</Link>
           {product.category ? (
             <>
               <CaretRight size={14} aria-hidden="true" />
-              <Link to="/products">{product.category.name}</Link>
+              <Link to="/products">{categoryName}</Link>
             </>
           ) : null}
           <CaretRight size={14} aria-hidden="true" />
-          <span>{product.name}</span>
+          <span>{productName}</span>
         </nav>
 
-        <section className="product-detail-overview" aria-labelledby="product-detail-title">
+        <section
+          className="product-detail-overview"
+          aria-labelledby="product-detail-title"
+        >
           <ThuVienAnhSanPham
-            productName={product.name}
+            productName={productName}
             images={product.images}
             models3D={product.models3D}
           />
 
           <div className="product-detail-summary">
-            <h1 id="product-detail-title">{product.name}</h1>
+            <h1 id="product-detail-title">{productName}</h1>
             <div className="product-detail-summary__meta">
               <span>SKU: {product.sku}</span>
-              <span>Thương hiệu: {product.brand?.name ?? 'CMID'}</span>
-              <span>Danh mục: {product.category?.name ?? 'Đang cập nhật'}</span>
+              <span>
+                {productDetail.brand}: {brandName ?? "CMID"}
+              </span>
+              <span>
+                {productDetail.category}:{" "}
+                {categoryName ?? productDetail.specs.updating}
+              </span>
             </div>
 
             <dl className="product-detail-spec-list">
               {detailSpecs.slice(0, 5).map((spec) => (
                 <div key={spec.label}>
                   <dt>{spec.label}</dt>
-                  <dd>
-                    {spec.label === 'Tình trạng' ? <i aria-hidden="true" /> : null}
-                    {spec.value}
-                  </dd>
+                  <dd>{spec.value}</dd>
                 </div>
               ))}
             </dl>
 
             <div className="product-detail-price">
-              <strong>{formatCurrency(product.price)}</strong>
+              <strong>{formatCurrency(product.price, language)}</strong>
               {product.unit ? <span>/{product.unit}</span> : null}
             </div>
 
             <div className="product-detail-quantity">
-              <span>Số lượng</span>
+              <span>{productDetail.quantity}</span>
               <div>
                 <button
                   type="button"
-                  aria-label="Giảm số lượng"
+                  aria-label={content.cart.decrease(productName)}
                   disabled={quantity === 1}
-                  onClick={() => setQuantity((currentQuantity) => Math.max(1, currentQuantity - 1))}
+                  onClick={() =>
+                    setQuantity((currentQuantity) =>
+                      Math.max(1, currentQuantity - 1),
+                    )
+                  }
                 >
                   <Minus size={15} aria-hidden="true" />
                 </button>
-                <output aria-label="Số lượng hiện tại">{quantity}</output>
+                <output aria-label={productDetail.quantity}>{quantity}</output>
                 <button
                   type="button"
-                  aria-label="Tăng số lượng"
-                  onClick={() => setQuantity((currentQuantity) => currentQuantity + 1)}
+                  aria-label={content.cart.increase(productName)}
+                  onClick={() =>
+                    setQuantity((currentQuantity) => currentQuantity + 1)
+                  }
                 >
                   <Plus size={15} aria-hidden="true" />
                 </button>
@@ -190,19 +268,43 @@ export function TrangChiTietSanPham() {
             </div>
 
             <div className="product-detail-actions">
-              <Link className="button button--gold product-detail-actions__primary" to={actionPath}>
-                {actionLabel}
-              </Link>
+              {isDirectOrder ? (
+                <button
+                  className="button button--gold product-detail-actions__primary"
+                  type="button"
+                  onClick={() => {
+                    addItem(product, quantity);
+                    setIsAddedToCart(true);
+                    dismissCartToast();
+                    navigate("/thanh-toan");
+                  }}
+                >
+                  {actionLabel}
+                </button>
+              ) : (
+                <Link
+                  className="button button--gold product-detail-actions__primary"
+                  to={actionPath}
+                >
+                  {actionLabel}
+                </Link>
+              )}
               <button
                 className="product-detail-actions__secondary"
                 type="button"
-                onClick={() => setIsAddedToCart(true)}
+                onClick={() => {
+                  addItem(product, quantity);
+                  setIsAddedToCart(true);
+                }}
               >
                 <ShoppingCartSimple size={18} aria-hidden="true" />
-                {isAddedToCart ? 'Đã thêm vào giỏ' : 'Thêm vào giỏ'}
+                {isAddedToCart ? productDetail.added : productDetail.addToCart}
               </button>
-              <Link className="product-detail-actions__secondary" to={`/lien-he?tu-van-san-pham=${product.id}`}>
-                Yêu cầu tư vấn
+              <Link
+                className="product-detail-actions__secondary"
+                to={`/lien-he?tu-van-san-pham=${product.id}`}
+              >
+                {productDetail.consultation}
               </Link>
             </div>
           </div>
@@ -210,39 +312,59 @@ export function TrangChiTietSanPham() {
 
         <CamKetDichVu />
 
-        <section className="product-detail-tabs" aria-label="Thông tin chi tiết sản phẩm">
-          <div className="product-detail-tabs__tab-list" role="tablist" aria-label="Nội dung sản phẩm">
-            {tabChiTiet.map((tab) => (
+        <section className="product-detail-tabs" aria-label={productName}>
+          <div
+            className="product-detail-tabs__tab-list"
+            role="tablist"
+            aria-label={productName}
+          >
+            {tabChiTiet.map((tab, index) => (
               <button
-                key={tab.id}
-                className={activeTab === tab.id ? 'product-detail-tabs__tab product-detail-tabs__tab--active' : 'product-detail-tabs__tab'}
+                key={tab}
+                className={
+                  activeTab === tab
+                    ? "product-detail-tabs__tab product-detail-tabs__tab--active"
+                    : "product-detail-tabs__tab"
+                }
                 type="button"
                 role="tab"
-                aria-selected={activeTab === tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                aria-selected={activeTab === tab}
+                onClick={() => setActiveTab(tab)}
               >
-                {tab.label}
+                {productDetail.tabs[index]}
               </button>
             ))}
           </div>
 
-          {activeTab === 'mo-ta' ? (
+          {activeTab === "mo-ta" ? (
             <div className="product-detail-tabs__description">
               <div>
-                <p>{createDescription(product)}</p>
+                <p>
+                  {createDescription(
+                    productDescription,
+                    productDetail.descriptionFallback(productName),
+                  )}
+                </p>
                 <ul>
-                  <li><Check size={15} weight="bold" aria-hidden="true" /> Phù hợp với nhiều giải pháp hoàn thiện không gian.</li>
-                  <li><Check size={15} weight="bold" aria-hidden="true" /> Chất lượng được CMID tư vấn theo nhu cầu sử dụng.</li>
-                  <li><Check size={15} weight="bold" aria-hidden="true" /> Hỗ trợ báo giá và giao hàng trên toàn quốc.</li>
+                  {productDetail.descriptionPoints.map((point) => (
+                    <li key={point}>
+                      <Check size={15} weight="bold" aria-hidden="true" />{" "}
+                      {point}
+                    </li>
+                  ))}
                 </ul>
               </div>
               <div className="product-detail-tabs__visual">
-                {primaryImage ? <img src={primaryImage.imageUrl} alt="" /> : <Cube size={70} weight="thin" aria-hidden="true" />}
+                {primaryImage ? (
+                  <img src={primaryImage.imageUrl} alt="" />
+                ) : (
+                  <Cube size={70} weight="thin" aria-hidden="true" />
+                )}
               </div>
             </div>
           ) : null}
 
-          {activeTab === 'thong-so' ? (
+          {activeTab === "thong-so" ? (
             <dl className="product-detail-tabs__technical">
               {detailSpecs.map((spec) => (
                 <div key={spec.label}>
@@ -253,52 +375,68 @@ export function TrangChiTietSanPham() {
             </dl>
           ) : null}
 
-          {activeTab === 'huong-dan' ? (
+          {activeTab === "huong-dan" ? (
             <div className="product-detail-tabs__copy">
-              <p>Liên hệ CMID để được tư vấn lựa chọn sản phẩm, số lượng và phương án giao hàng phù hợp cho công trình của bạn.</p>
+              <p>{productDetail.guide}</p>
               <ul>
-                <li>Kiểm tra quy cách, số lượng trước khi đặt hàng.</li>
-                <li>Bảo quản sản phẩm theo hướng dẫn của nhà sản xuất.</li>
-                <li>Đội ngũ CMID sẵn sàng hỗ trợ giải đáp khi cần.</li>
+                {productDetail.guidePoints.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
               </ul>
             </div>
           ) : null}
 
-          {activeTab === 'chinh-sach' ? (
+          {activeTab === "chinh-sach" ? (
             <div className="product-detail-tabs__copy">
-              <p>CMID cung cấp chính sách báo giá rõ ràng, giao hàng an toàn và hỗ trợ sau bán hàng cho từng nhóm sản phẩm.</p>
+              <p>{productDetail.policy}</p>
               <ul>
-                <li>Tư vấn điều kiện đổi trả trước khi xác nhận đơn hàng.</li>
-                <li>Hỗ trợ báo giá dự án theo số lượng và tiến độ thực tế.</li>
-                <li>Liên hệ CMID để biết chính sách áp dụng cho sản phẩm này.</li>
+                {productDetail.policyPoints.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
               </ul>
             </div>
           ) : null}
         </section>
 
         {relatedProducts.length > 0 ? (
-          <section className="related-products" aria-labelledby="related-products-title">
-            <h2 id="related-products-title">Sản phẩm liên quan</h2>
-            <div className="related-products__grid">
-              {relatedProducts.map((relatedProduct) => (
-                <TheSanPhamLienQuan key={relatedProduct.id} product={relatedProduct} />
-              ))}
+          <section
+            className="related-products"
+            aria-labelledby="related-products-title"
+          >
+            <h2 id="related-products-title">{productDetail.related}</h2>
+            <div className="related-products__carousel">
+              <button
+                className="related-products__control related-products__control--previous"
+                type="button"
+                aria-label={content.home.previousProduct}
+                onClick={() => scrollRelatedProducts(-1)}
+              >
+                <ArrowLeft size={18} weight="bold" aria-hidden="true" />
+              </button>
+              <div
+                ref={relatedProductsScrollerRef}
+                className="related-products__grid"
+                aria-label={productDetail.related}
+              >
+                {relatedProducts.map((relatedProduct) => (
+                  <TheSanPhamLienQuan
+                    key={relatedProduct.id}
+                    product={relatedProduct}
+                  />
+                ))}
+              </div>
+              <button
+                className="related-products__control related-products__control--next"
+                type="button"
+                aria-label={content.home.nextProduct}
+                onClick={() => scrollRelatedProducts(1)}
+              >
+                <ArrowRight size={18} weight="bold" aria-hidden="true" />
+              </button>
             </div>
           </section>
         ) : null}
-
-        <section className="product-consultation" aria-label="Tư vấn sản phẩm">
-          <Phone size={39} weight="fill" aria-hidden="true" />
-          <div>
-            <h2>Cần tư vấn sản phẩm?</h2>
-            <p>Đội ngũ CMID sẵn sàng hỗ trợ bạn lựa chọn sản phẩm phù hợp nhất.</p>
-          </div>
-          <Link className="button button--gold" to={`/lien-he?tu-van-san-pham=${product.id}`}>
-            Liên hệ tư vấn
-            <CaretRight size={18} weight="bold" aria-hidden="true" />
-          </Link>
-        </section>
       </div>
     </div>
-  )
+  );
 }

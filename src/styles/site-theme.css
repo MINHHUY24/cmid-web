@@ -1,0 +1,3637 @@
+/* Shared public-site theme. Admin keeps its own operational design system. */
+.app-shell--site:not(.app-shell--home) {
+  --site-bg: #0f0b08;
+  --site-surface: rgb(23 17 12 / 92%);
+  --site-surface-solid: #17110d;
+  --site-surface-soft: #211912;
+  --site-surface-raised: #2a2018;
+  --site-field: rgb(13 10 7 / 74%);
+  --site-text: #f2ece2;
+  --site-heading: #f8f3eb;
+  --site-muted: #c2b6a7;
+  --site-muted-soft: #9f9282;
+  --site-line: rgb(198 151 75 / 52%);
+  --site-line-soft: rgb(198 151 75 / 25%);
+  --site-gold: #cf9d4c;
+  --site-gold-strong: #dda954;
+  --site-header: rgb(17 12 9 / 88%);
+  --site-topbar: rgb(10 8 6 / 90%);
+  --site-shadow: 0 16px 38px rgb(4 3 2 / 18%);
+  --cmid-ink: var(--site-text);
+  --cmid-muted: var(--site-muted);
+  --cmid-paper: var(--site-bg);
+  --cmid-panel: var(--site-surface-solid);
+  --cmid-line: var(--site-line-soft);
+  --cmid-gold: var(--site-gold);
+  --cmid-gold-dark: var(--site-gold-strong);
+  --cmid-dark: var(--site-surface-raised);
+  color: var(--site-text);
+  background: var(--site-bg);
+  color-scheme: dark;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) {
+  --site-bg: #e9e1d6;
+  --site-surface: rgb(247 242 234 / 93%);
+  --site-surface-solid: #f5efe6;
+  --site-surface-soft: #e8ded1;
+  --site-surface-raised: #ded1c1;
+  --site-field: rgb(251 247 240 / 92%);
+  --site-text: #3b332b;
+  --site-heading: #2e2822;
+  --site-muted: #74695e;
+  --site-muted-soft: #918477;
+  --site-line: rgb(179 124 44 / 44%);
+  --site-line-soft: rgb(179 124 44 / 22%);
+  --site-gold: #bc812f;
+  --site-gold-strong: #9d681e;
+  --site-header: rgb(239 232 222 / 88%);
+  --site-topbar: rgb(230 221 210 / 94%);
+  --site-shadow: 0 14px 34px rgb(78 54 26 / 8%);
+  color-scheme: light;
+}
+
+html[data-theme='dark'],
+html[data-theme='dark'] body,
+html[data-theme='dark'] #root {
+  background: #0f0b08;
+}
+
+html[data-theme='light'],
+html[data-theme='light'] body,
+html[data-theme='light'] #root {
+  background: #e9e1d6;
+}
+
+.app-shell--site:not(.app-shell--home) .site-main {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  min-height: 70vh;
+  color: var(--site-text);
+  background:
+    radial-gradient(circle at 50% 20%, rgb(104 68 29 / 18%), transparent 37%),
+    var(--site-bg);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main {
+  background:
+    radial-gradient(circle at 62% 8%, rgb(255 255 255 / 76%), transparent 31%),
+    var(--site-bg);
+}
+
+.app-shell--site:not(.app-shell--home) .site-main::before {
+  position: absolute;
+  inset: -30px;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgb(7 5 3 / 70%), rgb(7 5 3 / 84%)),
+    url('../assets/images/noi-that-phong-khach-cao-cap.jpg');
+  background-position: center;
+  background-size: cover;
+  background-attachment: fixed;
+  content: '';
+  filter: blur(15px) saturate(0.82);
+  opacity: 0.55;
+  pointer-events: none;
+  transform: scale(1.025);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main::before {
+  background-image:
+    linear-gradient(rgb(239 230 218 / 70%), rgb(239 230 218 / 83%)),
+    url('../assets/images/noi-that-phong-khach-cao-cap.jpg');
+  filter: blur(17px) saturate(0.72);
+  opacity: 0.5;
+}
+
+.app-shell--site:not(.app-shell--home) .site-main > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Two-tier public header */
+.app-shell--site:not(.app-shell--home) .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding-bottom: 10px;
+  background: var(--site-topbar);
+  box-shadow: none;
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+}
+
+.app-shell--site:not(.app-shell--home) .topbar {
+  color: var(--site-muted);
+  background: transparent;
+}
+
+.app-shell--site:not(.app-shell--home) .topbar__inner {
+  width: min(1280px, calc(100% - 72px));
+  min-height: 38px;
+}
+
+.app-shell--site:not(.app-shell--home) .topbar a,
+.app-shell--site:not(.app-shell--home) .topbar__language,
+.app-shell--site:not(.app-shell--home) .topbar__account-link,
+.app-shell--site:not(.app-shell--home) .header-icon {
+  color: var(--site-muted);
+}
+
+.app-shell--site:not(.app-shell--home) .topbar a:hover,
+.app-shell--site:not(.app-shell--home) .topbar__language:hover,
+.app-shell--site:not(.app-shell--home) .topbar__language--active,
+.app-shell--site:not(.app-shell--home) .topbar__account-link:hover,
+.app-shell--site:not(.app-shell--home) .header-icon:hover {
+  color: var(--site-gold-strong);
+}
+
+.app-shell--site:not(.app-shell--home) .topbar__divider {
+  background: var(--site-line);
+}
+
+.app-shell--site:not(.app-shell--home) .color-theme-switch {
+  border-color: var(--site-line);
+  color: var(--site-muted);
+  background: rgb(255 255 255 / 4%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .color-theme-switch {
+  background: rgb(255 252 247 / 54%);
+}
+
+.app-shell--site:not(.app-shell--home) .site-header__main {
+  grid-template-columns: 230px minmax(0, 1fr) 230px;
+  width: min(1360px, calc(100% - 32px));
+  min-height: 78px;
+  margin-top: 7px;
+  padding: 0 26px;
+  border: 1px solid var(--site-line);
+  border-radius: var(--cmid-surface-radius);
+  background: var(--site-header);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 9%);
+  backdrop-filter: blur(16px) saturate(118%);
+  -webkit-backdrop-filter: blur(16px) saturate(118%);
+}
+
+.app-shell--site:not(.app-shell--home) .brand strong,
+.app-shell--site:not(.app-shell--home) .menu-toggle {
+  color: var(--site-heading);
+}
+
+.app-shell--site:not(.app-shell--home) .brand small {
+  color: var(--site-gold);
+}
+
+.app-shell--site:not(.app-shell--home) .site-nav__link {
+  min-height: 78px;
+  color: var(--site-text);
+}
+
+.app-shell--site:not(.app-shell--home) .site-nav__link:hover,
+.app-shell--site:not(.app-shell--home) .site-nav__link--active {
+  color: var(--site-gold-strong);
+}
+
+.app-shell--site:not(.app-shell--home) .site-nav__link::after {
+  bottom: 13px;
+  background: var(--site-gold);
+}
+
+/* Page canvas */
+.app-shell--site:not(.app-shell--home) :is(
+  .trang-san-pham,
+  .trang-chi-tiet-san-pham,
+  .trang-noi-dung,
+  .trang-ve-cmid,
+  .trang-lien-he,
+  .commerce-page,
+  .trang-tin-tuc,
+  .news-detail,
+  .auth-page,
+  .account-page
+) {
+  color: var(--site-text);
+  background: transparent;
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .catalog-toolbar,
+  .catalog-filters,
+  .catalog-partners,
+  .product-card,
+  .product-gallery__main,
+  .product-gallery__thumbnail,
+  .product-detail-quantity > div,
+  .product-assurances,
+  .product-detail-tabs,
+  .product-detail-tabs__visual,
+  .related-product-card,
+  .product-consultation,
+  .status-panel,
+  .contact-info-strip,
+  .contact-map,
+  .contact-map article,
+  .contact-form-panel,
+  .contact-showrooms__list,
+  .cart-table,
+  .cart-line-item,
+  .order-summary,
+  .checkout-form,
+  .commerce-empty,
+  .checkout-success,
+  .tin-tuc__featured,
+  .bai-viet,
+  .tin-tuc__no-results,
+  .news-article,
+  .news-article__highlights,
+  .news-related-card,
+  .news-detail__not-found,
+  .auth-card,
+  .account-sidebar,
+  .account-panel,
+  .account-metrics article,
+  .account-empty-state,
+  .auth-dialog,
+  .about-values,
+  .about-metrics,
+  .about-categories,
+  .about-categories article,
+  .about-reach,
+  .giai-phap__nhom,
+  .du-an__noi-bat,
+  .dich-vu__danh-sach,
+  .dich-vu__cam-ket,
+  .trang-gioi-thieu
+) {
+  border-color: var(--site-line);
+  color: var(--site-text);
+  background: var(--site-surface);
+  box-shadow: none;
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .product-card__media,
+  .product-gallery__empty,
+  .related-product-card__image,
+  .cart-line-item__product > img,
+  .cart-line-item__product > span,
+  .order-summary__item img,
+  .order-summary__item > span,
+  .account-empty-state__icon
+) {
+  color: var(--site-muted);
+  background: var(--site-surface-soft);
+}
+
+.app-shell--site:not(.app-shell--home) .account-sidebar__identity > span {
+  color: #fff;
+  background: var(--site-gold-strong);
+}
+
+.app-shell--site:not(.app-shell--home) .account-empty-state__icon,
+.app-shell--site:not(.app-shell--home) .account-metrics article {
+  color: var(--site-gold);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .product-card,
+  .related-product-card,
+  .bai-viet,
+  .news-related-card,
+  .project-card
+) {
+  border-color: var(--site-line-soft);
+  background: var(--site-surface-solid);
+  box-shadow: none;
+}
+
+.app-shell--site:not(.app-shell--home) .related-products__control {
+  border-color: var(--site-line);
+  color: var(--site-muted);
+  background: var(--site-surface-raised);
+  box-shadow: none;
+}
+
+.app-shell--site:not(.app-shell--home) .related-products__control:hover {
+  border-color: var(--site-gold);
+  color: var(--site-heading);
+  background: rgb(198 151 75 / 18%);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .giai-phap__nhom,
+  .du-an__noi-bat,
+  .dich-vu__danh-sach,
+  .dich-vu__cam-ket,
+  .trang-gioi-thieu
+) {
+  overflow: hidden;
+  border: 1px solid var(--site-line);
+  border-radius: 14px;
+}
+
+.app-shell--site:not(.app-shell--home) .trang-gioi-thieu {
+  width: min(780px, calc(100% - 48px));
+  margin: 32px auto;
+  padding: clamp(42px, 6vw, 72px);
+}
+
+.app-shell--site:not(.app-shell--home) .catalog-toolbar {
+  min-height: 66px;
+  margin-top: 20px;
+  padding: 0 18px;
+  border: 1px solid var(--site-line-soft);
+  border-radius: 10px;
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .catalog-filter,
+  .product-card__footer,
+  .product-card__sku span + span,
+  .product-detail-spec-list > div,
+  .product-detail-tabs__technical > div,
+  .cart-table__head,
+  .cart-line-item,
+  .order-summary__costs,
+  .order-summary__total,
+  .order-summary__assurance,
+  .checkout-form fieldset + fieldset,
+  .account-sidebar__identity,
+  .account-nav__item,
+  .account-sign-out,
+  .account-empty-state,
+  .account-information,
+  .account-information div,
+  .news-article__footer,
+  .about-values article + article,
+  .about-metrics article + article::before,
+  .about-categories article,
+  .about-reach dl div,
+  .giai-phap__muc + .giai-phap__muc,
+  .du-an__luoi .project-card,
+  .dich-vu__danh-sach article + article,
+  .contact-info-strip article + article,
+  .contact-showrooms,
+  .contact-showrooms article + article
+) {
+  border-color: var(--site-line-soft);
+}
+
+/* Inputs and controls */
+.app-shell--site:not(.app-shell--home) .site-main :is(
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea
+) {
+  border-color: var(--site-line);
+  color: var(--site-text);
+  background-color: var(--site-field);
+}
+
+.app-shell--site:not(.app-shell--home) .site-main :is(input, textarea)::placeholder {
+  color: var(--site-muted-soft);
+  opacity: 1;
+}
+
+.app-shell--site:not(.app-shell--home) .site-main :is(input, select, textarea):focus {
+  border-color: var(--site-gold-strong);
+  box-shadow: 0 0 0 3px rgb(201 151 69 / 18%);
+}
+
+.app-shell--site:not(.app-shell--home) .site-main select option {
+  color: var(--site-text);
+  background: var(--site-surface-solid);
+}
+
+.app-shell--site:not(.app-shell--home) :is(.contact-form-panel, .checkout-form) select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 6 5 5 5-5' stroke='%23d9cbb8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(.contact-form-panel, .checkout-form) select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 6 5 5 5-5' stroke='%23483e34' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .catalog-sort,
+  .catalog-filter__box,
+  .catalog-filter__search,
+  .catalog-filter__range-inputs input,
+  .catalog-filters__reset,
+  .catalog-pagination button,
+  .product-gallery__expand,
+  .product-detail-actions__secondary,
+  .quantity-control,
+  .quantity-control button,
+  .cart-table__actions .button--outline,
+  .payment-option,
+  .tin-tuc__search,
+  .tin-tuc__sidebar nav button,
+  .tin-tuc__tags button,
+  .tin-tuc__feed-top select,
+  .tin-tuc__pagination button,
+  .news-article__tags span,
+  .auth-google-button,
+  .account-nav__item,
+  .account-sign-out,
+  .button--ghost
+) {
+  border-color: var(--site-line-soft);
+  color: var(--site-text);
+  background-color: var(--site-field);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .catalog-filter__range
+) {
+  background: var(--site-surface-raised);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .product-detail-quantity button + output,
+  .product-detail-quantity output + button
+) {
+  border-color: var(--site-line-soft);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .product-detail-quantity button,
+  .product-detail-quantity output
+) {
+  color: var(--site-text);
+  background: var(--site-surface-raised);
+}
+
+.app-shell--site:not(.app-shell--home) .catalog-filter__range::before,
+.app-shell--site:not(.app-shell--home) .catalog-filter__range::after {
+  border-color: var(--site-surface-solid);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .catalog-pagination__current,
+  .tin-tuc__pagination button.is-active,
+  .tin-tuc__sidebar nav button.is-active,
+  .account-nav__item--active,
+  .payment-option:has(input:checked)
+) {
+  border-color: var(--site-gold);
+  color: #fff8ed;
+  background: var(--site-gold);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .catalog-pagination__current,
+  .tin-tuc__pagination button.is-active,
+  .tin-tuc__sidebar nav button.is-active,
+  .account-nav__item--active,
+  .payment-option:has(input:checked)
+) {
+  color: #30271e !important;
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .catalog-filters__reset:not(:disabled),
+  .product-detail-actions__secondary,
+  .product-detail-quantity button:not(:disabled),
+  .quantity-control button:not(:disabled),
+  .cart-table__actions .button--outline,
+  .auth-google-button:hover:not(:disabled),
+  .tin-tuc__sidebar nav button,
+  .tin-tuc__tags button,
+  .tin-tuc__pagination button:not(:disabled),
+  .account-nav__item,
+  .button--ghost
+):hover {
+  border-color: var(--site-gold);
+  color: var(--site-heading);
+  background: rgb(198 151 75 / 18%);
+}
+
+/* Shared typography */
+.app-shell--site:not(.app-shell--home) :is(
+  .catalog-breadcrumb span,
+  .catalog-filter h2,
+  .product-card h2,
+  .product-detail-summary h1,
+  .product-assurance h2,
+  .product-detail-spec-list dd,
+  .product-detail-tabs__technical dd,
+  .product-detail-tabs__tab,
+  .related-products h2,
+  .related-product-card h3,
+  .product-consultation h2,
+  .commerce-page h1,
+  .commerce-empty h2,
+  .checkout-success h2,
+  .commerce-breadcrumb span:last-child,
+  .cart-line-item h2,
+  .order-summary h2,
+  .order-summary__item h3,
+  .order-summary__costs dd,
+  .order-summary__total,
+  .checkout-form legend,
+  .contact-info-strip h2,
+  .contact-form-panel__intro h2,
+  .contact-form-panel > h2,
+  .contact-map h2,
+  .contact-map article h3,
+  .contact-showrooms h2,
+  .contact-showrooms h3,
+  .tin-tuc h2,
+  .tin-tuc__sidebar h2,
+  .bai-viet h2,
+  .news-article h1,
+  .news-article__highlights h2,
+  .news-detail__related-heading h2,
+  .news-related-card h3,
+  .news-detail__not-found h1,
+  .auth-card__brand,
+  .auth-card h1,
+  .account-panel h1,
+  .account-sidebar__identity strong,
+  .account-empty-state h1,
+  .account-empty-state h2,
+  .account-metrics strong,
+  .account-information dd,
+  .auth-dialog h2,
+  .about-reach h2,
+  .about-metrics strong,
+  .about-values h2,
+  .about-categories h2,
+  .about-partners h2,
+  .about-projects h2,
+  .about-timeline strong,
+  .giai-phap__gioi-thieu h2,
+  .giai-phap__muc h2,
+  .du-an__danh-sach-dau h2,
+  .du-an__noi-bat h2,
+  .dich-vu__danh-sach h2,
+  .dich-vu__cam-ket p,
+  .trang-gioi-thieu h1,
+  .project-card h3,
+  .status-panel h2
+) {
+  color: var(--site-heading);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .catalog-breadcrumb,
+  .catalog-toolbar__controls p,
+  .catalog-layout,
+  .catalog-filter__check,
+  .catalog-filter__check small,
+  .product-card__meta,
+  .product-card__sku,
+  .product-card__sale-type,
+  .product-card__price-row span,
+  .product-detail-breadcrumb,
+  .product-detail-breadcrumb > span,
+  .product-detail-summary__meta,
+  .product-detail-spec-list dt,
+  .product-detail-price span,
+  .product-detail-quantity small,
+  .product-detail-quantity > span,
+  .product-detail-quantity output,
+  .product-assurance p,
+  .product-detail-tabs__description,
+  .product-detail-tabs__technical,
+  .product-detail-tabs__technical dt,
+  .product-detail-tabs__copy,
+  .related-product-card p,
+  .product-consultation p,
+  .commerce-breadcrumb,
+  .cart-table__head,
+  .cart-line-item p,
+  .cart-line-item__price small,
+  .quantity-control output,
+  .order-summary__item,
+  .order-summary__item p,
+  .order-summary__costs dt,
+  .order-summary__privacy,
+  .order-summary__assurance,
+  .commerce-empty p,
+  .checkout-success p,
+  .checkout-form label,
+  .payment-option small,
+  .payment-option span,
+  .contact-form-panel label,
+  .contact-info-strip p,
+  .contact-form-panel__intro,
+  .contact-map article p,
+  .contact-showrooms__heading p,
+  .contact-showrooms article p,
+  .tin-tuc__sidebar,
+  .tin-tuc__feed-top,
+  .tin-tuc__feed-top > p,
+  .tin-tuc__feed-top label,
+  .tin-tuc__featured-summary,
+  .tin-tuc__featured > div > p:first-child,
+  .bai-viet > div > p:first-child,
+  .bai-viet__tom-tat,
+  .news-detail__breadcrumb,
+  .news-detail__breadcrumb span:last-child,
+  .news-article__summary,
+  .news-article__meta,
+  .news-article__body,
+  .news-article__body p,
+  .news-article__highlights li,
+  .news-related-card p,
+  .news-detail__not-found p,
+  .auth-card__description,
+  .auth-card__help,
+  .account-sidebar__identity small,
+  .account-panel__description,
+  .account-metrics span,
+  .account-empty-state p,
+  .account-information,
+  .account-information dt,
+  .auth-dialog p,
+  .about-values,
+  .about-values p,
+  .about-metrics p,
+  .about-categories p,
+  .about-partners strong,
+  .about-reach p,
+  .about-reach dl,
+  .about-reach dd,
+  .about-timeline span,
+  .giai-phap__gioi-thieu > div > p:not(.nhan-noi-dung),
+  .giai-phap__gioi-thieu ul,
+  .giai-phap__muc p,
+  .du-an__noi-bat > div > p,
+  .dich-vu__danh-sach article > p:last-child,
+  .dich-vu__cam-ket footer,
+  .trang-gioi-thieu > p:not(.trang-gioi-thieu__nhan),
+  .project-card p,
+  .status-panel__content
+) {
+  color: var(--site-muted);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .product-detail-tabs__tab:hover,
+  .product-detail-tabs__tab--active
+) {
+  color: var(--site-gold-strong);
+}
+
+.app-shell--site:not(.app-shell--home) .contact-form-panel__consent {
+  color: var(--site-muted) !important;
+}
+
+.app-shell--site:not(.app-shell--home) .catalog-partners__list span:first-child,
+.app-shell--site:not(.app-shell--home) .about-partners strong {
+  color: var(--site-heading) !important;
+  opacity: 0.86;
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .cart-line-item__price,
+  .cart-line-item__total,
+  .order-summary__item strong,
+  .order-summary__total strong,
+  .contact-info-strip a,
+  .contact-map article a,
+  .contact-showrooms article > a,
+  .du-an__dia-diem
+) {
+  color: var(--site-gold-strong);
+}
+
+.app-shell--site:not(.app-shell--home) .order-summary__costs .order-summary__free {
+  color: #79c58d;
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .cart-line-item__availability,
+  .checkout-success > svg,
+  .contact-form-panel__success
+) {
+  color: #79c58d;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .order-summary__costs .order-summary__free,
+  .cart-line-item__availability,
+  .checkout-success > svg,
+  .contact-form-panel__success
+) {
+  color: #397a4c;
+}
+
+.app-shell--site:not(.app-shell--home) .payment-option:has(input:checked) :is(span, small) {
+  color: #fff8ed;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .payment-option:has(input:checked) :is(span, small) {
+  color: #30271e;
+}
+
+.app-shell--site:not(.app-shell--home) .status-panel--error {
+  border-color: rgb(217 131 114 / 48%);
+  background: rgb(120 43 31 / 16%);
+}
+
+.app-shell--site:not(.app-shell--home) .status-panel--error h2 {
+  color: #e59a8a;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .status-panel--error {
+  border-color: #d6a398;
+  background: #fff6f3;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .status-panel--error h2 {
+  color: #913d2e;
+}
+
+.app-shell--site:not(.app-shell--home) .about-metrics article + article::before {
+  background: var(--site-line-soft);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .product-detail-summary__meta,
+  .product-detail-summary__meta > span + span,
+  .product-detail-tabs__tab-list,
+  .du-an__danh-sach-dau
+) {
+  border-color: var(--site-line-soft);
+}
+
+.app-shell--site:not(.app-shell--home) .dich-vu__so {
+  color: var(--site-muted-soft);
+}
+
+.app-shell--site:not(.app-shell--home) .product-card__action--quote {
+  border-color: var(--site-line);
+  color: var(--site-heading);
+  background: var(--site-surface-raised);
+}
+
+.app-shell--site:not(.app-shell--home) .product-card__action--quote:hover {
+  border-color: var(--site-gold);
+  color: var(--site-heading);
+  background: rgb(198 151 75 / 20%);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .tin-tuc a:not(.tin-tuc__sidebar a),
+  .news-detail__back,
+  .news-detail__related-heading a
+) {
+  color: var(--site-gold-strong);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .tin-tuc a:not(.tin-tuc__sidebar a),
+  .news-detail__back,
+  .news-detail__related-heading a
+):hover {
+  color: var(--site-heading);
+}
+
+.app-shell--site:not(.app-shell--home) .tin-tuc a:not(.tin-tuc__sidebar a) svg {
+  border-color: var(--site-line);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .product-card,
+  .related-product-card,
+  .bai-viet,
+  .news-related-card,
+  .project-card
+):hover {
+  border-color: var(--site-gold);
+}
+
+.app-shell--site:not(.app-shell--home) .contact-map iframe {
+  filter: saturate(0.78) brightness(1.08) contrast(0.98);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .contact-map iframe {
+  filter: saturate(0.68) contrast(0.96);
+}
+
+/* Account surfaces use one open composition rather than a card inside a card. */
+.app-shell--site:not(.app-shell--home) .auth-page .auth-card {
+  border-color: rgb(255 238 211 / 30%);
+  background: rgb(24 18 13 / 82%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 250 241 / 9%),
+    0 26px 64px rgb(0 0 0 / 24%);
+}
+
+.app-shell--site:not(.app-shell--home) .auth-page .auth-google-button {
+  border-color: rgb(207 157 76 / 62%);
+  color: var(--site-heading);
+  background: rgb(255 255 255 / 5%);
+}
+
+.app-shell--site:not(.app-shell--home) .auth-page .auth-google-button:hover:not(:disabled) {
+  border-color: #dda954;
+  color: #fffdf8;
+  background: rgb(207 157 76 / 19%);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-panel {
+  border: 0 !important;
+  height: 100%;
+  padding: 0 !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.app-shell--site:not(.app-shell--home) .account-page :is(
+  .account-sidebar,
+  .account-metrics article,
+  .account-empty-state,
+  .account-information
+) {
+  box-shadow: var(--site-shadow);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page :is(.account-nav__item, .account-sign-out) {
+  border-color: transparent;
+  color: var(--site-muted);
+  background: transparent;
+}
+
+.app-shell--site:not(.app-shell--home) .account-page :is(.account-nav__item:hover, .account-sign-out:hover) {
+  border-color: var(--site-line-soft);
+  color: var(--site-heading);
+  background: rgb(198 151 75 / 11%);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-nav__item--active,
+.app-shell--site:not(.app-shell--home) .account-page .account-nav__item--active:hover {
+  border-color: transparent;
+  color: #fff8ed;
+  background: var(--site-gold);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-sign-out {
+  border-color: transparent;
+  color: #d88472;
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-sign-out::before {
+  border-color: var(--site-line-soft);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .auth-page::before {
+  background:
+    linear-gradient(90deg, rgb(247 242 234 / 92%) 0%, rgb(247 242 234 / 74%) 44%, rgb(247 242 234 / 28%) 100%),
+    url('../assets/images/noi-that-phong-khach-cao-cap.jpg') center / cover;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .auth-page .auth-page__brand,
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .auth-page .auth-page__intro h1 {
+  color: var(--site-heading);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .auth-page .auth-page__intro > p {
+  color: var(--site-muted);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .auth-page .auth-card {
+  border-color: rgb(173 129 67 / 30%);
+  background: rgb(255 253 249 / 82%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 74%),
+    0 24px 56px rgb(88 61 28 / 12%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .auth-page .auth-google-button {
+  border-color: rgb(157 104 30 / 55%);
+  color: var(--site-heading);
+  background: rgb(255 255 255 / 67%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .auth-page .auth-google-button:hover:not(:disabled) {
+  border-color: var(--site-gold);
+  color: #30271e;
+  background: rgb(198 151 75 / 19%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .account-page .account-nav__item--active,
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .account-page .account-nav__item--active:hover {
+  color: #30271e !important;
+}
+
+/* Cinematic page heroes: large imagery, soft glass copy and a fade into the page. */
+.app-shell--site:not(.app-shell--home) .khung-dau-trang {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: clamp(540px, 48vw, 680px);
+  margin: 20px 0 0;
+  padding: clamp(28px, 4vw, 54px) max(24px, calc((100% - 1240px) / 2));
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  color: #fbf7f0;
+  background: #100c09;
+  box-shadow: none;
+}
+
+.app-shell--site:not(.app-shell--home) .khung-dau-trang__anh {
+  position: absolute;
+  inset: 0;
+  min-height: 100%;
+}
+
+.app-shell--site:not(.app-shell--home) .khung-dau-trang__anh img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: saturate(0.78) sepia(0.08) brightness(0.76);
+  transform: scale(1.01);
+}
+
+.app-shell--site:not(.app-shell--home) .khung-dau-trang__anh::after {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgb(7 5 3 / 84%) 0%, rgb(10 7 5 / 68%) 35%, rgb(12 8 5 / 22%) 72%, rgb(12 8 5 / 9%) 100%),
+    linear-gradient(0deg, var(--site-bg) 0%, rgb(15 11 8 / 76%) 8%, transparent 31%),
+    linear-gradient(180deg, rgb(7 5 3 / 24%), transparent 31%);
+  content: '';
+}
+
+.app-shell--site:not(.app-shell--home) .khung-dau-trang__noi-dung {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  width: min(860px, 70%);
+  min-height: auto;
+  margin: 0;
+  padding: clamp(30px, 3.6vw, 50px);
+  border: 1px solid rgb(207 157 76 / 68%);
+  border-radius: var(--cmid-surface-radius);
+  background: linear-gradient(118deg, rgb(12 9 6 / 91%), rgb(16 11 7 / 80%));
+  box-shadow:
+    inset 0 1px 0 rgb(255 244 222 / 8%),
+    0 24px 58px rgb(0 0 0 / 28%);
+  backdrop-filter: blur(9px) saturate(0.9);
+  -webkit-backdrop-filter: blur(9px) saturate(0.9);
+}
+
+.app-shell--site:not(.app-shell--home) .khung-dau-trang__nhan {
+  margin-bottom: 16px;
+  color: #dda954;
+  font-size: calc(0.72rem + 2px);
+  letter-spacing: 0.19em;
+}
+
+.app-shell--site:not(.app-shell--home) .khung-dau-trang h1 {
+  max-width: 620px;
+  color: #fffaf2;
+  font-size: clamp(2.8rem, 4.6vw, 4.75rem);
+  line-height: 0.98;
+  text-shadow: 0 4px 24px rgb(0 0 0 / 28%);
+}
+
+.app-shell--site:not(.app-shell--home) .trang-ve-cmid .khung-dau-trang h1 {
+  font-size: clamp(2.55rem, 4vw, 4.2rem);
+}
+
+.app-shell--site:not(.app-shell--home) .khung-dau-trang__duong-ke {
+  display: block;
+  width: 64px;
+  height: 3px;
+  margin: 24px 0;
+  background: #d6a34f;
+}
+
+.app-shell--site:not(.app-shell--home) .khung-dau-trang__noi-dung > p:not(.khung-dau-trang__nhan) {
+  max-width: 500px;
+  color: rgb(250 243 233 / 82%);
+  font-size: calc(0.94rem + 2px);
+  line-height: 1.72;
+}
+
+.app-shell--site:not(.app-shell--home) .khung-dau-trang__button,
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .khung-dau-trang__button {
+  margin-top: 28px;
+  border-color: #d6a34f;
+  color: #fffaf2;
+  background: rgb(198 151 75 / 18%);
+}
+
+.app-shell--site:not(.app-shell--home) .khung-dau-trang__button:hover,
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .khung-dau-trang__button:hover {
+  border-color: #dda954;
+  color: #fff;
+  background: #b77d2d;
+}
+
+.app-shell--site:not(.app-shell--home) :is(.catalog-hero, .tin-tuc__hero) {
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-height: clamp(500px, 43vw, 620px);
+  margin: 20px 0 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background-color: #100c09;
+  background-position: center;
+  background-size: cover;
+  box-shadow: none;
+}
+
+.app-shell--site:not(.app-shell--home) :is(.catalog-hero__overlay, .tin-tuc__hero-overlay),
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(.catalog-hero__overlay, .tin-tuc__hero-overlay) {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgb(7 5 3 / 85%) 0%, rgb(10 7 5 / 66%) 36%, rgb(12 8 5 / 20%) 75%, rgb(12 8 5 / 8%) 100%),
+    linear-gradient(0deg, var(--site-bg) 0%, rgb(15 11 8 / 74%) 8%, transparent 31%),
+    linear-gradient(180deg, rgb(7 5 3 / 21%), transparent 31%);
+}
+
+.app-shell--site:not(.app-shell--home) :is(.catalog-hero__content, .tin-tuc__hero-content) {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  align-self: stretch;
+  width: min(1240px, calc(100% - 72px));
+  min-height: inherit;
+  margin: 0 auto;
+  padding: 76px 0 108px;
+  color: #fffaf2;
+}
+
+.app-shell--site:not(.app-shell--home) .catalog-hero__content > *,
+.app-shell--site:not(.app-shell--home) .tin-tuc__hero-content > * {
+  width: min(620px, 58%);
+}
+
+.app-shell--site:not(.app-shell--home) :is(.catalog-hero__content p, .tin-tuc__hero-eyebrow) {
+  display: block;
+  margin: 0 0 16px;
+  color: #dda954;
+  font-size: calc(0.72rem + 2px);
+  font-weight: 700;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+}
+
+.app-shell--site:not(.app-shell--home) :is(.catalog-hero__content h1, .tin-tuc__hero-content h1),
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(.catalog-hero__content h1, .tin-tuc__hero-content h1) {
+  margin: 0;
+  color: #fffaf2;
+  font-size: clamp(3.1rem, 5.2vw, 5.5rem);
+  font-weight: 400;
+  line-height: 0.96;
+  letter-spacing: -0.055em;
+  text-shadow: 0 4px 26px rgb(0 0 0 / 32%);
+}
+
+.app-shell--site:not(.app-shell--home) .catalog-hero__content span:not(.tin-tuc__hero-eyebrow),
+.app-shell--site:not(.app-shell--home) .tin-tuc__hero-content p,
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .catalog-hero__content span:not(.tin-tuc__hero-eyebrow),
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .tin-tuc__hero-content p {
+  display: block;
+  max-width: 500px;
+  margin: 24px 0 0;
+  color: rgb(250 243 233 / 82%);
+  font-size: calc(0.94rem + 2px);
+  line-height: 1.7;
+}
+
+.app-shell--site:not(.app-shell--home) .tin-tuc__hero-content::before {
+  display: none;
+}
+
+/* The light theme header stays opaque enough for readable text over any page imagery. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-header {
+  background: transparent;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .topbar {
+  color: #3b3027;
+  background: rgb(245 238 228 / 96%);
+  box-shadow: 0 1px 0 rgb(94 66 36 / 16%);
+  backdrop-filter: blur(14px) saturate(0.9);
+  -webkit-backdrop-filter: blur(14px) saturate(0.9);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .topbar a,
+  .topbar__language,
+  .topbar__account-link,
+  .header-icon
+) {
+  color: #3b3027;
+  text-shadow: 0 1px rgb(255 255 255 / 62%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .topbar a:hover,
+  .topbar__language:hover,
+  .topbar__language--active,
+  .topbar__account-link:hover,
+  .header-icon:hover
+) {
+  color: #885515;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .topbar__divider {
+  background: rgb(101 72 41 / 34%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .color-theme-switch {
+  border-color: rgb(137 89 28 / 46%);
+  color: #3b3027;
+  background: rgb(255 252 246 / 72%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-header__main {
+  border-color: rgb(116 77 34 / 25%);
+  background: rgb(246 240 231 / 95%);
+  box-shadow: 0 16px 35px rgb(65 42 22 / 13%);
+  backdrop-filter: blur(18px) saturate(0.9);
+  -webkit-backdrop-filter: blur(18px) saturate(0.9);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .brand strong,
+  .site-nav__link,
+  .menu-toggle
+) {
+  color: #30271f;
+  text-shadow: 0 1px rgb(255 255 255 / 62%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .brand small,
+  .site-nav__link:hover,
+  .site-nav__link--active
+) {
+  color: #885515;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-nav__link::after {
+  background: #bd8434;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .khung-dau-trang__anh img {
+  filter: saturate(0.88) sepia(0.04) brightness(0.96);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .khung-dau-trang__anh::after {
+  background:
+    linear-gradient(90deg, rgb(69 47 29 / 34%) 0%, rgb(77 51 30 / 10%) 50%, transparent 82%),
+    linear-gradient(0deg, var(--site-bg) 0%, rgb(239 229 215 / 44%) 10%, transparent 36%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .khung-dau-trang__noi-dung {
+  border: 1px solid rgb(255 249 239 / 72%);
+  background: rgb(88 66 47 / 57%);
+  box-shadow: 0 24px 58px rgb(49 31 17 / 23%);
+  backdrop-filter: blur(16px) saturate(0.84);
+  -webkit-backdrop-filter: blur(16px) saturate(0.84);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(.catalog-hero__overlay, .tin-tuc__hero-overlay) {
+  background:
+    linear-gradient(90deg, rgb(69 47 29 / 40%) 0%, rgb(77 51 30 / 13%) 52%, transparent 82%),
+    linear-gradient(0deg, var(--site-bg) 0%, rgb(239 229 215 / 46%) 10%, transparent 36%);
+}
+
+/* Commerce, content, account, and news details */
+.app-shell--site:not(.app-shell--home) .order-summary {
+  top: 138px;
+}
+
+.app-shell--site:not(.app-shell--home) :is(.cart-line-item__remove, .account-sign-out) {
+  color: #d98372;
+}
+
+.app-shell--site:not(.app-shell--home) .account-sign-out {
+  background: transparent;
+}
+
+.app-shell--site:not(.app-shell--home) :is(.account-sign-out:hover, .auth-card__error) {
+  color: #ef9c8b;
+}
+
+.app-shell--site:not(.app-shell--home) .auth-dialog-backdrop {
+  z-index: 60;
+  background: rgb(7 5 3 / 76%);
+  backdrop-filter: blur(4px);
+}
+
+.app-shell--site:not(.app-shell--home) .about-cta,
+.app-shell--site:not(.app-shell--home) .tin-tuc__hero,
+.app-shell--site:not(.app-shell--home) .catalog-hero {
+  border-color: var(--site-line);
+}
+
+.app-shell--site:not(.app-shell--home) .site-footer {
+  border-top: 1px solid var(--site-line-soft);
+  color: var(--site-muted);
+  background: #110d09;
+}
+
+.app-shell--site:not(.app-shell--home) .site-footer :is(.brand--footer strong, h2) {
+  color: var(--site-gold);
+}
+
+.app-shell--site:not(.app-shell--home) .site-footer :is(
+  .site-footer__brand p,
+  .site-footer__links a,
+  .site-footer__contact a,
+  .site-footer__contact p,
+  .site-footer__bottom
+) {
+  color: var(--site-muted);
+}
+
+.app-shell--site:not(.app-shell--home) .site-footer__bottom {
+  border-color: var(--site-line-soft);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .site-footer__links a:hover,
+  .site-footer__contact a:hover
+) {
+  color: var(--site-gold-strong);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-footer {
+  background: #eee6dc;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-footer .brand--footer strong {
+  color: var(--site-heading);
+}
+
+/* The home page keeps its own canvas, but its footer follows the public-site footer. */
+.app-shell--site.app-shell--home .site-footer {
+  border-top: 1px solid rgb(198 151 75 / 25%);
+  color: #c2b6a7;
+  background: #110d09;
+}
+
+.app-shell--site.app-shell--home .site-footer :is(.brand--footer strong, h2) {
+  color: #cf9d4c;
+}
+
+.app-shell--site.app-shell--home .site-footer :is(
+  .site-footer__brand p,
+  .site-footer__links a,
+  .site-footer__contact a,
+  .site-footer__contact p,
+  .site-footer__bottom
+) {
+  color: #c2b6a7;
+}
+
+.app-shell--site.app-shell--home .site-footer__bottom {
+  border-color: rgb(198 151 75 / 25%);
+}
+
+.app-shell--site.app-shell--home :is(
+  .site-footer__links a:hover,
+  .site-footer__contact a:hover
+) {
+  color: #dda954;
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--home .site-footer {
+  background: #eee6dc;
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--home .site-footer .brand--footer strong {
+  color: #2e2822;
+}
+
+.app-shell--site:not(.app-shell--home) .cart-toast {
+  z-index: 45;
+  border-color: var(--site-line);
+  color: var(--site-text);
+  background: var(--site-surface-solid);
+  box-shadow: var(--site-shadow);
+}
+
+.app-shell--site:not(.app-shell--home) .cart-toast :is(p span, button) {
+  color: var(--site-muted);
+}
+
+.app-shell--site:not(.app-shell--home) .cart-toast button:hover {
+  color: var(--site-heading);
+  background: var(--site-surface-soft);
+}
+
+@media (max-width: 1190px) {
+  .app-shell--site:not(.app-shell--home) .site-header__main {
+    grid-template-columns: 200px minmax(0, 1fr) 200px;
+  }
+}
+
+@media (max-width: 930px) {
+  .app-shell--site:not(.app-shell--home) .site-header__main {
+    position: relative;
+    grid-template-columns: 1fr auto;
+    min-height: 72px;
+  }
+
+  .app-shell--site:not(.app-shell--home) .site-nav {
+    top: calc(100% + 8px);
+    right: -1px;
+    left: -1px;
+    border: 1px solid var(--site-line);
+    border-radius: 12px;
+    background: var(--site-surface-solid);
+    box-shadow: var(--site-shadow);
+  }
+
+  .app-shell--site:not(.app-shell--home) .site-nav__link {
+    min-height: 43px;
+  }
+
+  .app-shell--site:not(.app-shell--home) .khung-dau-trang__noi-dung,
+  .app-shell--site:not(.app-shell--home) .catalog-hero__content > *,
+  .app-shell--site:not(.app-shell--home) .tin-tuc__hero-content > * {
+    width: min(690px, 76%);
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell--site:not(.app-shell--home) .site-main::before {
+    background-attachment: scroll;
+  }
+
+  .app-shell--site:not(.app-shell--home) .site-header {
+    padding-bottom: 7px;
+  }
+
+  .app-shell--site:not(.app-shell--home) .topbar__inner,
+  .app-shell--site:not(.app-shell--home) .site-header__main {
+    width: min(100% - 24px, 1360px);
+  }
+
+  .app-shell--site:not(.app-shell--home) .topbar__inner {
+    min-height: 34px;
+  }
+
+  .app-shell--site:not(.app-shell--home) .site-header__main {
+    min-height: 64px;
+    padding: 0 16px;
+    border-radius: 13px;
+  }
+
+  .app-shell--site:not(.app-shell--home) .site-nav {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .app-shell--site:not(.app-shell--home) .khung-dau-trang {
+    width: 100%;
+    min-height: 500px;
+    margin: 16px 0 0;
+    padding: 16px;
+    border-radius: 0;
+  }
+
+  .app-shell--site:not(.app-shell--home) :is(.catalog-hero, .tin-tuc__hero) {
+    width: 100%;
+    min-height: 500px;
+    margin: 16px 0 0;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .app-shell--site:not(.app-shell--home) .khung-dau-trang__noi-dung {
+    width: 100%;
+    padding: 28px 24px;
+    border-radius: 15px;
+    background: linear-gradient(112deg, rgb(13 9 6 / 76%), rgb(13 9 6 / 48%) 74%, rgb(13 9 6 / 12%));
+  }
+
+  .app-shell--site:not(.app-shell--home) :is(.khung-dau-trang__anh::after, .catalog-hero__overlay, .tin-tuc__hero-overlay),
+  html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(.catalog-hero__overlay, .tin-tuc__hero-overlay) {
+    background:
+      linear-gradient(90deg, rgb(7 5 3 / 86%) 0%, rgb(10 7 5 / 59%) 76%, rgb(12 8 5 / 24%) 100%),
+      linear-gradient(0deg, var(--site-bg) 0%, rgb(15 11 8 / 68%) 9%, transparent 34%);
+  }
+
+  .app-shell--site:not(.app-shell--home) .khung-dau-trang h1,
+  .app-shell--site:not(.app-shell--home) .trang-ve-cmid .khung-dau-trang h1,
+  .app-shell--site:not(.app-shell--home) :is(.catalog-hero__content h1, .tin-tuc__hero-content h1),
+  html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(.catalog-hero__content h1, .tin-tuc__hero-content h1) {
+    font-size: clamp(2.35rem, 11vw, 3.45rem);
+    line-height: 1;
+  }
+
+  .app-shell--site:not(.app-shell--home) :is(.catalog-hero__content, .tin-tuc__hero-content) {
+    width: 100%;
+    min-height: 468px;
+    padding: 52px 24px 82px;
+  }
+
+  .app-shell--site:not(.app-shell--home) .catalog-hero__content > *,
+  .app-shell--site:not(.app-shell--home) .tin-tuc__hero-content > * {
+    width: 100%;
+  }
+
+  .app-shell--site:not(.app-shell--home) .catalog-toolbar {
+    padding: 12px 14px;
+  }
+
+  .app-shell--site:not(.app-shell--home) .cart-table {
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .app-shell--site:not(.app-shell--home) .trang-gioi-thieu {
+    width: min(100% - 32px, 780px);
+    margin: 20px auto;
+    padding: 36px 24px;
+  }
+
+  .app-shell--site:not(.app-shell--home) .color-theme-switch {
+    width: 50px;
+    grid-template-columns: repeat(2, 23px);
+  }
+
+  .app-shell--site:not(.app-shell--home) .color-theme-switch[data-theme='dark'] .color-theme-switch__thumb {
+    transform: translateX(23px);
+  }
+}
+
+/* CMID ivory redesign: a light showroom surface system with one champagne accent. */
+html[data-theme='light'],
+html[data-theme='light'] body,
+html[data-theme='light'] #root {
+  background: #f5f2ec;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) {
+  --site-bg: #f5f2ec;
+  --site-surface: rgb(255 253 249 / 88%);
+  --site-surface-solid: #fffdf9;
+  --site-surface-soft: #faf7f1;
+  --site-surface-raised: #eee8df;
+  --site-field: #fffdf9;
+  --site-text: #292521;
+  --site-heading: #292521;
+  --site-muted: #716a62;
+  --site-muted-soft: #9a9288;
+  --site-line: #e4d9ca;
+  --site-line-soft: rgb(190 155 100 / 28%);
+  --site-gold: #c5964a;
+  --site-gold-strong: #b68236;
+  --site-header: rgb(255 253 249 / 72%);
+  --site-topbar: rgb(255 253 249 / 82%);
+  --site-shadow: 0 8px 30px rgb(60 45 30 / 6%);
+  --cmid-ink: #292521;
+  --cmid-muted: #716a62;
+  --cmid-paper: #f5f2ec;
+  --cmid-panel: #fffdf9;
+  --cmid-line: #e4d9ca;
+  --cmid-gold: #c5964a;
+  --cmid-gold-dark: #b68236;
+  --cmid-dark: #29231e;
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--home {
+  --cmid-home-ink: #f5f2ec;
+  --cmid-home-panel: #fffdf9;
+  --cmid-home-panel-soft: #faf7f1;
+  --cmid-home-line: #e4d9ca;
+  --cmid-home-copy: #292521;
+  --cmid-home-muted: #716a62;
+  --cmid-home-gold: #c5964a;
+  --cmid-ink: #292521;
+  --cmid-muted: #716a62;
+  --cmid-paper: #f5f2ec;
+  --cmid-panel: #fffdf9;
+  --cmid-line: #e4d9ca;
+  --cmid-gold: #c5964a;
+  --cmid-gold-dark: #b68236;
+  --cmid-dark: #29231e;
+  color: #292521;
+  background: #f5f2ec;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main,
+html[data-theme='light'] .app-shell--site.app-shell--home .site-main,
+html[data-theme='light'] .app-shell--site.app-shell--home .trang-chu {
+  background: linear-gradient(135deg, #f7f4ee 0%, #efe8df 100%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main::before,
+html[data-theme='light'] .app-shell--site.app-shell--home .trang-chu::before {
+  background-image: linear-gradient(rgb(247 244 238 / 78%), rgb(239 232 223 / 84%));
+  filter: blur(18px) saturate(0.7);
+  opacity: 0.13;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .topbar,
+html[data-theme='light'] .app-shell--site.app-shell--home .topbar {
+  color: #3a3530;
+  background: rgb(255 253 249 / 82%);
+  box-shadow: 0 1px 0 rgb(196 150 74 / 16%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .topbar a,
+  .topbar__language,
+  .topbar__account-link,
+  .header-icon
+),
+html[data-theme='light'] .app-shell--site.app-shell--home :is(
+  .topbar a,
+  .topbar__language,
+  .topbar__account-link,
+  .header-icon
+) {
+  color: #3a3530;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .topbar a:hover,
+  .topbar__language:hover,
+  .topbar__language--active,
+  .topbar__account-link:hover,
+  .header-icon:hover
+),
+html[data-theme='light'] .app-shell--site.app-shell--home :is(
+  .topbar a:hover,
+  .topbar__language:hover,
+  .topbar__language--active,
+  .topbar__account-link:hover,
+  .header-icon:hover
+) {
+  color: #b98538;
+}
+
+html[data-theme='light'] .app-shell--site :is(.topbar__divider, .header-tool-divider) {
+  background: rgb(196 150 74 / 25%);
+}
+
+html[data-theme='light'] .app-shell--site .color-theme-switch {
+  border-color: rgb(196 150 74 / 38%);
+  color: #3a3530;
+  background: rgb(255 253 249 / 72%);
+}
+
+html[data-theme='light'] .app-shell--site .color-theme-switch__thumb {
+  background: rgb(197 150 74 / 24%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-header__main,
+html[data-theme='light'] .app-shell--site.app-shell--home .site-header__main {
+  border-color: rgb(196 150 74 / 25%);
+  background: rgb(255 253 249 / 72%);
+  box-shadow: 0 8px 30px rgb(60 45 30 / 6%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+html[data-theme='light'] .app-shell--site :is(.brand strong, .site-nav__link, .menu-toggle) {
+  color: #3a3530;
+}
+
+html[data-theme='light'] .app-shell--site :is(
+  .brand small,
+  .site-nav__link:hover,
+  .site-nav__link--active
+) {
+  color: #b98538;
+}
+
+html[data-theme='light'] .app-shell--site .site-nav__link::after {
+  background: #c5964a;
+}
+
+html[data-theme='light'] .app-shell--site :is(.button--gold, .product-card__action:not(.product-card__action--quote)) {
+  border-color: #c5964a;
+  color: #fff;
+  /* Keep the resting and hover states on the same paint layer.  Switching
+     from a gradient here to a solid hover colour made the browser repaint the
+     whole control while the pointer moved, which showed up as a flash. */
+  background-color: #c49142;
+  background-image: none;
+}
+
+html[data-theme='light'] .app-shell--site :is(
+  .button--gold:hover,
+  .product-card__action:not(.product-card__action--quote):hover
+) {
+  border-color: #a96f28;
+  background: #a96f28;
+}
+
+html[data-theme='light'] .app-shell--site :is(
+  .button--outline-light,
+  .product-detail-actions__secondary,
+  .product-card__action--quote
+) {
+  border-color: #c5964a;
+  color: #8c632a;
+  background: #fffdf9;
+}
+
+html[data-theme='light'] .app-shell--site :is(
+  .button--outline-light:hover,
+  .product-detail-actions__secondary:hover,
+  .product-card__action--quote:hover
+) {
+  border-color: #b68236;
+  color: #fff;
+  background: #b68236;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .catalog-toolbar,
+  .catalog-filters,
+  .catalog-partners,
+  .product-card,
+  .product-gallery__main,
+  .product-gallery__thumbnail,
+  .product-detail-quantity > div,
+  .product-assurances,
+  .product-detail-tabs,
+  .product-consultation,
+  .status-panel,
+  .contact-info-strip,
+  .contact-map,
+  .contact-map article,
+  .contact-form-panel,
+  .contact-showrooms__list,
+  .cart-table,
+  .cart-line-item,
+  .order-summary,
+  .checkout-form,
+  .commerce-empty,
+  .checkout-success,
+  .tin-tuc__featured,
+  .bai-viet,
+  .tin-tuc__no-results,
+  .news-article,
+  .news-article__highlights,
+  .news-related-card,
+  .news-detail__not-found,
+  .auth-card,
+  .account-sidebar,
+  .account-panel,
+  .account-metrics article,
+  .account-empty-state,
+  .auth-dialog,
+  .about-values,
+  .about-metrics,
+  .about-categories,
+  .about-categories article,
+  .about-reach,
+  .giai-phap__nhom,
+  .du-an__noi-bat,
+  .dich-vu__danh-sach,
+  .dich-vu__cam-ket,
+  .trang-gioi-thieu,
+  .related-product-card
+) {
+  border-color: #e4d9ca;
+  background: rgb(255 253 249 / 88%);
+  box-shadow: 0 8px 30px rgb(60 45 30 / 6%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .product-gallery__main,
+  .product-gallery__thumbnail,
+  .product-detail-tabs__visual,
+  .related-product-card__image,
+  .product-card__media,
+  .cart-line-item__product > img,
+  .cart-line-item__product > span,
+  .order-summary__item img,
+  .order-summary__item > span
+) {
+  background: #faf7f1;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .product-detail-tabs__visual {
+  background: #f7f2e9;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .product-gallery__main,
+  .product-detail-tabs,
+  .related-product-card,
+  .contact-info-strip,
+  .contact-map,
+  .contact-form-panel,
+  .cart-table,
+  .order-summary,
+  .checkout-form
+) {
+  border-radius: 18px;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .product-detail-tabs__tab-list,
+  .product-detail-tabs__tab,
+  .product-detail-tabs__copy,
+  .product-detail-tabs__technical
+) {
+  background: #fffdf9;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .product-detail-tabs__tab {
+  color: #554f49;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .product-detail-tabs__tab--active {
+  color: #9b6c30;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .product-detail-tabs__tab--active::after,
+  .product-detail-tabs__description li::before
+) {
+  background: #c5964a;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .product-detail-price,
+  .related-product-card strong,
+  .cart-line-item__price,
+  .cart-line-item__total,
+  .product-card__price-row strong
+) {
+  color: #b47d30;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(input, select, textarea) {
+  border-color: #e4d9ca;
+  color: #292521;
+  background-color: #fffdf9;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(input, textarea)::placeholder {
+  color: #9a9288;
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--home :is(
+  .category-bar,
+  .product-card,
+  .order-options,
+  .about-cmid,
+  .brand-strip,
+  .project-card
+) {
+  border-color: #e4d9ca;
+  background: rgb(255 253 249 / 88%);
+  box-shadow: 0 8px 30px rgb(60 45 30 / 6%);
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--home :is(
+  .product-card--showcase .product-card__media,
+  .order-option__icon
+) {
+  background: #faf7f1;
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--home :is(
+  .category-shortcut,
+  .order-option p,
+  .order-option ul,
+  .about-cmid__values > div,
+  .section-heading p,
+  .project-card p,
+  .news-item p
+) {
+  color: #716a62;
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--home :is(
+  .section-heading h2,
+  .order-option h2,
+  .about-cmid__content,
+  .product-card--showcase h2,
+  .project-card h3,
+  .news-item h3
+) {
+  color: #292521;
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--home :is(
+  .category-shortcut__icon,
+  .order-option__icon,
+  .order-option li svg,
+  .about-cmid__values svg,
+  .product-card--showcase .product-card__price-row strong
+) {
+  color: #c5964a;
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--home .product-card--showcase .product-card__price-row span {
+  color: #716a62;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-footer,
+html[data-theme='light'] .app-shell--site.app-shell--home .site-footer {
+  border-top-color: rgb(255 255 255 / 10%);
+  color: #d8d2ca;
+  background: linear-gradient(135deg, #29251f, #1d1b19);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-footer :is(.brand--footer strong, h2),
+html[data-theme='light'] .app-shell--site.app-shell--home .site-footer :is(.brand--footer strong, h2) {
+  color: #d1a157;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-footer :is(
+  .site-footer__brand p,
+  .site-footer__links a,
+  .site-footer__contact a,
+  .site-footer__contact p,
+  .site-footer__bottom
+),
+html[data-theme='light'] .app-shell--site.app-shell--home .site-footer :is(
+  .site-footer__brand p,
+  .site-footer__links a,
+  .site-footer__contact a,
+  .site-footer__contact p,
+  .site-footer__bottom
+) {
+  color: #d8d2ca;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-footer__bottom,
+html[data-theme='light'] .app-shell--site.app-shell--home .site-footer__bottom {
+  border-color: rgb(255 255 255 / 10%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-footer :is(
+  .site-footer__links a:hover,
+  .site-footer__contact a:hover,
+  .site-footer__bottom a:hover
+),
+html[data-theme='light'] .app-shell--site.app-shell--home .site-footer :is(
+  .site-footer__links a:hover,
+  .site-footer__contact a:hover,
+  .site-footer__bottom a:hover
+) {
+  color: #d1a157;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html[data-theme='light'] .app-shell--site :is(
+    .topbar,
+    .site-header__main,
+    .product-card,
+    .product-gallery__main,
+    .product-assurances,
+    .product-detail-tabs,
+    .related-product-card,
+    .contact-info-strip,
+    .contact-map,
+    .contact-form-panel,
+    .cart-table,
+    .order-summary,
+    .checkout-form
+  ) {
+    background: #fffdf9;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .app-shell--site:not(.app-shell--home) :is(.site-header, .site-header__main) {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .app-shell--site:not(.app-shell--home) .site-header__main {
+    background: var(--site-surface-solid);
+  }
+}
+
+/* Maintenance bypasses the public shell, so it owns the same persisted theme. */
+.maintenance-page__theme-switch {
+  position: absolute;
+  z-index: 3;
+  top: clamp(20px, 3vw, 36px);
+  right: clamp(20px, 3vw, 40px);
+  color: #d8c9b5;
+  background: rgb(17 13 9 / 72%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+html[data-theme='light'] .maintenance-page {
+  color: #332c25;
+  background: #e9e0d4;
+  color-scheme: light;
+}
+
+html[data-theme='light'] .maintenance-page__scrim {
+  background:
+    linear-gradient(90deg, rgb(240 233 223 / 88%) 0%, rgb(235 226 215 / 78%) 52%, rgb(229 216 201 / 60%) 100%),
+    linear-gradient(0deg, rgb(242 236 228 / 46%), transparent 42%);
+}
+
+html[data-theme='light'] .maintenance-page__notice {
+  border-color: rgb(179 124 44 / 38%);
+  background: rgb(247 241 232 / 78%);
+  box-shadow: none;
+}
+
+html[data-theme='light'] .maintenance-page__brand strong,
+html[data-theme='light'] .maintenance-page h1,
+html[data-theme='light'] .maintenance-page__contact > strong {
+  color: #302820;
+}
+
+html[data-theme='light'] .maintenance-page__description {
+  color: rgb(54 45 37 / 78%);
+}
+
+html[data-theme='light'] .maintenance-page__contact {
+  border-color: rgb(104 82 54 / 24%);
+}
+
+html[data-theme='light'] .maintenance-page__contact a {
+  color: #8f5e1d;
+}
+
+html[data-theme='light'] .maintenance-page__contact a:hover {
+  color: #5e3a0e;
+}
+
+html[data-theme='light'] .maintenance-page__note {
+  color: rgb(54 45 37 / 62%);
+}
+
+html[data-theme='light'] .maintenance-page__theme-switch {
+  border-color: rgb(179 124 44 / 48%);
+  color: #66584a;
+  background: rgb(250 246 239 / 76%);
+}
+
+@media (max-width: 640px) {
+  .maintenance-page__theme-switch {
+    top: 16px;
+    right: 16px;
+  }
+}
+
+/* Image-led public pages reuse the homepage header-over-hero composition. */
+.app-shell--site {
+  --cmid-hero-block-size: 720px;
+  --cmid-hero-panel-block-size: 420px;
+}
+
+.app-shell--site.app-shell--hero .site-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 30;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.app-shell--site.app-shell--hero .topbar {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: rgb(10 8 6 / 78%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.app-shell--site.app-shell--hero .site-header__main {
+  background: rgb(18 14 10 / 85%);
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--hero .topbar {
+  background: rgb(245 238 228 / 96%);
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--hero .site-header__main {
+  background: rgb(246 240 231 / 95%);
+}
+
+.app-shell--site.app-shell--hero .khung-dau-trang {
+  block-size: var(--cmid-hero-block-size);
+  min-height: var(--cmid-hero-block-size);
+  margin: 0;
+  padding: 124px max(24px, calc((100% - 1240px) / 2)) 86px;
+}
+
+.app-shell--site.app-shell--hero :is(.catalog-hero, .tin-tuc__hero) {
+  block-size: var(--cmid-hero-block-size);
+  min-height: var(--cmid-hero-block-size);
+  margin: 0;
+}
+
+.app-shell--site.app-shell--hero :is(.catalog-hero__content, .tin-tuc__hero-content) {
+  block-size: var(--cmid-hero-block-size);
+  min-height: var(--cmid-hero-block-size);
+  padding: 124px 0 86px;
+}
+
+.app-shell--site.app-shell--hero :is(
+  .khung-dau-trang__noi-dung,
+  .catalog-hero__glass,
+  .tin-tuc__hero-glass
+) {
+  block-size: var(--cmid-hero-panel-block-size);
+  min-height: 0;
+  align-content: center;
+}
+
+@media (max-width: 930px) {
+  .app-shell--site {
+    --cmid-hero-block-size: 650px;
+    --cmid-hero-panel-block-size: 390px;
+  }
+
+  .app-shell--site.app-shell--hero .site-header__main {
+    width: min(1360px, calc(100% - 20px));
+  }
+
+  .app-shell--site.app-shell--hero :is(.khung-dau-trang, .catalog-hero, .tin-tuc__hero) {
+    min-height: 650px;
+    margin: 0;
+  }
+
+  .app-shell--site.app-shell--hero .khung-dau-trang {
+    padding: 122px max(20px, calc((100% - 1240px) / 2)) 72px;
+  }
+
+  .app-shell--site.app-shell--hero :is(.catalog-hero__content, .tin-tuc__hero-content) {
+    min-height: 650px;
+    padding: 122px 0 72px;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell--site {
+    --cmid-hero-block-size: 610px;
+  }
+
+  .app-shell--site.app-shell--hero .site-header {
+    padding: 0;
+  }
+
+  .app-shell--site.app-shell--hero .topbar__inner {
+    width: min(calc(100% - 28px), 680px);
+  }
+
+  .app-shell--site.app-shell--hero .site-header__main {
+    width: min(calc(100% - 16px), 680px);
+  }
+
+  .app-shell--site.app-shell--hero .khung-dau-trang {
+    min-height: 610px;
+    margin: 0;
+    padding: 99px 16px 76px;
+  }
+
+  .app-shell--site.app-shell--hero :is(.catalog-hero, .tin-tuc__hero) {
+    min-height: 610px;
+    margin: 0;
+  }
+
+  .app-shell--site.app-shell--hero :is(.catalog-hero__content, .tin-tuc__hero-content) {
+    min-height: 610px;
+    padding: 99px 24px 76px;
+  }
+
+  .app-shell--site.app-shell--hero :is(
+    .khung-dau-trang__noi-dung,
+    .catalog-hero__glass,
+    .tin-tuc__hero-glass
+  ) {
+    block-size: auto;
+  }
+}
+
+/* Keep image-led pages on the same readable cream glass after their hero rules. */
+html[data-theme='light'] .app-shell--site.app-shell--hero .topbar {
+  color: #3a3530;
+  background: rgb(255 253 249 / 82%);
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--hero .site-header__main {
+  border-color: rgb(196 150 74 / 25%);
+  background: rgb(255 253 249 / 72%);
+}
+
+html[data-theme='light'] .maintenance-page {
+  color: #292521;
+  background: #f5f2ec;
+}
+
+html[data-theme='light'] .maintenance-page__notice {
+  border-color: #e4d9ca;
+  background: rgb(255 253 249 / 88%);
+  box-shadow: 0 8px 30px rgb(60 45 30 / 6%);
+}
+
+/* One frosted title surface for every image-led public hero. */
+.app-shell--site.app-shell--hero :is(
+  .catalog-hero__content > .catalog-hero__glass,
+  .tin-tuc__hero-content > .tin-tuc__hero-glass
+) {
+  display: grid;
+  justify-items: start;
+  width: min(720px, 58%);
+  padding: clamp(32px, 3.6vw, 50px);
+  border: 1px solid rgb(255 253 249 / 50%);
+  border-radius: var(--cmid-surface-radius);
+  background:
+    linear-gradient(118deg, rgb(42 32 25 / 78%) 0%, rgb(42 32 25 / 66%) 62%, rgb(42 32 25 / 46%) 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 18%),
+    0 18px 48px rgb(32 22 14 / 20%);
+  backdrop-filter: blur(16px) saturate(112%);
+  -webkit-backdrop-filter: blur(16px) saturate(112%);
+}
+
+.app-shell--site.app-shell--hero :is(
+  .catalog-hero__glass,
+  .tin-tuc__hero-glass
+) > * {
+  width: 100%;
+}
+
+/* The about-page heading has much longer copy, so it needs a calmer type scale. */
+.app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang__noi-dung {
+  width: min(960px, 78%);
+  padding: clamp(32px, 3.6vw, 50px);
+}
+
+.app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang h1 {
+  max-width: 780px;
+  font-family: var(--cmid-font);
+  font-size: clamp(2.15rem, 2.8vw, 3.35rem);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+@media (min-width: 721px) {
+  .app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang h1 {
+    max-width: none;
+  }
+
+  .trang-ve-cmid__hero-title-first-line {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 930px) {
+  .app-shell--site.app-shell--hero :is(
+    .catalog-hero__content > .catalog-hero__glass,
+    .tin-tuc__hero-content > .tin-tuc__hero-glass
+  ) {
+    width: min(720px, 76%);
+  }
+
+  .app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang__noi-dung {
+    width: min(760px, 82%);
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell--site.app-shell--hero :is(
+    .catalog-hero__content > .catalog-hero__glass,
+    .tin-tuc__hero-content > .tin-tuc__hero-glass,
+    .trang-ve-cmid .khung-dau-trang__noi-dung
+  ) {
+    width: 100%;
+    padding: 28px 24px;
+    border-radius: var(--cmid-surface-radius);
+  }
+
+  .app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang h1 {
+    max-width: 100%;
+    font-size: clamp(2rem, 8.6vw, 2.6rem);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .app-shell--site.app-shell--hero :is(
+    .catalog-hero__glass,
+    .tin-tuc__hero-glass,
+    .trang-ve-cmid .khung-dau-trang__noi-dung
+  ) {
+    background: #3a2e25;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* About-page sections that receive a card surface need their own inner gutter. */
+html[data-theme='light'] .app-shell--site .trang-ve-cmid :is(
+  .about-categories,
+  .about-reach
+) {
+  padding: clamp(26px, 3vw, 36px);
+  border: 1px solid #e4d9ca;
+  border-radius: var(--cmid-surface-radius);
+  background: rgb(255 253 249 / 88%);
+  box-shadow: 0 8px 30px rgb(60 45 30 / 6%);
+}
+
+html[data-theme='light'] .app-shell--site .trang-ve-cmid .about-reach {
+  gap: clamp(32px, 4vw, 50px);
+}
+
+@media (max-width: 720px) {
+  html[data-theme='light'] .app-shell--site .trang-ve-cmid :is(
+    .about-categories,
+    .about-reach
+  ) {
+    padding: 24px 20px;
+    border-radius: var(--cmid-surface-radius);
+  }
+}
+
+/* Shared public shape system: cards and large panels use one radius, while
+   compact controls keep a smaller functional corner. */
+.app-shell--site :is(
+  .category-bar,
+  .home-products__skeleton,
+  .order-options,
+  .about-cmid,
+  .brand-strip,
+  .experience-3d,
+  .trang-chu__hero-panel,
+  .product-card,
+  .project-card,
+  .catalog-toolbar,
+  .catalog-filters,
+  .catalog-partners,
+  .product-assurances,
+  .product-gallery__main,
+  .product-detail-tabs,
+  .related-product-card,
+  .product-consultation,
+  .contact-info-strip,
+  .contact-form-panel,
+  .contact-map,
+  .contact-showrooms__list,
+  .cart-table,
+  .cart-line-item,
+  .order-summary,
+  .checkout-form,
+  .commerce-empty,
+  .checkout-success,
+  .auth-card,
+  .account-sidebar,
+  .account-panel,
+  .account-metrics article,
+  .account-empty-state,
+  .auth-dialog,
+  .tin-tuc__featured,
+  .bai-viet,
+  .tin-tuc__no-results,
+  .news-article,
+  .news-article__highlights,
+  .news-related-card,
+  .news-detail__not-found,
+  .giai-phap__nhom,
+  .du-an__noi-bat,
+  .dich-vu__danh-sach,
+  .dich-vu__cam-ket,
+  .trang-gioi-thieu,
+  .about-values,
+  .about-metrics,
+  .about-categories,
+  .about-categories > div,
+  .about-reach,
+  .cart-toast,
+  .contact-form-panel__success
+) {
+  border-radius: var(--cmid-surface-radius);
+}
+
+.app-shell--site:not(.app-shell--home) :is(
+  .site-header__main,
+  .site-nav,
+  .khung-dau-trang__noi-dung
+),
+.app-shell--site.app-shell--home .site-header__main {
+  border-radius: var(--cmid-surface-radius);
+}
+
+.app-shell--site :is(
+  .home-products__control,
+  .related-products__control,
+  .product-gallery__thumbnail,
+  .product-gallery__thumbnail img,
+  .product-card--catalog .product-card__media,
+  .cart-line-item__product > img,
+  .cart-line-item__product > span,
+  .order-summary__item img,
+  .order-summary__item > span
+) {
+  border-radius: var(--cmid-control-radius);
+}
+
+.maintenance-page__notice {
+  border-radius: var(--cmid-surface-radius);
+}
+
+/* Unified title-card geometry for every public hero.
+   All generated hero assets share the homepage source dimensions: 1672 x 941. */
+.app-shell--site {
+  --cmid-hero-block-size: 620px;
+  --cmid-hero-panel-block-size: 360px;
+  --cmid-hero-source-ratio: 1672 / 941;
+  --cmid-hero-content-width: min(1280px, calc(100% - 72px));
+  --cmid-hero-title-card-width: min(900px, 68%);
+  --cmid-hero-title-card-min-height: 340px;
+  --cmid-hero-title-card-gap-top: 112px;
+  --cmid-hero-title-card-gap-bottom: 72px;
+}
+
+/* The product title and its catalog toolbar belong to one vertical grid.
+   Keeping their container identical avoids a visually drifting left edge. */
+.app-shell--site.app-shell--hero .trang-san-pham {
+  --cmid-product-catalog-width: min(1240px, calc(100% - 48px));
+  --cmid-hero-block-size: 500px;
+  --cmid-hero-panel-block-size: 300px;
+  --cmid-hero-title-card-min-height: 300px;
+  --cmid-hero-title-card-gap-top: 144px;
+  --cmid-hero-title-card-gap-bottom: 56px;
+}
+
+.app-shell--site.app-shell--hero .trang-san-pham :is(
+  .catalog-hero__content,
+  .catalog-shell
+) {
+  width: var(--cmid-product-catalog-width);
+}
+
+.app-shell--site.app-shell--hero .trang-san-pham .catalog-toolbar {
+  margin-top: 12px;
+}
+
+/* The photographic wash behind page content was making every route feel like
+   the same showroom. Keep the supporting surface tonal and let each hero own
+   its visual identity. */
+.app-shell--site:not(.app-shell--home) .site-main::before,
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main::before {
+  inset: 0;
+  background:
+    radial-gradient(circle at 80% 10%, rgb(207 157 76 / 9%), transparent 30%),
+    linear-gradient(180deg, rgb(17 12 8 / 18%), transparent 32%);
+  background-attachment: scroll;
+  filter: none;
+  opacity: 1;
+  transform: none;
+}
+
+/* Home: use the menu container width for the hero content so both cards start
+   on exactly the same left edge. */
+.app-shell--site.app-shell--home .trang-chu__hero-content,
+.app-shell--site.app-shell--home .trang-chu__container {
+  width: var(--cmid-hero-content-width);
+}
+
+.app-shell--site.app-shell--home .trang-chu__hero-panel {
+  width: 60%;
+}
+
+/* Fixed image stage keeps route changes still. The title card itself has a
+   minimum rather than a fixed size, so longer page titles can breathe. */
+.app-shell--site.app-shell--hero :is(
+  .khung-dau-trang,
+  .catalog-hero,
+  .tin-tuc__hero
+) {
+  aspect-ratio: var(--cmid-hero-source-ratio);
+  background-position: center;
+}
+
+.app-shell--site.app-shell--hero :is(
+  .khung-dau-trang__noi-dung,
+  .catalog-hero__content,
+  .tin-tuc__hero-content
+) {
+  width: var(--cmid-hero-content-width);
+}
+
+.app-shell--site.app-shell--hero :is(
+  .khung-dau-trang__noi-dung,
+  .catalog-hero__glass,
+  .tin-tuc__hero-glass
+) {
+  width: var(--cmid-hero-title-card-width);
+  block-size: auto;
+  min-height: var(--cmid-hero-title-card-min-height);
+  padding: clamp(30px, 3vw, 42px);
+  border: 1px solid rgb(207 157 76 / 68%);
+  border-radius: 34px;
+  background: linear-gradient(118deg, rgb(12 9 6 / 92%), rgb(16 11 7 / 83%));
+  box-shadow:
+    inset 0 1px 0 rgb(255 244 222 / 8%),
+    0 28px 70px rgb(0 0 0 / 32%);
+  backdrop-filter: blur(9px) saturate(0.9);
+  -webkit-backdrop-filter: blur(9px) saturate(0.9);
+}
+
+.app-shell--site.app-shell--hero .khung-dau-trang__noi-dung {
+  align-content: center;
+  justify-items: start;
+  margin: 0;
+}
+
+.app-shell--site.app-shell--hero :is(
+  .catalog-hero__content,
+  .tin-tuc__hero-content
+) {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0 auto;
+}
+
+.app-shell--site.app-shell--hero :is(
+  .catalog-hero__glass,
+  .tin-tuc__hero-glass
+) {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+}
+
+/* Product and news were still receiving the older light-brown glass rule.
+   Keep these two cards on the same dark CMID surface as every other hero. */
+.app-shell--site.app-shell--hero :is(
+  .catalog-hero__content > .catalog-hero__glass,
+  .tin-tuc__hero-content > .tin-tuc__hero-glass
+) {
+  border-color: rgb(207 157 76 / 68%);
+  background: linear-gradient(118deg, rgb(10 8 6 / 94%), rgb(17 12 8 / 88%));
+  box-shadow:
+    inset 0 1px 0 rgb(255 244 222 / 8%),
+    0 28px 70px rgb(0 0 0 / 32%);
+  backdrop-filter: blur(9px) saturate(0.9);
+  -webkit-backdrop-filter: blur(9px) saturate(0.9);
+}
+
+.app-shell--site.app-shell--hero :is(
+  .khung-dau-trang h1,
+  .catalog-hero__content h1,
+  .tin-tuc__hero-content h1
+) {
+  max-width: 720px;
+  font-size: clamp(2.55rem, 3.7vw, 4.15rem);
+  line-height: 1.03;
+}
+
+.app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang__noi-dung {
+  width: var(--cmid-hero-title-card-width);
+  padding: clamp(30px, 3vw, 42px);
+}
+
+.app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang h1 {
+  max-width: 720px;
+  font-size: clamp(2.3rem, 3.1vw, 3.6rem);
+  line-height: 1.08;
+}
+
+@media (max-width: 930px) {
+  .app-shell--site {
+    --cmid-hero-block-size: 590px;
+    --cmid-hero-panel-block-size: 340px;
+    --cmid-hero-content-width: min(760px, calc(100% - 48px));
+    --cmid-hero-title-card-width: min(690px, 76%);
+    --cmid-hero-title-card-min-height: 320px;
+  }
+
+  .app-shell--site.app-shell--home .trang-chu__hero-content,
+  .app-shell--site.app-shell--home .trang-chu__container {
+    width: var(--cmid-hero-content-width);
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell--site {
+    --cmid-hero-block-size: 540px;
+    --cmid-hero-panel-block-size: auto;
+    --cmid-hero-content-width: min(620px, calc(100% - 32px));
+    --cmid-hero-title-card-width: 100%;
+    --cmid-hero-title-card-min-height: 0;
+  }
+
+  .app-shell--site.app-shell--home .trang-chu__hero-content,
+  .app-shell--site.app-shell--home .trang-chu__container {
+    width: var(--cmid-hero-content-width);
+  }
+
+  .app-shell--site.app-shell--home .trang-chu__hero-panel,
+  .app-shell--site.app-shell--hero :is(
+    .khung-dau-trang__noi-dung,
+    .catalog-hero__glass,
+    .tin-tuc__hero-glass
+  ) {
+    width: 100%;
+    min-height: 0;
+    border-radius: 18px;
+  }
+
+  .app-shell--site.app-shell--hero :is(
+    .catalog-hero__content,
+    .tin-tuc__hero-content
+  ) {
+    padding-inline: 0;
+  }
+}
+
+@media (max-width: 930px) {
+  .app-shell--site.app-shell--hero .trang-san-pham {
+    --cmid-product-catalog-width: min(1240px, calc(100% - 48px));
+    --cmid-hero-block-size: 500px;
+    --cmid-hero-panel-block-size: 300px;
+    --cmid-hero-title-card-min-height: 300px;
+    --cmid-hero-title-card-gap-top: 128px;
+    --cmid-hero-title-card-gap-bottom: 56px;
+  }
+
+  .app-shell--site.app-shell--hero .trang-san-pham :is(
+    .catalog-hero,
+    .catalog-hero__content
+  ) {
+    min-height: var(--cmid-hero-block-size);
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell--site.app-shell--hero .trang-san-pham {
+    --cmid-product-catalog-width: min(1240px, calc(100% - 32px));
+    --cmid-hero-block-size: 470px;
+    --cmid-hero-panel-block-size: auto;
+    --cmid-hero-title-card-min-height: 0;
+    --cmid-hero-title-card-gap-top: 108px;
+    --cmid-hero-title-card-gap-bottom: 34px;
+  }
+
+  .app-shell--site.app-shell--hero .trang-san-pham :is(
+    .catalog-hero,
+    .catalog-hero__content
+  ) {
+    min-height: var(--cmid-hero-block-size);
+  }
+}
+
+/* Every title card uses the same clear space above and below it, including
+   the homepage. This keeps route changes visually calm without fixing card
+   height when a page title needs more room. */
+.app-shell--site.app-shell--hero .khung-dau-trang,
+.app-shell--site.app-shell--hero :is(
+  .trang-chu__hero-content,
+  .catalog-hero__content,
+  .tin-tuc__hero-content
+) {
+  padding-block:
+    var(--cmid-hero-title-card-gap-top)
+    var(--cmid-hero-title-card-gap-bottom);
+}
+
+/* Dark cards stay near-black. In light mode the same cards return to the
+   warm translucent CMID surface used by the approved light-theme reference. */
+html[data-theme='light'] .app-shell--site.app-shell--hero :is(
+  .trang-chu__hero-panel,
+  .khung-dau-trang__noi-dung,
+  .catalog-hero__content > .catalog-hero__glass,
+  .tin-tuc__hero-content > .tin-tuc__hero-glass
+) {
+  border-color: rgb(255 249 239 / 72%);
+  background: rgb(88 66 47 / 57%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 249 239 / 12%),
+    0 24px 58px rgb(49 31 17 / 23%);
+  backdrop-filter: blur(16px) saturate(0.84);
+  -webkit-backdrop-filter: blur(16px) saturate(0.84);
+}
+
+@media (max-width: 930px) {
+  .app-shell--site {
+    --cmid-hero-title-card-gap-top: 104px;
+    --cmid-hero-title-card-gap-bottom: 64px;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell--site {
+    --cmid-hero-title-card-gap-top: 90px;
+    --cmid-hero-title-card-gap-bottom: 44px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html[data-theme='light'] .app-shell--site.app-shell--hero :is(
+    .trang-chu__hero-panel,
+    .khung-dau-trang__noi-dung,
+    .catalog-hero__content > .catalog-hero__glass,
+    .tin-tuc__hero-content > .tin-tuc__hero-glass
+  ) {
+    background: #604936;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* Light-surface controls need the same dark ink as the surrounding copy.
+   Buttons on the CMID gold or brown surfaces are intentionally kept light. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .button--outline-light,
+  .product-detail-actions__secondary,
+  .product-card__action--quote,
+  .catalog-filters__reset,
+  .catalog-pagination button,
+  .tin-tuc__pagination button,
+  .tin-tuc__sidebar nav button,
+  .tin-tuc__tags button,
+  .quantity-control button,
+  .product-detail-quantity button,
+  .cart-table__actions .button--outline,
+  .related-products__control,
+  .auth-google-button,
+  .button--ghost
+) {
+  color: #292521;
+}
+
+html[data-theme='light'] .app-shell--site :is(
+  .button--gold,
+  .khung-dau-trang__button,
+  .product-card__action:not(.product-card__action--quote),
+  .catalog-pagination__current,
+  .tin-tuc__pagination button.is-active,
+  .tin-tuc__sidebar nav button.is-active,
+  .account-nav__item--active,
+  .payment-option:has(input:checked),
+  .product-filter--active
+) {
+  color: #fffdf9 !important;
+}
+
+html[data-theme='light'] .app-shell--site .payment-option:has(input:checked) :is(span, small) {
+  color: #fffdf9;
+}
+
+/* Keep icon-only controls legible on the pale surface. The disabled state is
+   intentionally softer, but still uses the same dark ink rather than white. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .catalog-pagination button,
+  .tin-tuc__pagination button,
+  .tin-tuc__sidebar nav button
+) {
+  color: #292521 !important;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .catalog-pagination button:disabled,
+  .tin-tuc__pagination button:disabled
+) {
+  color: rgb(41 37 33 / 58%) !important;
+  opacity: 1;
+}
+
+/* These rules intentionally match the more specific light-control selector
+   above, so active gold or brown controls always retain white content. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .catalog-pagination__current,
+  .tin-tuc__pagination button.is-active,
+  .tin-tuc__sidebar nav button.is-active,
+  .account-nav__item--active,
+  .payment-option:has(input:checked)
+) {
+  color: #fffdf9 !important;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .payment-option:has(input:checked) :is(span, small) {
+  color: #fffdf9 !important;
+}
+
+/* A selected catalog checkbox stays readable on the light filter surface.
+   This is deliberately separate from gold/brown controls, which use white. */
+html[data-theme='light'] .app-shell--site .catalog-filter__check
+  input:checked + .catalog-filter__box {
+  border-color: #292521;
+  background: #fffdf9;
+}
+
+html[data-theme='light'] .app-shell--site .catalog-filter__check
+  input:checked + .catalog-filter__box::after {
+  color: #292521 !important;
+  border-color: #292521 !important;
+}
+
+/* Product cards stay in place while hovered. A solid light-theme fill avoids
+   the non-interpolable gradient-to-color change that caused the CTA to flash. */
+.app-shell--site .product-card__action {
+  transform: translateY(0);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.app-shell--site .product-card__action:hover {
+  transform: translateY(0);
+}
+
+html[data-theme='light'] .app-shell--site .product-card__action:not(
+  .product-card__action--quote
+) {
+  background-image: none;
+  background-color: #b98032;
+}
+
+html[data-theme='light'] .app-shell--site .product-card__action:not(
+  .product-card__action--quote
+):hover {
+  background-color: #a96f28;
+}
+
+/* Quote actions are dark ink on the pale card, then switch together with
+   their icon to an off-white label once the hover surface becomes brown. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .product-card__action--quote:hover {
+  color: #fffdf9 !important;
+}
+
+/* Product purchase actions use a clear colour-only response. Keeping their
+   geometry fixed prevents the inherited button lift from flickering. */
+.app-shell--site .product-detail-actions :is(
+  .product-detail-actions__primary,
+  .product-detail-actions__secondary
+) {
+  transform: translateY(0);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.app-shell--site .product-detail-actions :is(
+  .product-detail-actions__primary,
+  .product-detail-actions__secondary
+):hover {
+  transform: translateY(0);
+  border-color: #805017;
+  color: #fffdf9 !important;
+  background-color: #805017;
+}
+
+html[data-theme='light'] .app-shell--site .product-detail-actions__primary {
+  background-image: none;
+  background-color: #b98032;
+}
+
+/* The add-to-cart action has the same strong hover cue in both themes. */
+.app-shell--site .product-card__action:not(
+  .product-card__action--quote
+):hover {
+  border-color: #805017;
+  color: #fffdf9 !important;
+  background-color: #805017;
+}
+
+html[data-theme='light'] .app-shell--site .product-card__action:not(
+  .product-card__action--quote
+):hover {
+  border-color: #805017;
+  background-color: #805017;
+}
+
+/* The pale catalog card needs a stronger hover border than its dark sibling
+   to remain visible against the light page surface. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .product-card--catalog:hover {
+  border-color: #a66d24;
+  box-shadow:
+    0 0 0 1px rgb(166 109 36 / 86%),
+    0 10px 24px rgb(98 64 25 / 12%);
+}
+
+/* The product hero card should be sized by its title and description, not by
+   the full catalog column. Mobile keeps the full-width reading surface. */
+@media (min-width: 721px) {
+  .app-shell--site.app-shell--hero .trang-san-pham .catalog-hero__glass {
+    inline-size: max-content;
+    width: max-content;
+    max-inline-size: 100%;
+    max-width: 100%;
+    flex: 0 1 max-content;
+    justify-self: start;
+  }
+
+  /* Every remaining public title card follows the product-card sizing rule.
+     Text defines the panel width while the shared maximum preserves a
+     comfortable measure for longer descriptions. */
+  .app-shell--site.app-shell--hero :is(
+    .khung-dau-trang__noi-dung,
+    .catalog-hero__glass,
+    .tin-tuc__hero-glass
+  ) {
+    inline-size: max-content;
+    width: max-content;
+    max-inline-size: 100%;
+    max-width: 100%;
+    flex: 0 1 max-content;
+    justify-self: start;
+  }
+
+  .app-shell--site.app-shell--hero :is(
+    .catalog-hero__glass,
+    .tin-tuc__hero-glass
+  ) > * {
+    width: auto;
+  }
+
+  /* These pages carry older page-specific widths, so opt them into the same
+     content-led card sizing explicitly.  The card will only grow as far as
+     its heading/description needs, while long copy still respects the hero
+     reading measure. */
+  .app-shell--site.app-shell--home .trang-chu__hero-panel,
+  .app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang__noi-dung,
+  .app-shell--site.app-shell--hero .tin-tuc__hero-content > .tin-tuc__hero-glass {
+    inline-size: max-content;
+    width: max-content;
+    max-inline-size: 100%;
+    max-width: 100%;
+    flex: 0 1 max-content;
+    justify-self: start;
+  }
+}
+
+/* The hero cards use Roboto throughout.  Earlier heading styles had overly
+   negative tracking, which made large Vietnamese titles visually collide. */
+.app-shell--site:is(.app-shell--home, .app-shell--hero) :is(
+  .trang-chu__hero-panel,
+  .khung-dau-trang__noi-dung,
+  .catalog-hero__glass,
+  .tin-tuc__hero-glass
+) {
+  font-family: 'Roboto', Arial, Helvetica, sans-serif;
+}
+
+.app-shell--site:is(.app-shell--home, .app-shell--hero) :is(
+  .trang-chu__hero-panel,
+  .khung-dau-trang__noi-dung,
+  .catalog-hero__glass,
+  .tin-tuc__hero-glass
+) h1 {
+  font-family: 'Roboto', Arial, Helvetica, sans-serif !important;
+  letter-spacing: 0.012em !important;
+  word-spacing: normal;
+}
+
+/* On wide light-theme carts, the products belong to one continuous table —
+   just like dark mode.  The outer shell owns the radius; rows only use quiet
+   horizontal dividers, so their rounded corners do not show as separate cards. */
+@media (min-width: 681px) {
+  html[data-theme='light'] .app-shell--site:not(.app-shell--home) .cart-table {
+    overflow: hidden;
+  }
+
+  html[data-theme='light'] .app-shell--site:not(.app-shell--home) .cart-line-item {
+    border-right: 0;
+    border-left: 0;
+    border-radius: var(--cmid-surface-radius);
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+/* Authenticated customer surfaces follow the same quiet showroom composition
+   in both color modes.  These rules intentionally come after the generic
+   public-page surface mapping above. */
+.app-shell--site:not(.app-shell--home) :is(.auth-page, .account-page) {
+  background:
+    linear-gradient(90deg, rgb(247 242 235 / 32%), rgb(247 242 235 / 8%)),
+    url('../assets/images/auth-showroom-cmid.png') center / cover no-repeat;
+}
+
+.app-shell--site:not(.app-shell--home) :is(.auth-page, .account-page)::before {
+  background: linear-gradient(180deg, rgb(255 253 249 / 6%), rgb(245 239 230 / 30%));
+}
+
+.app-shell--site:not(.app-shell--home) .auth-page .auth-card,
+.app-shell--site:not(.app-shell--home) .account-page :is(
+  .account-sidebar,
+  .account-metrics article,
+  .account-empty-state,
+  .account-information
+) {
+  border-color: rgb(189 143 73 / 28%);
+  color: var(--site-text);
+  background: rgb(255 253 249 / 87%);
+  box-shadow: 0 18px 42px rgb(91 61 25 / 10%);
+}
+
+.app-shell--site:not(.app-shell--home) .auth-page .auth-google-button {
+  border-color: rgb(179 124 44 / 61%);
+  color: #302a24;
+  background: rgb(255 253 249 / 74%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 65%);
+}
+
+.app-shell--site:not(.app-shell--home) .auth-page .auth-google-button:hover:not(:disabled) {
+  border-color: var(--site-gold);
+  color: #fffdf9;
+  background: var(--site-gold);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page :is(.account-nav__item, .account-sign-out) {
+  color: var(--site-muted);
+  background: transparent;
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-nav__item--active,
+.app-shell--site:not(.app-shell--home) .account-page .account-nav__item--active:hover {
+  color: #fffdf9;
+  background: var(--site-gold);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) :is(.auth-page, .account-page) {
+  background:
+    linear-gradient(90deg, rgb(12 9 6 / 79%), rgb(12 9 6 / 61%)),
+    url('../assets/images/auth-showroom-cmid.png') center / cover no-repeat;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) :is(.auth-page, .account-page)::before {
+  background: linear-gradient(180deg, rgb(13 9 6 / 45%), rgb(13 9 6 / 78%));
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .auth-page .auth-card,
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page :is(
+  .account-sidebar,
+  .account-metrics article,
+  .account-empty-state,
+  .account-information
+) {
+  border-color: rgb(216 164 81 / 38%);
+  color: #f1e9df;
+  background: rgb(24 18 13 / 83%);
+  box-shadow: 0 22px 50px rgb(0 0 0 / 24%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .auth-page .auth-google-button {
+  border-color: rgb(216 164 81 / 57%);
+  color: #f7f1e8;
+  background: rgb(255 255 255 / 5%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .auth-page .auth-google-button:hover:not(:disabled) {
+  border-color: #e0ad56;
+  color: #17110d;
+  background: #d5a14d;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-nav__item--active,
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-nav__item--active:hover {
+  color: #17110d;
+  background: #d5a14d;
+}
+
+/* Keep the sign-in scene in sync with the refreshed account showroom.  This
+   explicit selector replaces a legacy light-mode pseudo layer that still
+   pointed to the former living-room image. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .auth-page {
+  background:
+    linear-gradient(90deg, rgb(247 242 235 / 34%), rgb(247 242 235 / 8%)),
+    url('../assets/images/auth-showroom-cmid.png') center / cover no-repeat;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .auth-page::before {
+  background:
+    linear-gradient(90deg, rgb(247 242 234 / 80%) 0%, rgb(247 242 234 / 59%) 46%, rgb(247 242 234 / 20%) 100%),
+    url('../assets/images/auth-showroom-cmid.png') center / cover no-repeat;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .auth-page {
+  background:
+    linear-gradient(90deg, rgb(12 9 6 / 79%), rgb(12 9 6 / 61%)),
+    url('../assets/images/auth-showroom-cmid.png') center / cover no-repeat;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .auth-page::before {
+  background:
+    linear-gradient(180deg, rgb(13 9 6 / 45%), rgb(13 9 6 / 78%)),
+    url('../assets/images/auth-showroom-cmid.png') center / cover no-repeat;
+}
+
+/* Account tabs sit directly on the showroom scene.  Keeping their common
+   wrapper transparent prevents one oversized white rectangle and lets every
+   actual data block share a clean, predictable left edge. */
+.app-shell--site:not(.app-shell--home) .account-page .account-panel {
+  height: 100%;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 760px) {
+  .app-shell--site:not(.app-shell--home) .account-page .account-panel {
+    height: auto;
+  }
+}
+
+/* Profile fields share the account surfaces while preserving a denser form rhythm. */
+.app-shell--site:not(.app-shell--home) .account-page .account-profile {
+  border-color: var(--site-line);
+  color: var(--site-text);
+  background: var(--site-surface);
+  box-shadow: var(--site-shadow);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page :is(
+  .account-profile__field,
+  .account-profile__field:nth-child(even),
+  .account-profile__actions
+) {
+  border-color: var(--site-line-soft);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__field-content > span,
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__notice {
+  color: var(--site-muted);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__field-content strong {
+  color: var(--site-heading);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__icon {
+  color: var(--site-gold);
+  background: var(--site-surface-soft);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__control :is(input, select) {
+  border-color: var(--site-line-soft);
+  color: var(--site-heading);
+  background: var(--site-field);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__control input[readonly] {
+  color: var(--site-muted);
+  background: var(--site-surface-soft);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-sign-out {
+  color: #b9483d;
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-sign-out:hover {
+  border-color: rgb(185 72 61 / 50%);
+  color: #a83c32;
+  background: rgb(185 72 61 / 11%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile {
+  border-color: rgb(216 164 81 / 38%);
+  color: #f1e9df;
+  background: rgb(24 18 13 / 83%);
+  box-shadow: 0 22px 50px rgb(0 0 0 / 24%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page :is(
+  .account-profile__field,
+  .account-profile__field:nth-child(even),
+  .account-profile__actions
+) {
+  border-color: rgb(216 164 81 / 22%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__field-content > span,
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__notice {
+  color: #c7b9a9;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__field-content strong {
+  color: #f7f1e8;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__icon {
+  color: #dbaa55;
+  background: rgb(216 164 81 / 12%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__control :is(input, select) {
+  border-color: rgb(216 164 81 / 36%);
+  color: #f7f1e8;
+  background: rgb(255 255 255 / 5%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__control input[readonly] {
+  color: #c7b9a9;
+  background: rgb(216 164 81 / 8%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-sign-out {
+  color: #ef9c8b;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-sign-out:hover {
+  border-color: rgb(239 156 139 / 58%);
+  color: #ffd2c8;
+  background: rgb(239 156 139 / 14%);
+}
+
+/* The edit state is intentionally a compact form surface, separate from the
+   read-only profile rows.  These theme tokens keep the same hierarchy in both
+   site modes. */
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__avatar-row,
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__edit-field,
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__edit-field:nth-child(even) {
+  border-color: var(--site-line-soft);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__avatar-preview {
+  border-color: var(--site-line);
+  box-shadow: 0 0 0 2px var(--site-surface);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__avatar-copy strong {
+  color: var(--site-heading);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page :is(
+  .account-profile__avatar-copy span,
+  .account-profile__edit-field > label
+) {
+  color: var(--site-muted);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__avatar-button,
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__edit-field > input,
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-trigger {
+  border-color: var(--site-line);
+  color: var(--site-heading);
+  background: var(--site-field);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-search {
+  border-color: var(--site-line);
+  color: var(--site-heading);
+  background: var(--site-field);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-search input {
+  color: var(--site-heading);
+}
+
+/* The location-search field already has its own quiet container.  Do not let
+   the page-wide form focus treatment add a second gold ring when typing. */
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-search input:focus,
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-search input:focus-visible {
+  border-color: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-menu {
+  border-color: var(--site-line);
+  color: var(--site-heading);
+  background: var(--site-surface-solid);
+  box-shadow: 0 14px 30px rgb(74 50 22 / 18%);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-option:not(.account-profile__dropdown-option--selected):hover,
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-option:not(.account-profile__dropdown-option--selected):focus-visible {
+  color: var(--site-heading);
+  background: var(--site-surface-soft);
+}
+
+.app-shell--site:not(.app-shell--home) .account-page .account-profile__edit-field > input:disabled {
+  color: var(--site-muted);
+  background: var(--site-surface-soft);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page :is(
+  .account-profile__avatar-row,
+  .account-profile__edit-field,
+  .account-profile__edit-field:nth-child(even)
+) {
+  border-color: rgb(216 164 81 / 22%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__avatar-preview {
+  border-color: rgb(216 164 81 / 38%);
+  box-shadow: 0 0 0 2px rgb(24 18 13 / 83%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__avatar-copy strong {
+  color: #f7f1e8;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page :is(
+  .account-profile__avatar-copy span,
+  .account-profile__edit-field > label
+) {
+  color: #c7b9a9;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__avatar-button,
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__edit-field > input,
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-trigger {
+  border-color: rgb(216 164 81 / 36%);
+  color: #f7f1e8;
+  background: rgb(255 255 255 / 5%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-search {
+  border-color: rgb(216 164 81 / 36%);
+  color: #f7f1e8;
+  background: rgb(255 255 255 / 5%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-search input {
+  color: #f7f1e8;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-search input:focus,
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-search input:focus-visible {
+  border-color: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-menu {
+  border-color: rgb(216 164 81 / 36%);
+  color: #f7f1e8;
+  background: rgb(31 23 16 / 98%);
+  box-shadow: 0 16px 32px rgb(0 0 0 / 38%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-option:not(.account-profile__dropdown-option--selected):hover,
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-option:not(.account-profile__dropdown-option--selected):focus-visible {
+  color: #f7f1e8;
+  background: rgb(216 164 81 / 14%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__edit-field > input:disabled {
+  color: #c7b9a9;
+  background: rgb(216 164 81 / 8%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .account-page .account-profile__dropdown-trigger > svg {
+  color: #c7b9a9;
+}
+
+/* Checkout delivery uses the same searchable location control as the account
+   profile. Keep its inner search field quiet while the outer control carries
+   the visible focus state. */
+.app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__trigger,
+.app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__search {
+  border-color: var(--site-line);
+  color: var(--site-heading);
+  background: var(--site-field);
+}
+
+.app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__search input {
+  color: var(--site-heading);
+  background: transparent !important;
+}
+
+.app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__search input:focus,
+.app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__search input:focus-visible {
+  border-color: transparent !important;
+  outline: none;
+  box-shadow: none !important;
+}
+
+.app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__menu {
+  border-color: var(--site-line);
+  color: var(--site-heading);
+  background: var(--site-surface-solid);
+  box-shadow: 0 14px 30px rgb(74 50 22 / 18%);
+}
+
+.app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__option:not(.checkout-location-dropdown__option--selected):hover,
+.app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__option:not(.checkout-location-dropdown__option--selected):focus-visible {
+  color: var(--site-heading);
+  background: var(--site-surface-soft);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__trigger,
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__search {
+  border-color: rgb(216 164 81 / 36%);
+  color: #f7f1e8;
+  background: rgb(255 255 255 / 5%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__search input {
+  color: #f7f1e8;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__menu {
+  border-color: rgb(216 164 81 / 36%);
+  color: #f7f1e8;
+  background: rgb(31 23 16 / 98%);
+  box-shadow: 0 16px 32px rgb(0 0 0 / 38%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__option:not(.checkout-location-dropdown__option--selected):hover,
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__option:not(.checkout-location-dropdown__option--selected):focus-visible {
+  color: #f7f1e8;
+  background: rgb(216 164 81 / 14%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .checkout-form .checkout-location-dropdown__trigger > svg {
+  color: #c7b9a9;
+}
+
+/* Unified interactive hover language
+   Customer actions share the same calm CMID response: gold outline, warm surface,
+   clear ink and no vertical movement. Destructive actions stay separate below. */
+.app-shell--site {
+  --cmid-control-hover-border: #dbaa55;
+  --cmid-control-hover-surface: #302419;
+  --cmid-control-hover-tint: rgb(216 164 81 / 12%);
+  --cmid-control-hover-ink: #f7f1e8;
+}
+
+html[data-theme='light'] .app-shell--site {
+  --cmid-control-hover-border: #c5964b;
+  --cmid-control-hover-surface: #f7eddd;
+  --cmid-control-hover-tint: rgb(197 150 75 / 12%);
+  --cmid-control-hover-ink: #2d2822;
+}
+
+/* A button should respond with colour and border only. This also prevents the
+   inherited lift from making neighboring controls appear to jump on hover. */
+.app-shell--site .button {
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.app-shell--site .button:hover {
+  transform: translateY(0);
+}
+
+.app-shell--site .button:active {
+  transform: translateY(1px);
+}
+
+/* Secondary navigation and utility actions use the account navigation hover.
+   Purchase, account-save and payment actions are listed separately so they cannot
+   be overridden by their page-specific solid-gold hover rules. */
+.app-shell--site :is(
+  .button:not(.button--gold):not(.product-card__action),
+  .catalog-filters__reset,
+  .catalog-pagination button:not(.catalog-pagination__current),
+  .tin-tuc__sidebar nav button:not(.is-active),
+  .tin-tuc__tags button,
+  .tin-tuc__pagination button:not(.is-active),
+  .related-products__control,
+  .home-products__control,
+  .auth-google-button,
+  .account-nav__item:not(.account-nav__item--active),
+  .account-profile__button--secondary,
+  .account-profile__avatar-button
+) {
+  transform: translateY(0);
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+@media (hover: hover) {
+  .app-shell--site :is(
+    .button:not(.button--gold):not(.product-card__action),
+    .catalog-filters__reset,
+    .catalog-pagination button:not(.catalog-pagination__current),
+    .tin-tuc__sidebar nav button:not(.is-active),
+    .tin-tuc__tags button,
+    .tin-tuc__pagination button:not(.is-active),
+    .related-products__control,
+    .home-products__control,
+    .auth-google-button,
+    .account-nav__item:not(.account-nav__item--active),
+    .account-profile__avatar-button
+  ):not(:disabled):hover,
+  .app-shell--site :is(
+    .button--gold,
+    .product-card__action,
+    .product-detail-actions__primary,
+    .product-detail-actions__secondary,
+    .cart-table__actions .button,
+    .order-summary__action,
+    .contact-form-panel__wide.button,
+    .account-profile__button,
+    .payment-option:not(:has(input:checked))
+  ):not(:disabled):hover {
+    border-color: var(--cmid-control-hover-border) !important;
+    color: var(--cmid-control-hover-ink) !important;
+    background-color: var(--cmid-control-hover-surface) !important;
+    box-shadow: inset 14px 0 26px var(--cmid-control-hover-tint);
+    transform: translateY(0) !important;
+  }
+
+  .app-shell--site .payment-option:not(:has(input:checked)):hover :is(span, strong, small) {
+    color: var(--cmid-control-hover-ink) !important;
+  }
+
+  /* Hero surfaces are intentionally dark in both themes, so their labels stay
+     light while their hover still uses the same gold outline and warm response. */
+  .app-shell--site .trang-chu__hero-panel :is(.button--gold, .button--outline-light):not(:disabled):hover,
+  .app-shell--site .khung-dau-trang__button:not(:disabled):hover {
+    border-color: #dbaa55 !important;
+    color: #fffaf2 !important;
+    background-color: #b77d2d !important;
+    box-shadow: inset 14px 0 26px rgb(255 238 202 / 10%);
+  }
+}
+
+.app-shell--site :is(
+  .button,
+  .product-card__action,
+  .product-detail-actions__primary,
+  .product-detail-actions__secondary,
+  .account-profile__button,
+  .payment-option,
+  .account-nav__item
+):focus-visible {
+  outline: none;
+  border-color: var(--cmid-control-hover-border) !important;
+  box-shadow: 0 0 0 3px var(--cmid-control-hover-tint);
+}
+
+/* Sign out stays visibly destructive, but now follows the same bordered,
+   motion-free interaction pattern rather than behaving like a normal CTA. */
+.app-shell--site .account-sign-out {
+  transform: translateY(0);
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.app-shell--site .account-sign-out:hover {
+  border-color: #cf5b50;
+  color: #a83c32;
+  background-color: #fae4df;
+  box-shadow: inset 14px 0 26px rgb(207 91 80 / 11%);
+  transform: translateY(0);
+}
+
+html[data-theme='dark'] .app-shell--site .account-sign-out:hover {
+  border-color: #ef9c8b;
+  color: #ffd2c8;
+  background-color: #35201d;
+  box-shadow: inset 14px 0 26px rgb(239 156 139 / 14%);
+}
+
+/* Keep the first homepage headline phrase together on wide screens. The
+   explicit break in the markup still keeps the highlighted phrase below it. */
+@media (min-width: 1200px) {
+  .app-shell--site.app-shell--home .trang-chu__hero-content h1 {
+    max-inline-size: none;
+    max-width: none;
+    white-space: nowrap;
+  }
+}
+
+/* Related products intentionally reuse the calmer featured-product treatment:
+   a generous product stage, clean title-only body, and solid gold controls. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .related-product-card {
+  border-color: rgb(255 255 255 / 82%);
+  background: rgb(249 245 239 / 80%);
+  box-shadow: none;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .related-product-card .product-card__body {
+  display: flex;
+  min-height: 108px;
+  flex: 1;
+  position: relative;
+  padding: 14px;
+  text-align: left !important;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .related-product-card .product-card__media {
+  min-height: 180px;
+  background: #eee5d9;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .related-product-card h2 {
+  color: #37312b;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  left: 14px;
+  display: -webkit-box !important;
+  width: auto !important;
+  font-size: calc(0.76rem + 2px);
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 0 !important;
+  text-align: left !important;
+  text-transform: none !important;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .related-product-card h2::before,
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .related-product-card h2::after {
+  display: none !important;
+  content: none !important;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .related-product-card .product-card__price-row strong {
+  color: #b47624;
+  font-size: calc(0.86rem + 2px);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .related-product-card .product-card__price-row span {
+  color: #75695d;
+  font-size: calc(0.62rem + 2px);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .related-products__control {
+  border-color: rgb(180 127 51 / 35%);
+  color: #fffaf2 !important;
+  background: #bc8a43;
+  box-shadow: 0 9px 22px rgb(117 75 27 / 18%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .related-products__control:hover {
+  border-color: #a97025 !important;
+  color: #fff !important;
+  background-color: #a97025 !important;
+}
+
+/* Product carousels sit directly on the page surface; no extra shadow layer
+   should remain visible below or beside an individual product card. */
+.app-shell--site :is(.home-product-grid, .related-products__grid) {
+  background: transparent;
+  box-shadow: none;
+}
+
+.app-shell--site :is(.product-card--showcase, .related-product-card) {
+  box-shadow: none !important;
+  filter: none;
+}
+
+/* Keep the featured-product price line consistent with related products. */
+html[data-theme='light'] .app-shell--site.app-shell--home .product-card--showcase .product-card__price-row strong {
+  color: #b47624;
+  font-size: calc(0.86rem + 2px);
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--home .product-card--showcase .product-card__price-row span {
+  color: #75695d;
+  font-size: calc(0.62rem + 2px);
+}
+
+/* Let the long about-page heading define the panel width, leaving the same
+   breathing room on both sides.  The small offset also balances the hero's
+   open space above and below the card. */
+@media (min-width: 721px) {
+  .app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang__noi-dung {
+    box-sizing: content-box;
+    max-inline-size: none;
+    max-width: none;
+    transform: translateY(20px);
+  }
+
+  .app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang h1 {
+    max-width: none;
+  }
+}

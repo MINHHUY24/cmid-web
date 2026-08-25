@@ -1,7 +1,7 @@
 import { CaretDown, CaretLeft, CaretRight } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import productHeroImage from "../assets/images/khong-gian-trung-bay-vat-lieu.jpg";
+import { Link, useSearchParams } from "react-router-dom";
+import productHeroImage from "../assets/images/hero-san-pham-cmid.png";
 import { StatusPanel } from "../components/common/KhunTranThai";
 import {
   ProductCatalogFilters,
@@ -10,6 +10,7 @@ import {
 import { ProductCard } from "../components/product/TheSanPham";
 import { useProducts } from "../hooks/useProducts";
 import type { Product } from "../types/product";
+import { useLanguage } from "../contexts/NgonNguContext";
 
 type SortOrder = "newest" | "price-asc" | "price-desc";
 
@@ -36,7 +37,9 @@ function clamp(value: number, min: number, max: number): number {
 
 function createFilterOptions(
   products: Product[],
-  getOption: (product: Product) => { id: string; label: string } | null,
+  getOption: (
+    product: Product,
+  ) => { id: string; label: string; slug?: string } | null,
 ): ProductFilterOption[] {
   const options = new Map<string, ProductFilterOption>();
 
@@ -61,7 +64,11 @@ function createFilterOptions(
 
 export function TrangSanPhamPage() {
   const { products, isLoading, errorMessage, retry } = useProducts();
+  const { content } = useLanguage();
+  const [searchParams] = useSearchParams();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [hasChangedCategoryFilter, setHasChangedCategoryFilter] =
+    useState(false);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedSaleTypes, setSelectedSaleTypes] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -81,10 +88,33 @@ export function TrangSanPhamPage() {
     () =>
       createFilterOptions(products, (product) =>
         product.category
-          ? { id: String(product.category.id), label: product.category.name }
+          ? {
+              id: String(product.category.id),
+              label: product.category.name,
+              slug: product.category.slug,
+            }
           : null,
       ),
     [products],
+  );
+  const requestedCategorySlug = searchParams.get("category");
+  const requestedCategoryId = useMemo(
+    () =>
+      categoryOptions.find(
+        (category) => category.slug === requestedCategorySlug,
+      )?.id,
+    [categoryOptions, requestedCategorySlug],
+  );
+  const isUsingRequestedCategory =
+    Boolean(requestedCategorySlug) && !hasChangedCategoryFilter;
+  const activeSelectedCategories = useMemo(
+    () =>
+      isUsingRequestedCategory
+        ? requestedCategoryId
+          ? [requestedCategoryId]
+          : []
+        : selectedCategories,
+    [isUsingRequestedCategory, requestedCategoryId, selectedCategories],
   );
   const brandOptions = useMemo(
     () =>
@@ -108,16 +138,16 @@ export function TrangSanPhamPage() {
     () => [
       {
         id: "AVAILABLE",
-        label: "Còn hàng",
+        label: content.product.inStock,
         count: products.filter((product) => product.status === "ACTIVE").length,
       },
       {
         id: "ORDER",
-        label: "Đặt hàng",
+        label: content.product.madeToOrder,
         count: products.filter((product) => product.status !== "ACTIVE").length,
       },
     ],
-    [products],
+    [content.product.inStock, content.product.madeToOrder, products],
   );
   const priceBounds = useMemo(() => {
     const prices = products.map(getProductPrice).filter((price) => price > 0);
@@ -134,9 +164,15 @@ export function TrangSanPhamPage() {
       products.filter((product) => {
         const productPrice = getProductPrice(product);
         const categoryMatches =
-          selectedCategories.length === 0 ||
-          (product.category &&
-            selectedCategories.includes(String(product.category.id)));
+          isUsingRequestedCategory
+            ? Boolean(
+                requestedCategoryId &&
+                  product.category &&
+                  String(product.category.id) === requestedCategoryId,
+              )
+            : activeSelectedCategories.length === 0 ||
+              (product.category &&
+                activeSelectedCategories.includes(String(product.category.id)));
         const brandMatches =
           selectedBrands.length === 0 ||
           (product.brand && selectedBrands.includes(String(product.brand.id)));
@@ -166,9 +202,11 @@ export function TrangSanPhamPage() {
       priceTo,
       products,
       selectedBrands,
-      selectedCategories,
       selectedSaleTypes,
       selectedStatuses,
+      activeSelectedCategories,
+      isUsingRequestedCategory,
+      requestedCategoryId,
     ],
   );
   const sortedProducts = useMemo(() => {
@@ -210,6 +248,7 @@ export function TrangSanPhamPage() {
 
   function resetFilters() {
     setSelectedCategories([]);
+    setHasChangedCategoryFilter(true);
     setSelectedBrands([]);
     setSelectedSaleTypes([]);
     setSelectedStatuses([]);
@@ -244,27 +283,31 @@ export function TrangSanPhamPage() {
       >
         <div className="catalog-hero__overlay" />
         <div className="catalog-hero__content">
-          <p>Danh mục CMID</p>
-          <h1 id="catalog-page-title">Sản phẩm</h1>
-          <span>Vật liệu và nội thất cao cấp cho không gian sống đẳng cấp</span>
+          <div className="catalog-hero__glass">
+            <h1 id="catalog-page-title">{content.common.products}</h1>
+            <span>{content.product.catalogDescription}</span>
+          </div>
         </div>
       </section>
 
       <div className="catalog-shell">
         <div className="catalog-toolbar">
-          <nav className="catalog-breadcrumb" aria-label="Đường dẫn trang">
-            <Link to="/">Trang chủ</Link>
+          <nav className="catalog-breadcrumb" aria-label="Breadcrumb">
+            <Link to="/">{content.common.home}</Link>
             <CaretRight size={14} aria-hidden="true" />
-            <span>Sản phẩm</span>
+            <span>{content.common.products}</span>
           </nav>
           {!isLoading && !errorMessage ? (
             <div className="catalog-toolbar__controls">
               <p>
-                Hiển thị {displayStart}–{displayEnd} trong {products.length} sản
-                phẩm
+                {content.product.showing(
+                  displayStart,
+                  displayEnd,
+                  products.length,
+                )}
               </p>
               <label className="catalog-sort">
-                <span className="sr-only">Sắp xếp sản phẩm</span>
+                <span className="sr-only">{content.product.sortNewest}</span>
                 <select
                   value={sortOrder}
                   onChange={(event) => {
@@ -272,9 +315,13 @@ export function TrangSanPhamPage() {
                     setCurrentPage(1);
                   }}
                 >
-                  <option value="newest">Sắp xếp: Mới nhất</option>
-                  <option value="price-asc">Giá: Thấp đến cao</option>
-                  <option value="price-desc">Giá: Cao đến thấp</option>
+                  <option value="newest">{content.product.sortNewest}</option>
+                  <option value="price-asc">
+                    {content.product.sortPriceAsc}
+                  </option>
+                  <option value="price-desc">
+                    {content.product.sortPriceDesc}
+                  </option>
                 </select>
                 <CaretDown size={15} weight="bold" aria-hidden="true" />
               </label>
@@ -282,17 +329,17 @@ export function TrangSanPhamPage() {
           ) : null}
         </div>
 
-        {isLoading ? <StatusPanel title="Đang tải sản phẩm…" /> : null}
+        {isLoading ? <StatusPanel title={content.product.loading} /> : null}
 
         {!isLoading && errorMessage ? (
-          <StatusPanel title="Không thể tải sản phẩm" tone="error">
+          <StatusPanel title={content.product.loadFailed} tone="error">
             <p>{errorMessage}</p>
             <button
               className="button button--small"
               type="button"
               onClick={retry}
             >
-              Thử lại
+              {content.common.retry}
             </button>
           </StatusPanel>
         ) : null}
@@ -303,7 +350,7 @@ export function TrangSanPhamPage() {
               categories={categoryOptions}
               brands={visibleBrandOptions}
               statuses={statusOptions}
-              selectedCategories={selectedCategories}
+              selectedCategories={activeSelectedCategories}
               selectedBrands={selectedBrands}
               selectedSaleTypes={selectedSaleTypes}
               selectedStatuses={selectedStatuses}
@@ -314,6 +361,7 @@ export function TrangSanPhamPage() {
               priceFrom={priceFrom}
               priceTo={priceTo}
               onToggleCategory={(id) => {
+                setHasChangedCategoryFilter(true);
                 setSelectedCategories((currentCategories) =>
                   toggleValue(currentCategories, id),
                 );
@@ -352,7 +400,7 @@ export function TrangSanPhamPage() {
 
             <section
               className="catalog-results"
-              aria-label="Danh sách sản phẩm"
+              aria-label={content.common.products}
             >
               {displayedProducts.length > 0 ? (
                 <div className="product-grid">
@@ -361,14 +409,14 @@ export function TrangSanPhamPage() {
                   ))}
                 </div>
               ) : (
-                <StatusPanel title="Không tìm thấy sản phẩm phù hợp">
-                  <p>Thử điều chỉnh lại bộ lọc để xem thêm sản phẩm.</p>
+                <StatusPanel title={content.product.noResults}>
+                  <p>{content.product.noResultsDescription}</p>
                   <button
                     className="button button--small button--gold"
                     type="button"
                     onClick={resetFilters}
                   >
-                    Xóa bộ lọc
+                    {content.product.clearFilters}
                   </button>
                 </StatusPanel>
               )}
@@ -376,11 +424,11 @@ export function TrangSanPhamPage() {
               {displayedProducts.length > 0 ? (
                 <nav
                   className="catalog-pagination"
-                  aria-label="Phân trang sản phẩm"
+                  aria-label="Product pagination"
                 >
                   <button
                     type="button"
-                    aria-label="Trang trước"
+                    aria-label="Previous page"
                     disabled={safeCurrentPage === 1}
                     onClick={() =>
                       setCurrentPage((page) => Math.max(page - 1, 1))
@@ -410,7 +458,7 @@ export function TrangSanPhamPage() {
                   ))}
                   <button
                     type="button"
-                    aria-label="Trang sau"
+                    aria-label="Next page"
                     disabled={safeCurrentPage === totalPages}
                     onClick={() =>
                       setCurrentPage((page) => Math.min(page + 1, totalPages))

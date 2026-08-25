@@ -4,11 +4,13 @@ import {
   MagnifyingGlass,
   SlidersHorizontal,
 } from '@phosphor-icons/react'
+import { useLanguage } from '../../contexts/NgonNguContext'
 
 export interface ProductFilterOption {
   id: string
   label: string
   count: number
+  slug?: string
 }
 
 interface ProductCatalogFiltersProps {
@@ -79,6 +81,8 @@ export function ProductCatalogFilters({
   onPriceToChange,
   onReset,
 }: ProductCatalogFiltersProps) {
+  const { content } = useLanguage()
+  const { filter } = content.product
   const hasActiveFilters =
     selectedCategories.length > 0 ||
     selectedBrands.length > 0 ||
@@ -89,14 +93,14 @@ export function ProductCatalogFilters({
     priceTo !== maxPrice
 
   return (
-    <aside className="catalog-filters" aria-label="Bộ lọc sản phẩm">
+    <aside className="catalog-filters" aria-label={filter.title}>
       <div className="catalog-filters__mobile-heading">
         <SlidersHorizontal size={18} aria-hidden="true" />
-        <span>Bộ lọc sản phẩm</span>
+        <span>{filter.title}</span>
       </div>
 
       <section className="catalog-filter">
-        <h2>Danh mục</h2>
+        <h2>{filter.category}</h2>
         <div className="catalog-filter__list">
           {categories.map((category) => (
             <FilterCheckItem
@@ -112,14 +116,14 @@ export function ProductCatalogFilters({
       </section>
 
       <section className="catalog-filter">
-        <h2>Thương hiệu</h2>
+        <h2>{filter.brand}</h2>
         <label className="catalog-filter__search">
           <MagnifyingGlass size={15} aria-hidden="true" />
           <input
             type="search"
             value={brandSearch}
-            placeholder="Tìm thương hiệu..."
-            aria-label="Tìm thương hiệu"
+            placeholder={filter.searchBrand}
+            aria-label={filter.searchBrand}
             onChange={(event) => onBrandSearchChange(event.target.value)}
           />
         </label>
@@ -138,7 +142,7 @@ export function ProductCatalogFilters({
       </section>
 
       <section className="catalog-filter">
-        <h2>Khoảng giá (VNĐ)</h2>
+        <h2>{filter.price}</h2>
         <div className="catalog-filter__range" aria-hidden="true">
           <span
             style={{
@@ -153,7 +157,7 @@ export function ProductCatalogFilters({
             value={priceFrom}
             min={minPrice}
             max={priceTo}
-            aria-label="Giá thấp nhất"
+            aria-label={filter.lowestPrice}
             onChange={(event) => onPriceFromChange(Number(event.target.value))}
           />
           <span>–</span>
@@ -162,24 +166,24 @@ export function ProductCatalogFilters({
             value={priceTo}
             min={priceFrom}
             max={maxPrice}
-            aria-label="Giá cao nhất"
+            aria-label={filter.highestPrice}
             onChange={(event) => onPriceToChange(Number(event.target.value))}
           />
         </div>
       </section>
 
       <section className="catalog-filter">
-        <h2>Loại bán</h2>
+        <h2>{filter.saleType}</h2>
         <div className="catalog-filter__list">
           <FilterCheckItem
             id="sale-direct"
-            label="Mua trực tiếp"
+            label={content.product.directOrder}
             checked={selectedSaleTypes.includes('DIRECT_ORDER')}
             onChange={() => onToggleSaleType('DIRECT_ORDER')}
           />
           <FilterCheckItem
             id="sale-quote"
-            label="Liên hệ báo giá"
+            label={content.product.quote}
             checked={selectedSaleTypes.includes('REQUEST_QUOTE')}
             onChange={() => onToggleSaleType('REQUEST_QUOTE')}
           />
@@ -193,14 +197,14 @@ export function ProductCatalogFilters({
         </h2>
         <FilterCheckItem
           id="has-3d-model"
-          label="Có mô hình 3D"
+          label={filter.hasModel3D}
           checked={only3D}
           onChange={() => onOnly3DChange(!only3D)}
         />
       </section>
 
       <section className="catalog-filter">
-        <h2>Trạng thái</h2>
+        <h2>{filter.status}</h2>
         <div className="catalog-filter__list">
           {statuses.map((status) => (
             <FilterCheckItem
@@ -222,7 +226,7 @@ export function ProductCatalogFilters({
         onClick={onReset}
       >
         <ArrowsCounterClockwise size={16} aria-hidden="true" />
-        Xóa bộ lọc
+        {filter.reset}
       </button>
     </aside>
   )

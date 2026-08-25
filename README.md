@@ -1,5 +1,30 @@
 # React + TypeScript + Vite
 
+## Đăng nhập Google
+
+Giao diện đăng nhập dùng Google Identity Services. Để bật đăng nhập thật trên môi trường của bạn:
+
+1. Trong Google Cloud Console, tạo **OAuth 2.0 Client ID** loại **Web application**.
+2. Thêm các Authorized JavaScript origins, ví dụ `http://localhost:5173` khi chạy Vite.
+3. Tạo file `.env` từ `.env.example`, rồi điền Client ID:
+
+```env
+VITE_GOOGLE_CLIENT_ID=your-google-oauth-web-client-id.apps.googleusercontent.com
+```
+
+Sau khi thay đổi `.env`, khởi động lại Vite. Phần nội dung hai ngôn ngữ của tài khoản nằm trong `src/content/site-content.ts`, ở hai nhánh `vi.auth` và `en.auth`.
+
+## CMID admin demo
+
+Mở `http://localhost:5173/admin` và đăng nhập bằng:
+
+```text
+Email: admincmid@gmail.com
+Mật khẩu: cmid12345@
+```
+
+Admin hiện lưu các thay đổi demo trong trình duyệt để có thể thử toàn bộ màn hình trước khi bổ sung API bảo mật. Giữ `VITE_ADMIN_API_ENABLED=false` cho chế độ này. Sau khi triển khai auth, CRUD và upload theo `docs/admin-backend-supabase-report.md`, chuyển biến này thành `true` để gửi ảnh qua adapter backend.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

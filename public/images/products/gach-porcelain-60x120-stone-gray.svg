@@ -4,11 +4,11 @@
   <rect width="800" height="800" fill="#F5F0E7"/>
   <rect x="68" y="68" width="664" height="664" rx="28" fill="none" stroke="#D8C7A5" stroke-width="2"/>
   <path d="M136 172H664" stroke="#B69256" stroke-width="3"/>
-  <text x="400" y="142" text-anchor="middle" fill="#9A7740" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="4">CMID PLACEHOLDER</text>
+  <text x="400" y="142" text-anchor="middle" fill="#9A7740" font-family="Roboto, Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="4">CMID PLACEHOLDER</text>
   <rect x="248" y="246" width="304" height="234" rx="6" fill="#B9B6B0" stroke="#2D2B28" stroke-width="10"/>
   <path d="M248 324H552M248 402H552M350 246V480M450 246V480" stroke="#F5F0E7" stroke-width="6"/>
   <path d="M274 280C334 248 410 322 524 274M276 434C355 377 443 454 531 409" fill="none" stroke="#8D8B86" stroke-width="7" opacity=".7"/>
-  <text x="400" y="575" text-anchor="middle" fill="#2D2B28" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="700">Gạch porcelain 60x120</text>
-  <text x="400" y="614" text-anchor="middle" fill="#2D2B28" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="700">Stone Gray</text>
+  <text x="400" y="575" text-anchor="middle" fill="#2D2B28" font-family="Roboto, Arial, Helvetica, sans-serif" font-size="29" font-weight="700">Gạch porcelain 60x120</text>
+  <text x="400" y="614" text-anchor="middle" fill="#2D2B28" font-family="Roboto, Arial, Helvetica, sans-serif" font-size="29" font-weight="700">Stone Gray</text>
   <circle cx="400" cy="668" r="5" fill="#B69256"/>
 </svg>

@@ -7,10 +7,13 @@
   --cmid-gold: #b38d50;
   --cmid-gold-dark: #8d6d3d;
   --cmid-dark: #1c1c1a;
-  --cmid-radius: 10px;
+  --cmid-surface-radius: 18px;
+  --cmid-control-radius: 8px;
+  --cmid-radius: var(--cmid-surface-radius);
+  --cmid-font: 'Roboto', Arial, Helvetica, sans-serif;
   color: var(--cmid-ink);
   background: #11110f;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--cmid-font);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -22,17 +25,36 @@
 }
 
 html {
+  min-height: 100%;
+  overscroll-behavior-y: none;
   scroll-behavior: smooth;
+  font-family: var(--cmid-font);
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+  font-family: var(--cmid-font);
+  line-height: inherit;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: inherit;
 }
 
 button,
 input,
+select,
+textarea,
+optgroup,
+option,
 a {
   font: inherit;
 }
@@ -62,10 +84,9 @@ a {
 }
 
 .app-shell {
-  width: min(100%, 1440px);
+  width: 100%;
   min-height: 100vh;
-  margin: 0 auto;
-  overflow: hidden;
+  overflow-x: clip;
   background: var(--cmid-paper);
 }
 
@@ -84,7 +105,7 @@ a {
   border-radius: 6px;
   color: #ffffff;
   background: var(--cmid-dark);
-  font-size: 0.76rem;
+  font-size: calc(0.76rem + 2px);
   font-weight: 700;
   letter-spacing: 0.015em;
   text-decoration: none;
@@ -104,7 +125,7 @@ a {
   min-height: 33px;
   padding: 0.42rem 0.55rem;
   border-radius: 4px;
-  font-size: 0.65rem;
+  font-size: calc(0.65rem + 2px);
 }
 
 .button--gold {

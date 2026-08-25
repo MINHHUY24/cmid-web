@@ -1,15 +1,17 @@
-export function formatCurrency(value: string | number | null): string {
+import type { AppLanguage } from '../content/site-content'
+
+export function formatCurrency(value: string | number | null, language: AppLanguage = 'vi'): string {
   if (value === null || value === '') {
-    return 'Liên hệ'
+    return language === 'en' ? 'Contact us' : 'Liên hệ'
   }
 
   const amount = typeof value === 'number' ? value : Number(value)
 
   if (!Number.isFinite(amount)) {
-    return 'Liên hệ'
+    return language === 'en' ? 'Contact us' : 'Liên hệ'
   }
 
-  return `${new Intl.NumberFormat('vi-VN', {
+  return `${new Intl.NumberFormat(language === 'en' ? 'en-US' : 'vi-VN', {
     maximumFractionDigits: 0,
-  }).format(amount)} đ`
+  }).format(amount)} ${language === 'en' ? 'VND' : 'đ'}`
 }

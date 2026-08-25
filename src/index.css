@@ -5,4 +5,16 @@
 @import './styles/trang-san-pham.css';
 @import './styles/trang-chi-tiet-san-pham.css';
 @import './styles/trang-gioi-thieu.css';
+@import './styles/trang-noi-dung.css';
+@import './styles/trang-giai-phap.css';
+@import './styles/trang-du-an.css';
+@import './styles/trang-dich-vu.css';
+@import './styles/trang-ve-cmid.css';
+@import './styles/trang-lien-he.css';
+@import './styles/trang-thuong-mai.css';
+@import './styles/trang-tin-tuc.css';
+@import './styles/trang-tai-khoan.css';
+@import './styles/trang-bao-tri.css';
+@import './styles/admin-styles/trang-quan-tri.css';
 @import './styles/responsive.css';
+@import './styles/site-theme.css';
