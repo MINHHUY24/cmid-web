@@ -407,10 +407,21 @@
 }
 
 .news-item {
+  min-width: 0;
+}
+
+.news-item > a {
   display: grid;
   grid-template-columns: 94px 1fr;
   gap: 14px;
   align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.news-item:hover h3,
+.news-item:focus-within h3 {
+  color: var(--cmid-gold-dark);
 }
 
 .news-item img {

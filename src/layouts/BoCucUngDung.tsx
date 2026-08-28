@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { CartToast } from '../components/cart/ThongBaoGioHang'
 import { SiteFooter } from '../components/layout/ChanTrang'
 import { SiteHeader } from '../components/layout/DauTrang'
+import { SiteSeo } from '../components/common/SiteSeo'
 import { CartProvider } from '../contexts/CartProvider'
 
 const heroPagePaths = new Set([
@@ -31,10 +32,11 @@ export function AppLayout() {
   return (
     <CartProvider>
       <div className={shellClassName}>
+        <SiteSeo />
         <SiteHeader />
-        <main className="site-main">
+        <div className="site-main">
           <Outlet />
-        </main>
+        </div>
         <SiteFooter />
         <CartToast />
       </div>

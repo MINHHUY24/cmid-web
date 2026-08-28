@@ -3,11 +3,10 @@ import {
   Bell,
   CaretRight,
   ListBullets,
-  MagnifyingGlass,
   SignOut,
   X,
 } from '@phosphor-icons/react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { AdminSession } from './admin-auth'
 import { adminMenuGroups, adminViewMeta, type AdminView } from './admin-navigation'
@@ -20,8 +19,6 @@ interface AdminLayoutProps {
   activities: AdminActivity[]
   onNavigate: (view: AdminView) => void
   onSignOut: () => void
-  onGlobalSearch: (value: string) => void
-  globalSearchValue: string
   badges?: Partial<Record<AdminView, number>>
   children: ReactNode
 }
@@ -32,8 +29,6 @@ export function AdminLayout({
   activities,
   onNavigate,
   onSignOut,
-  onGlobalSearch,
-  globalSearchValue,
   badges = {},
   children,
 }: AdminLayoutProps) {
@@ -45,6 +40,20 @@ export function AdminLayout({
     onNavigate(view)
     setSidebarOpen(false)
   }
+
+  useEffect(() => {
+    if (!notificationsOpen) return undefined
+    const originalOverflow = document.body.style.overflow
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setNotificationsOpen(false)
+    }
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = originalOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [notificationsOpen])
 
   return (
     <div className="admin-shell" lang={language}>
@@ -111,18 +120,6 @@ export function AdminLayout({
             <strong>{t(adminViewMeta[activeView].label)}</strong>
           </nav>
 
-          <label className="admin-global-search">
-            <MagnifyingGlass size={18} aria-hidden="true" />
-            <input
-              value={globalSearchValue}
-              onChange={(event) => {
-                const value = event.target.value
-                onGlobalSearch(value)
-              }}
-              placeholder={t('Tìm sản phẩm, đơn hàng...')}
-            />
-          </label>
-
           <div className="admin-notification-wrap">
             <button
               className="admin-icon-button"
@@ -134,20 +131,6 @@ export function AdminLayout({
               <Bell size={19} />
               <i aria-hidden="true" />
             </button>
-            {notificationsOpen ? (
-              <section className="admin-notification-popover">
-                <header><strong>{t('Hoạt động mới')}</strong><span>{activities.length}</span></header>
-                {activities.slice(0, 4).map((activity) => (
-                  <button key={activity.id} type="button" onClick={() => setNotificationsOpen(false)}>
-                    <strong>{t(activity.action)}</strong>
-                    <small>{formatRelativeTime(activity.createdAt, language)}</small>
-                  </button>
-                ))}
-                <button type="button" onClick={() => { navigate('logs'); setNotificationsOpen(false) }}>
-                  {t('Xem toàn bộ nhật ký')} <ArrowRight size={14} />
-                </button>
-              </section>
-            ) : null}
           </div>
 
           <Link className="admin-site-link" to="/" target="_blank">
@@ -166,6 +149,41 @@ export function AdminLayout({
           onClick={() => setSidebarOpen(false)}
         />
       ) : null}
+
+      <div className={`admin-notification-overlay${notificationsOpen ? ' is-open' : ''}`}>
+        <button
+          className="admin-notification-overlay__backdrop"
+          type="button"
+          tabIndex={notificationsOpen ? 0 : -1}
+          aria-label={t('Đóng thông báo')}
+          onClick={() => setNotificationsOpen(false)}
+        />
+        <aside className="admin-notification-drawer" role="dialog" aria-modal={notificationsOpen} aria-labelledby="admin-notification-title">
+          <header>
+            <div>
+              <span>{t('Thông báo')}</span>
+              <strong id="admin-notification-title">{t('Hoạt động mới')}</strong>
+            </div>
+            <button type="button" onClick={() => setNotificationsOpen(false)} aria-label={t('Đóng thông báo')}>
+              <X size={21} />
+            </button>
+          </header>
+          <div className="admin-notification-drawer__list">
+            {activities.slice(0, 8).map((activity) => (
+              <button key={activity.id} type="button" onClick={() => setNotificationsOpen(false)}>
+                <strong>{t(activity.action)}</strong>
+                <small>{formatRelativeTime(activity.createdAt, language)}</small>
+              </button>
+            ))}
+            {activities.length === 0 ? <p>{t('Chưa có hoạt động mới.')}</p> : null}
+          </div>
+          <footer>
+            <button type="button" onClick={() => { navigate('logs'); setNotificationsOpen(false) }}>
+              {t('Xem toàn bộ nhật ký')} <ArrowRight size={17} />
+            </button>
+          </footer>
+        </aside>
+      </div>
     </div>
   )
 }

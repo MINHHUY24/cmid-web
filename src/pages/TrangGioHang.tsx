@@ -23,7 +23,7 @@ export function TrangGioHangPage() {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false)
 
   return (
-    <div className="commerce-page cart-page">
+    <main className="commerce-page cart-page">
       <div className="commerce-shell">
         <nav className="commerce-breadcrumb" aria-label="Breadcrumb">
           <Link to="/">{content.common.home}</Link>
@@ -147,6 +147,6 @@ export function TrangGioHangPage() {
           </section>
         </div>
       ) : null}
-    </div>
+    </main>
   )
 }

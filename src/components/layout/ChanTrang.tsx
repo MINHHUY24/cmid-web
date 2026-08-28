@@ -57,9 +57,9 @@ export function SiteFooter() {
           <h2>{footer.contactInformation}</h2>
           <a href="tel:02838386173">
             <Phone size={15} aria-hidden="true" />
-            {footer.phone} (028) 3930 8888
+            {footer.phone} (028) 3838 6173
           </a>
-          <a href="mailto:cmidvxd@gmail.com">
+          <a href="mailto:info@cmid.vn">
             <EnvelopeSimple size={15} aria-hidden="true" />
             info@cmid.vn
           </a>

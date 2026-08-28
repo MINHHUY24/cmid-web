@@ -1,4 +1,6 @@
 import {
+  CaretDown,
+  Check,
   CheckCircle,
   MagnifyingGlass,
   Package,
@@ -7,7 +9,8 @@ import {
   Trash,
   X,
 } from '@phosphor-icons/react'
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { AdminImageUpload } from './AdminImageUpload'
 import { createAdminId } from './admin-database'
 import { useAdminCopy } from './admin-language-context'
@@ -50,12 +53,177 @@ export function AdminPanel({
 
 export function AdminStatus({ children }: { children: string }) {
   const { t } = useAdminCopy()
-  const normalized = children.toLocaleLowerCase('vi')
-  let tone = 'is-muted'
-  if (['active', 'đang bán', 'đã xuất bản', 'hoàn thành', 'hoàn tất', 'đã duyệt'].some((key) => normalized.includes(key))) tone = 'is-success'
-  if (['chờ', 'đang xử lý', 'đang giao', 'đang hoàn', 'draft', 'nháp'].some((key) => normalized.includes(key))) tone = 'is-warning'
-  if (['inactive', 'đã hủy', 'từ chối', 'locked', 'ngưng bán'].some((key) => normalized.includes(key))) tone = 'is-danger'
-  return <span className={`admin-status ${tone}`}>{t(children)}</span>
+  const label = getAdminStatusLabel(children)
+  return <span className={`admin-status ${getAdminStatusTone(children)}`}>{t(label)}</span>
+}
+
+function getAdminStatusLabel(value: string) {
+  const labels: Record<string, string> = {
+    ACTIVE: 'Đang hoạt động',
+    INACTIVE: 'Không hoạt động',
+    LOCKED: 'Đã khóa',
+    DRAFT: 'Bản nháp',
+    PUBLISHED: 'Đã xuất bản',
+    PUBLIC: 'Công khai',
+    INTERNAL: 'Nội bộ',
+  }
+
+  return labels[value] ?? value
+}
+
+function getAdminStatusTone(value: string) {
+  const normalized = value.toLocaleLowerCase('vi')
+  if (['đang xử lý', 'đang tư vấn', 'đang phản hồi', 'đang hoàn tiền'].some((key) => normalized.includes(key))) return 'is-processing'
+  if (normalized.includes('đang giao')) return 'is-shipping'
+  if (['chờ xác nhận', 'chờ duyệt', 'chưa thanh toán', 'mới'].some((key) => normalized.includes(key))) return 'is-pending'
+  if (normalized.includes('đã thanh toán')) return 'is-paid'
+  if (normalized.includes('đã hoàn tiền')) return 'is-refunded'
+  if (['inactive', 'không hoạt động', 'tạm ẩn', 'đã hủy', 'từ chối', 'locked', 'đã khóa', 'ngưng bán'].some((key) => normalized.includes(key))) return 'is-danger'
+  if (['active', 'đang hoạt động', 'đang bán', 'đã xuất bản', 'hoàn thành', 'hoàn tất', 'đã duyệt'].some((key) => normalized.includes(key))) return 'is-success'
+  return 'is-muted'
+}
+
+export interface AdminSelectOption {
+  value: string
+  label: string
+}
+
+interface AdminSelectProps {
+  options: AdminSelectOption[]
+  value?: string
+  defaultValue?: string
+  onChange?: (value: string) => void
+  name?: string
+  required?: boolean
+  disabled?: boolean
+  className?: string
+  'aria-label'?: string
+}
+
+export function AdminSelect({
+  options,
+  value,
+  defaultValue,
+  onChange,
+  name,
+  required = false,
+  disabled = false,
+  className = '',
+  'aria-label': ariaLabel,
+}: AdminSelectProps) {
+  const isControlled = value !== undefined
+  const fallbackValue = options[0]?.value ?? ''
+  const [internalValue, setInternalValue] = useState(defaultValue ?? fallbackValue)
+  const [isOpen, setIsOpen] = useState(false)
+  const [menuPosition, setMenuPosition] = useState<{ left: number; top: number; width: number; opensAbove: boolean } | null>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const menuId = useId()
+  const selectedValue = isControlled ? value : internalValue
+  const selectedOption = options.find((option) => option.value === selectedValue) ?? options[0]
+  const selectedTone = selectedOption ? getAdminStatusTone(selectedOption.label) : 'is-muted'
+  const hasStatusOptions = options.some((option) => getAdminStatusTone(option.label) !== 'is-muted')
+
+  const updateMenuPosition = useCallback(() => {
+    const trigger = triggerRef.current
+    if (!trigger) return
+    const rect = trigger.getBoundingClientRect()
+    const minimumWidth = Math.max(rect.width, 180)
+    const estimatedMenuHeight = Math.min(options.length * 40 + 10, 260)
+    const opensAbove = window.innerHeight - rect.bottom < estimatedMenuHeight + 12 && rect.top > estimatedMenuHeight + 12
+    setMenuPosition({
+      left: Math.max(8, Math.min(rect.left, window.innerWidth - minimumWidth - 8)),
+      top: opensAbove ? rect.top - 6 : rect.bottom + 6,
+      width: minimumWidth,
+      opensAbove,
+    })
+  }, [options.length])
+
+  function openMenu() {
+    if (disabled) return
+    setIsOpen(true)
+    requestAnimationFrame(updateMenuPosition)
+  }
+
+  function selectOption(nextValue: string) {
+    if (!isControlled) setInternalValue(nextValue)
+    onChange?.(nextValue)
+    setIsOpen(false)
+    requestAnimationFrame(() => triggerRef.current?.focus())
+  }
+
+  useEffect(() => {
+    if (!isOpen) return undefined
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node
+      if (!rootRef.current?.contains(target) && !menuRef.current?.contains(target)) setIsOpen(false)
+    }
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setIsOpen(false)
+      triggerRef.current?.focus()
+    }
+    document.addEventListener('mousedown', closeOnOutsideClick)
+    document.addEventListener('keydown', closeOnEscape)
+    window.addEventListener('resize', updateMenuPosition)
+    window.addEventListener('scroll', updateMenuPosition, true)
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutsideClick)
+      document.removeEventListener('keydown', closeOnEscape)
+      window.removeEventListener('resize', updateMenuPosition)
+      window.removeEventListener('scroll', updateMenuPosition, true)
+    }
+  }, [isOpen, updateMenuPosition])
+
+  return (
+    <div className={`admin-select${hasStatusOptions ? ' admin-select--status' : ''} ${className}`} ref={rootRef}>
+      {name ? <input type="hidden" name={name} value={selectedValue} required={required} /> : null}
+      <button
+        ref={triggerRef}
+        className={`admin-select__trigger${selectedTone !== 'is-muted' ? ` is-status ${selectedTone}` : ''}`}
+        type="button"
+        disabled={disabled || options.length === 0}
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? menuId : undefined}
+        onClick={() => (isOpen ? setIsOpen(false) : openMenu())}
+      >
+        <span>{selectedOption?.label ?? 'Chọn giá trị'}</span>
+        <CaretDown size={17} weight="bold" aria-hidden="true" />
+      </button>
+      {isOpen && typeof document !== 'undefined' && menuPosition ? createPortal(
+        <div
+          className={`admin-select__menu${hasStatusOptions ? ' admin-select__menu--status' : ''}${menuPosition.opensAbove ? ' admin-select__menu--above' : ''}`}
+          id={menuId}
+          ref={menuRef}
+          role="listbox"
+          aria-label={ariaLabel}
+          style={{ left: menuPosition.left, top: menuPosition.top, minWidth: menuPosition.width }}
+        >
+          {options.map((option) => {
+            const isSelected = option.value === selectedValue
+            const tone = getAdminStatusTone(option.label)
+            return (
+              <button
+                className={`${isSelected ? 'is-selected' : ''}${tone !== 'is-muted' ? ` is-status ${tone}` : ''}`.trim() || undefined}
+                type="button"
+                key={option.value}
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => selectOption(option.value)}
+              >
+                <span>{option.label}</span>
+                {isSelected ? <Check size={16} weight="bold" aria-hidden="true" /> : null}
+              </button>
+            )
+          })}
+        </div>,
+        document.body,
+      ) : null}
+    </div>
+  )
 }
 
 export function AdminToast({ message, onClose }: { message: string; onClose: () => void }) {
@@ -195,7 +363,6 @@ export function AdminCollectionManager({
           <MagnifyingGlass size={17} />
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t(searchPlaceholder)} />
         </label>
-        <span>{filteredRows.length} {t('bản ghi')}</span>
       </AdminPanel>
 
       <AdminPanel className="admin-table-panel">
@@ -269,9 +436,14 @@ export function AdminCollectionManager({
                       {field.type === 'textarea' ? (
                         <textarea name={field.key} defaultValue={String(initialValue ?? '')} placeholder={field.placeholder} required={field.required} />
                       ) : field.type === 'select' ? (
-                        <select name={field.key} defaultValue={String(initialValue ?? field.options?.[0]?.value ?? '')} required={field.required}>
-                          {field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                        </select>
+                        <AdminSelect
+                          key={`${field.key}-${String(initialValue ?? field.options?.[0]?.value ?? '')}`}
+                          name={field.key}
+                          defaultValue={String(initialValue ?? field.options?.[0]?.value ?? '')}
+                          options={field.options ?? []}
+                          required={field.required}
+                          aria-label={field.label}
+                        />
                       ) : (
                         <input name={field.key} type={field.type ?? 'text'} defaultValue={String(initialValue ?? '')} placeholder={field.placeholder} required={field.required} />
                       )}

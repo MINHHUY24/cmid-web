@@ -126,7 +126,7 @@ export function TrangTinTucSuKienPage() {
             <article className="tin-tuc__featured">
               <img src={showFeatured.image} alt={showFeatured.title} />
               <div>
-                <p><span>{showFeatured.date}</span>{getCategoryLabel(showFeatured, news.categories)}</p>
+                <p><time dateTime={showFeatured.publishedAt}>{showFeatured.date}</time>{getCategoryLabel(showFeatured, news.categories)}</p>
                 <h2>{showFeatured.title}</h2>
                 <p className="tin-tuc__featured-summary">{showFeatured.summary}</p>
                 <Link to={`/tin-tuc-su-kien/${showFeatured.slug}`}>{common.readMore} <ArrowRight size={16} weight="bold" aria-hidden="true" /></Link>
@@ -164,7 +164,7 @@ function NewsCard({ article, categoryLabel, readMore }: { article: NewsArticle; 
     <article className="bai-viet">
       <img src={article.image} alt={article.title} />
       <div>
-        <p><span>{article.date}</span>{categoryLabel}</p>
+        <p><time dateTime={article.publishedAt}>{article.date}</time>{categoryLabel}</p>
         <h2>{article.title}</h2>
         <p className="bai-viet__tom-tat">{article.summary}</p>
         <Link to={`/tin-tuc-su-kien/${article.slug}`}>{readMore} <ArrowRight size={14} weight="bold" aria-hidden="true" /></Link>

@@ -1,8 +1,10 @@
 import { ArrowLeft, ArrowRight, CalendarBlank, Clock } from '@phosphor-icons/react'
 import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { Seo } from '../components/common/Seo'
 import { getNewsArticles, newsCategoryKeys } from '../content/news-articles'
 import { useLanguage } from '../contexts/NgonNguContext'
+import { getAbsoluteUrl } from '../utils/seo'
 
 export function TrangChiTietTinTucPage() {
   const { slug } = useParams()
@@ -10,6 +12,7 @@ export function TrangChiTietTinTucPage() {
   const { news, common } = content
   const articles = getNewsArticles(language)
   const article = articles.find((item) => item.slug === slug)
+  const requestedArticlePath = slug ? `/tin-tuc-su-kien/${slug}` : '/tin-tuc-su-kien'
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -18,6 +21,13 @@ export function TrangChiTietTinTucPage() {
   if (!article) {
     return (
       <main className="news-detail news-detail--not-found">
+        <Seo
+          title={language === 'vi' ? 'Không tìm thấy bài viết | CMID' : 'Article not found | CMID'}
+          description={news.articleNotFoundDescription}
+          language={language}
+          canonicalPath={requestedArticlePath}
+          robots="noindex,nofollow"
+        />
         <section className="news-detail__not-found">
           <h1>{news.articleNotFound}</h1>
           <p>{news.articleNotFoundDescription}</p>
@@ -33,9 +43,48 @@ export function TrangChiTietTinTucPage() {
     .filter((item) => item.slug !== article.slug)
     .sort((first, second) => Number(second.category === article.category) - Number(first.category === article.category))
     .slice(0, 3)
+  const canonicalPath = `/tin-tuc-su-kien/${article.slug}`
+  const articleStructuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Article',
+        '@id': `${getAbsoluteUrl(canonicalPath)}#article`,
+        headline: article.title,
+        description: article.summary,
+        image: getAbsoluteUrl(article.image),
+        datePublished: article.publishedAt,
+        dateModified: article.publishedAt,
+        inLanguage: language === 'vi' ? 'vi-VN' : 'en-US',
+        mainEntityOfPage: getAbsoluteUrl(canonicalPath),
+        author: { '@type': 'Organization', name: 'CMID' },
+        publisher: { '@type': 'Organization', name: 'CMID' },
+        articleSection: categoryLabel,
+        keywords: article.tags.join(', '),
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: common.home, item: getAbsoluteUrl('/') },
+          { '@type': 'ListItem', position: 2, name: news.title, item: getAbsoluteUrl('/tin-tuc-su-kien') },
+          { '@type': 'ListItem', position: 3, name: article.title, item: getAbsoluteUrl(canonicalPath) },
+        ],
+      },
+    ],
+  }
 
   return (
     <main className="news-detail">
+      <Seo
+        title={`${article.title} | CMID`}
+        description={article.summary}
+        language={language}
+        canonicalPath={canonicalPath}
+        image={article.image}
+        imageAlt={article.title}
+        type="article"
+        structuredData={articleStructuredData}
+      />
       <div className="news-detail__shell">
         <nav className="news-detail__breadcrumb" aria-label="Breadcrumb">
           <Link to="/">{common.home}</Link>
@@ -51,7 +100,7 @@ export function TrangChiTietTinTucPage() {
             <h1>{article.title}</h1>
             <p className="news-article__summary">{article.summary}</p>
             <div className="news-article__meta">
-              <span><CalendarBlank size={17} aria-hidden="true" />{article.date}</span>
+              <time dateTime={article.publishedAt}><CalendarBlank size={17} aria-hidden="true" />{article.date}</time>
               <span><Clock size={17} aria-hidden="true" />{news.readingTime(article.readingMinutes)}</span>
             </div>
           </header>
@@ -88,7 +137,7 @@ export function TrangChiTietTinTucPage() {
                     <Link to={`/tin-tuc-su-kien/${related.slug}`}>
                       <img src={related.image} alt={related.title} />
                       <div>
-                        <p><span>{related.date}</span>{news.categories[relatedCategoryIndex] ?? related.category}</p>
+                        <p><time dateTime={related.publishedAt}>{related.date}</time>{news.categories[relatedCategoryIndex] ?? related.category}</p>
                         <h3>{related.title}</h3>
                       </div>
                     </Link>

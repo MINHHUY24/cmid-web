@@ -25,7 +25,7 @@ function createGalleryImages(
     .map((image) => ({
       id: `image-${image.id}`,
       imageUrl: image.imageUrl,
-      altText: image.altText ?? productName,
+      altText: image.altText?.trim() || productName,
     }))
   const posterImages = models3D
     .filter((model) => model.posterUrl)
@@ -64,6 +64,7 @@ export function ThuVienAnhSanPham({
           <img
             src={selectedImage.imageUrl}
             alt={selectedImage.altText}
+            decoding="async"
             onError={() => setFailedImageUrl(selectedImage.imageUrl)}
           />
         ) : (
@@ -94,7 +95,7 @@ export function ThuVienAnhSanPham({
                 setSelectedImageId(image.id)
               }}
             >
-              <img src={image.imageUrl} alt="" />
+              <img src={image.imageUrl} alt="" loading="lazy" decoding="async" />
             </button>
           ))}
         </div>

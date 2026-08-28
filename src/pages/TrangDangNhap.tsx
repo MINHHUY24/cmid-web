@@ -31,7 +31,7 @@ export function TrangDangNhapPage() {
   }
 
   return (
-    <div className="auth-page">
+    <main className="auth-page">
       <div className="auth-page__shell">
         <section className="auth-page__intro" aria-labelledby="login-title">
           <h1 id="login-title">{content.auth.loginWelcome}</h1>
@@ -54,6 +54,6 @@ export function TrangDangNhapPage() {
           {error ? <p className="auth-card__error" role="alert">{error}</p> : null}
         </section>
       </div>
-    </div>
+    </main>
   )
 }

@@ -3635,3 +3635,158 @@ html[data-theme='light'] .app-shell--site.app-shell--home .product-card--showcas
     max-width: none;
   }
 }
+
+/* Mobile navigation opens as its own page-like panel, so it remains easy to
+   dismiss without shifting the current page underneath it. */
+.mobile-navigation {
+  display: none;
+  --mobile-navigation-surface: #17110d;
+  --mobile-navigation-text: #f8f3eb;
+  --mobile-navigation-line: rgb(198 151 75 / 52%);
+  --mobile-navigation-gold: #cf9d4c;
+}
+
+html[data-theme='light'] .mobile-navigation {
+  --mobile-navigation-surface: #fffdf9;
+  --mobile-navigation-text: #292521;
+  --mobile-navigation-line: #e4d9ca;
+  --mobile-navigation-gold: #b47624;
+}
+
+@media (max-width: 930px) {
+  .mobile-navigation {
+    display: block;
+  }
+
+  .mobile-navigation__backdrop {
+    position: fixed;
+    z-index: 80;
+    inset: 0;
+    width: 100%;
+    border: 0;
+    background: rgb(17 12 8 / 52%);
+    cursor: default;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 260ms ease;
+  }
+
+  .mobile-navigation__panel {
+    position: fixed;
+    z-index: 81;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    width: min(410px, calc(100vw - 28px));
+    flex-direction: column;
+    padding: 24px 22px 32px;
+    border-left: 1px solid var(--mobile-navigation-line);
+    border-radius: 24px 0 0 24px;
+    color: var(--mobile-navigation-text);
+    background: var(--mobile-navigation-surface);
+    box-shadow: -18px 0 48px rgb(25 16 9 / 24%);
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transform: translateX(100%);
+    transition:
+      transform 300ms cubic-bezier(0.22, 0.8, 0.28, 1),
+      opacity 220ms ease,
+      visibility 0s linear 300ms;
+  }
+
+  .mobile-navigation--open .mobile-navigation__backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-navigation--open .mobile-navigation__panel {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: translateX(0);
+    transition-delay: 0s;
+  }
+
+  .mobile-navigation__header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 48px;
+    padding: 0 0 18px;
+    border-bottom: 1px solid var(--mobile-navigation-line);
+  }
+
+  .mobile-navigation__close {
+    display: inline-grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border: 1px solid var(--mobile-navigation-line);
+    border-radius: 50%;
+    color: var(--mobile-navigation-text);
+    background: transparent;
+    cursor: pointer;
+    transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease;
+  }
+
+  .mobile-navigation__close:hover {
+    border-color: var(--mobile-navigation-gold);
+    color: #fffaf2;
+    background: var(--mobile-navigation-gold);
+  }
+
+  .mobile-navigation__links {
+    display: grid;
+    margin-top: 18px;
+  }
+
+  .mobile-navigation__links .site-nav__link {
+    justify-content: flex-start;
+    min-height: 62px;
+    border-bottom: 1px solid var(--mobile-navigation-line);
+    color: var(--mobile-navigation-text);
+    font-size: calc(0.92rem + 2px);
+    font-weight: 600;
+  }
+
+  .mobile-navigation__links .site-nav__link::after {
+    right: auto;
+    bottom: 0;
+    width: 42px;
+  }
+
+  .mobile-navigation__links .site-nav__link:hover,
+  .mobile-navigation__links .site-nav__link--active {
+    color: var(--mobile-navigation-gold);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-navigation__backdrop,
+  .mobile-navigation__panel {
+    transition: none;
+  }
+}
+
+/* Standard native selects use one chevron position across the public site. */
+.app-shell--site:not(.app-shell--home) :is(
+  .tin-tuc__feed-top select,
+  .account-profile__control select
+) {
+  padding-right: 32px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 6 5 5 5-5' stroke='%23d9cbb8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .tin-tuc__feed-top select,
+  .account-profile__control select
+) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 6 5 5 5-5' stroke='%23483e34' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}

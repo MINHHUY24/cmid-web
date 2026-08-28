@@ -168,9 +168,16 @@
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0;
+  gap: 10px;
   color: #35312a;
   text-decoration: none;
+}
+
+.brand__mark {
+  width: 42px;
+  height: 50px;
+  flex: 0 0 auto;
+  object-fit: contain;
 }
 
 .brand__copy {

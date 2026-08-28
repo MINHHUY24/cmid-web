@@ -275,7 +275,7 @@ export function TrangSanPhamPage() {
   }
 
   return (
-    <div className="trang-san-pham">
+    <main className="trang-san-pham">
       <section
         className="catalog-hero"
         style={{ backgroundImage: `url(${productHeroImage})` }}
@@ -492,6 +492,6 @@ export function TrangSanPhamPage() {
           />
         </section> */}
       </div>
-    </div>
+    </main>
   );
 }

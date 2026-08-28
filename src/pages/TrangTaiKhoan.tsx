@@ -274,7 +274,7 @@ export function TrangTaiKhoanPage() {
     )
 
   return (
-    <div className="account-page">
+    <main className="account-page">
       <div className="account-shell">
         <div className={activeSection === 'information' ? 'account-layout account-layout--profile' : 'account-layout'}>
           <aside className="account-sidebar">
@@ -521,7 +521,7 @@ export function TrangTaiKhoanPage() {
           </section>
         </div>
       </div>
-    </div>
+    </main>
   )
 }
 

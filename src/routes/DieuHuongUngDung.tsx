@@ -23,6 +23,7 @@ import { TrangVeCmidPage } from "../pages/TrangVeCmid";
 import { TrangDangNhapPage } from "../pages/TrangDangNhap";
 import { TrangTaiKhoanPage } from "../pages/TrangTaiKhoan";
 import { TrangBaoTriPage } from "../pages/TrangBaoTri";
+import { TrangKhongTimThayPage } from "../pages/TrangKhongTimThay";
 import { TrangQuanTriPage } from "../pages/admin/TrangQuanTri";
 import {
   ADMIN_DATABASE_UPDATED_EVENT,
@@ -70,7 +71,7 @@ function AppRoutes() {
           path="he-thong-showroom"
           element={<TrangHeThongShowroomPage />}
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<TrangKhongTimThayPage />} />
       </Route>
     </Routes>
   );
@@ -104,9 +105,14 @@ function ScrollToTop() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = pathname.startsWith("/admin")
-      ? "CMID | Quản trị"
-      : "CMID | Website";
+    if (pathname.startsWith("/admin")) {
+      document.title = "CMID | Quản trị";
+      const robots =
+        document.head.querySelector<HTMLMetaElement>('meta[name="robots"]') ??
+        document.head.appendChild(document.createElement("meta"));
+      robots.name = "robots";
+      robots.content = "noindex,nofollow,noarchive";
+    }
   }, [pathname]);
 
   return null;

@@ -140,17 +140,6 @@ function AuthenticatedAdmin({
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  function handleGlobalSearch(value: string) {
-    if (value.trim() && activeView !== 'products') {
-      setSearchParams({ view: 'products', q: value.trim() })
-    } else if (activeView === 'products') {
-      const nextParams = new URLSearchParams(searchParams)
-      if (value.trim()) nextParams.set('q', value.trim())
-      else nextParams.delete('q')
-      setSearchParams(nextParams, { replace: true })
-    }
-  }
-
   return (
     <AdminLanguageProvider language={database.settings.adminLanguage}>
       <AdminLayout
@@ -159,8 +148,6 @@ function AuthenticatedAdmin({
         activities={database.activities}
         onNavigate={navigate}
         onSignOut={signOut}
-        onGlobalSearch={handleGlobalSearch}
-        globalSearchValue={searchParams.get('q') ?? ''}
         badges={{
           orders: database.orders.filter((order) => order.status === 'Chờ xác nhận').length,
           quotes: database.quotes.filter((quote) => quote.status === 'Mới').length,

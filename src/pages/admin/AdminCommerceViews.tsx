@@ -1,5 +1,7 @@
 import {
   ArrowRight,
+  CaretLeft,
+  CaretRight,
   ChartBar,
   CheckCircle,
   Clock,
@@ -17,7 +19,7 @@ import {
 import { useMemo, useState, type CSSProperties } from 'react'
 import type { Product, ProductStatus, SaleType } from '../../types/product'
 import { formatCurrency } from '../../utils/formatCurrency'
-import { AdminPageHeading, AdminPanel, AdminStatus } from './AdminPrimitives'
+import { AdminPageHeading, AdminPanel, AdminSelect, AdminStatus } from './AdminPrimitives'
 import type { AdminDatabase, AdminOrder } from './admin-database'
 import type { AdminView } from './admin-navigation'
 
@@ -26,6 +28,7 @@ type PaymentFilter = 'ALL' | AdminOrder['paymentStatus']
 type ProductStatusFilter = 'ALL' | ProductStatus
 type ProductSaleFilter = 'ALL' | SaleType
 type ReportPeriod = '30' | '90' | '365' | 'ALL'
+type RevenueChartGrouping = 'day' | 'month' | 'year'
 
 const orderStatuses: AdminOrder['status'][] = [
   'Chờ xác nhận',
@@ -82,14 +85,14 @@ export function AdminDashboardView({
   database,
   onNavigate,
 }: AdminDashboardViewProps) {
+  const [dashboardRevenuePeriod, setDashboardRevenuePeriod] = useState<6 | 12>(6)
   const paidOrders = database.orders.filter(
     (order) => order.paymentStatus === 'Đã thanh toán' && order.status !== 'Đã hủy',
   )
   const recordedRevenue = sum(paidOrders.map((order) => order.total))
   const activeProducts = products.filter((product) => product.status === 'ACTIVE').length
   const pendingOrders = database.orders.filter((order) => order.status === 'Chờ xác nhận').length
-  const monthlyRevenue = getMonthlyRevenue(database.orders, 6)
-  const maxRevenue = Math.max(1, ...monthlyRevenue.map((item) => item.value))
+  const monthlyRevenue = getMonthlyRevenue(database.orders, dashboardRevenuePeriod)
 
   return (
     <>
@@ -132,19 +135,21 @@ export function AdminDashboardView({
       </div>
 
       <div className="admin-dashboard-grid">
-        <AdminPanel title="Doanh thu 6 tháng gần nhất" className="admin-commerce-chart-panel">
-          <div className="admin-commerce-chart" aria-label="Biểu đồ doanh thu 6 tháng">
-            {monthlyRevenue.map((item) => (
-              <div className="admin-commerce-chart__column" key={item.key}>
-                <span>{formatCompactCurrency(item.value)}</span>
-                <i
-                  aria-hidden="true"
-                  style={{ '--admin-commerce-bar': `${Math.max(4, Math.round((item.value / maxRevenue) * 100))}%` } as CSSProperties}
-                />
-                <b>{item.label}</b>
-              </div>
-            ))}
-          </div>
+        <AdminPanel className="admin-revenue-line-chart-panel">
+          <header>
+            <h2>Doanh thu {dashboardRevenuePeriod} tháng gần nhất</h2>
+            <AdminSelect
+              className="admin-inline-select"
+              value={String(dashboardRevenuePeriod)}
+              onChange={(value) => setDashboardRevenuePeriod(Number(value) as 6 | 12)}
+              aria-label="Khoảng thời gian doanh thu"
+              options={[
+                { value: '6', label: '6 tháng gần nhất' },
+                { value: '12', label: '12 tháng gần nhất' },
+              ]}
+            />
+          </header>
+          <RevenueLineChart data={monthlyRevenue} />
         </AdminPanel>
 
         <AdminPanel title="Việc cần xử lý" className="admin-panel--tasks">
@@ -279,18 +284,18 @@ export function AdminProductsListView({
           <MagnifyingGlass size={17} />
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm theo tên, mã SKU, thương hiệu..." />
         </label>
-        <select className="admin-inline-select" value={category} onChange={(event) => setCategory(event.target.value)} aria-label="Lọc danh mục">
-          <option value="ALL">Tất cả danh mục</option>
-          {categories.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
-        </select>
-        <select className="admin-inline-select" value={status} onChange={(event) => setStatus(event.target.value as ProductStatusFilter)} aria-label="Lọc trạng thái">
-          <option value="ALL">Tất cả trạng thái</option>
-          {Object.entries(productStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
-        <select className="admin-inline-select" value={saleType} onChange={(event) => setSaleType(event.target.value as ProductSaleFilter)} aria-label="Lọc loại bán">
-          <option value="ALL">Tất cả loại bán</option>
-          {Object.entries(saleTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
+        <AdminSelect className="admin-inline-select" value={category} onChange={setCategory} aria-label="Lọc danh mục" options={[
+          { value: 'ALL', label: 'Tất cả danh mục' },
+          ...categories.map(([slug, name]) => ({ value: slug, label: name })),
+        ]} />
+        <AdminSelect className="admin-inline-select" value={status} onChange={(value) => setStatus(value as ProductStatusFilter)} aria-label="Lọc trạng thái" options={[
+          { value: 'ALL', label: 'Tất cả trạng thái' },
+          ...Object.entries(productStatusLabels).map(([value, label]) => ({ value, label })),
+        ]} />
+        <AdminSelect className="admin-inline-select" value={saleType} onChange={(value) => setSaleType(value as ProductSaleFilter)} aria-label="Lọc loại bán" options={[
+          { value: 'ALL', label: 'Tất cả loại bán' },
+          ...Object.entries(saleTypeLabels).map(([value, label]) => ({ value, label })),
+        ]} />
         <span>{filteredProducts.length} sản phẩm</span>
       </AdminPanel>
 
@@ -397,10 +402,10 @@ export function AdminOrdersView({ database, onStatusChange }: AdminOrdersViewPro
           <MagnifyingGlass size={17} />
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm mã đơn, khách hàng, sản phẩm..." />
         </label>
-        <select className="admin-inline-select" value={paymentFilter} onChange={(event) => setPaymentFilter(event.target.value as PaymentFilter)} aria-label="Lọc thanh toán">
-          <option value="ALL">Tất cả thanh toán</option>
-          {paymentStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
-        </select>
+        <AdminSelect className="admin-inline-select" value={paymentFilter} onChange={(value) => setPaymentFilter(value as PaymentFilter)} aria-label="Lọc thanh toán" options={[
+          { value: 'ALL', label: 'Tất cả thanh toán' },
+          ...paymentStatuses.map((status) => ({ value: status, label: status })),
+        ]} />
         <span>{filteredOrders.length} đơn hàng</span>
       </AdminPanel>
 
@@ -419,9 +424,7 @@ export function AdminOrdersView({ database, onStatusChange }: AdminOrdersViewPro
                   <td className="admin-table__price">{formatCurrency(order.total)}</td>
                   <td className="admin-table__cell--center"><AdminStatus>{order.paymentStatus}</AdminStatus></td>
                   <td className="admin-table__cell--center">
-                    <select className="admin-inline-select" value={order.status} onChange={(event) => updateStatus(order.id, event.target.value as AdminOrder['status'])} aria-label={`Trạng thái đơn ${order.id}`}>
-                      {orderStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
-                    </select>
+                    <AdminSelect className="admin-inline-select" value={order.status} onChange={(value) => updateStatus(order.id, value as AdminOrder['status'])} aria-label={`Trạng thái đơn ${order.id}`} options={orderStatuses.map((status) => ({ value: status, label: status }))} />
                   </td>
                   <td className="admin-table__cell--actions"><button className="admin-row-action" type="button" onClick={() => setSelectedOrder(order)} aria-label={`Xem đơn ${order.id}`}><Eye size={18} /></button></td>
                 </tr>
@@ -445,6 +448,8 @@ export function AdminOrdersView({ database, onStatusChange }: AdminOrdersViewPro
 
 export function AdminReportsView({ products, database }: AdminReportsViewProps) {
   const [period, setPeriod] = useState<ReportPeriod>('365')
+  const [revenueChartGrouping, setRevenueChartGrouping] = useState<RevenueChartGrouping>('month')
+  const [revenueChartPage, setRevenueChartPage] = useState(0)
   const reportingAnchor = getReportingAnchor(database.orders)
   const orders = useMemo(
     () => filterOrdersByPeriod(database.orders, period, reportingAnchor),
@@ -457,8 +462,9 @@ export function AdminReportsView({ products, database }: AdminReportsViewProps) 
   const completionRate = validOrders.length > 0
     ? Math.round((validOrders.filter((order) => order.status === 'Hoàn thành').length / validOrders.length) * 100)
     : 0
-  const monthlyRevenue = getMonthlyRevenue(paidOrders, 12, reportingAnchor)
-  const maxMonthlyRevenue = Math.max(1, ...monthlyRevenue.map((item) => item.value))
+  const revenueChartAnchor = getRevenueChartAnchor(reportingAnchor, revenueChartGrouping, revenueChartPage)
+  const revenueChart = getRevenueChartData(orders, revenueChartGrouping, revenueChartAnchor)
+  const maxRevenue = Math.max(1, ...revenueChart.map((item) => item.value))
   const topProducts = aggregateProducts(validOrders)
   const maxStatusCount = Math.max(1, ...orderStatuses.map((status) => orders.filter((order) => order.status === status).length))
 
@@ -469,12 +475,12 @@ export function AdminReportsView({ products, database }: AdminReportsViewProps) 
         description="Theo dõi doanh thu, hiệu quả xử lý đơn và nhóm sản phẩm được quan tâm."
         action={(
           <div className="admin-heading-actions">
-            <select className="admin-inline-select" value={period} onChange={(event) => setPeriod(event.target.value as ReportPeriod)} aria-label="Kỳ báo cáo">
-              <option value="30">30 ngày gần nhất</option>
-              <option value="90">90 ngày gần nhất</option>
-              <option value="365">12 tháng gần nhất</option>
-              <option value="ALL">Toàn bộ dữ liệu</option>
-            </select>
+            <AdminSelect className="admin-inline-select" value={period} onChange={(value) => setPeriod(value as ReportPeriod)} aria-label="Kỳ báo cáo" options={[
+              { value: '30', label: '30 ngày gần nhất' },
+              { value: '90', label: '90 ngày gần nhất' },
+              { value: '365', label: '12 tháng gần nhất' },
+              { value: 'ALL', label: 'Toàn bộ dữ liệu' },
+            ]} />
             <button className="admin-button admin-button--primary" type="button" onClick={() => exportReportCsv(orders)}>
               <DownloadSimple size={17} /> Xuất báo cáo CSV
             </button>
@@ -489,14 +495,55 @@ export function AdminReportsView({ products, database }: AdminReportsViewProps) 
         <MetricCard label="Tỷ lệ hoàn thành" value={`${completionRate}%`} helper={`${products.length} sản phẩm đang quản lý`} icon={<CheckCircle size={19} />} />
       </div>
 
-      <AdminPanel title="Doanh thu theo tháng" className="admin-commerce-chart-panel">
-        <div className="admin-commerce-chart admin-commerce-chart--wide" aria-label="Biểu đồ doanh thu 12 tháng">
-          {monthlyRevenue.map((item) => (
+      <AdminPanel className="admin-commerce-chart-panel">
+        <div className="admin-commerce-chart-panel__header">
+          <h2>Doanh thu theo {revenueChartGrouping === 'day' ? 'ngày' : revenueChartGrouping === 'month' ? 'tháng' : 'năm'}</h2>
+          <div className="admin-commerce-chart-panel__actions">
+            <div className="admin-chart-pagination" aria-label="Điều hướng kỳ doanh thu">
+              <button type="button" onClick={() => setRevenueChartPage((current) => current + 1)} aria-label="Xem kỳ trước">
+                <CaretLeft size={16} weight="bold" />
+              </button>
+              <button
+                type="button"
+                disabled={revenueChartPage === 0}
+                onClick={() => setRevenueChartPage((current) => Math.max(0, current - 1))}
+                aria-label="Xem kỳ tiếp theo"
+              >
+                <CaretRight size={16} weight="bold" />
+              </button>
+            </div>
+            <div className="admin-segmented-control" role="group" aria-label="Cách nhóm dữ liệu doanh thu">
+              {([
+                ['day', 'Ngày'],
+                ['month', 'Tháng'],
+                ['year', 'Năm'],
+              ] as const).map(([grouping, label]) => (
+                <button
+                  className={revenueChartGrouping === grouping ? 'is-active' : undefined}
+                  type="button"
+                  key={grouping}
+                  aria-pressed={revenueChartGrouping === grouping}
+                  onClick={() => {
+                    setRevenueChartGrouping(grouping)
+                    setRevenueChartPage(0)
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div
+          className={`admin-commerce-chart admin-commerce-chart--wide admin-commerce-chart--${revenueChartGrouping}`}
+          aria-label={`Biểu đồ doanh thu theo ${revenueChartGrouping === 'day' ? 'ngày' : revenueChartGrouping === 'month' ? 'tháng' : 'năm'}`}
+        >
+          {revenueChart.map((item) => (
             <div className="admin-commerce-chart__column" key={item.key}>
               <span>{formatCompactCurrency(item.value)}</span>
               <i
                 aria-hidden="true"
-                style={{ '--admin-commerce-bar': `${Math.max(3, Math.round((item.value / maxMonthlyRevenue) * 100))}%` } as CSSProperties}
+                style={{ '--admin-commerce-bar': `${Math.max(3, Math.round((item.value / maxRevenue) * 100))}%` } as CSSProperties}
               />
               <b>{item.label}</b>
             </div>
@@ -564,6 +611,63 @@ function MetricCard({
   )
 }
 
+function RevenueLineChart({ data }: { data: Array<{ key: string; label: string; value: number }> }) {
+  const width = 680
+  const height = 230
+  const plot = { top: 18, right: 18, bottom: 39, left: 48 }
+  const maximumValue = Math.max(...data.map((item) => item.value), 0)
+  const chartMaximum = getRevenueChartMaximum(maximumValue)
+  const plotWidth = width - plot.left - plot.right
+  const plotHeight = height - plot.top - plot.bottom
+  const points = data.map((item, index) => {
+    const x = plot.left + (data.length <= 1 ? plotWidth / 2 : (plotWidth * index) / (data.length - 1))
+    const y = chartMaximum === 0 ? plot.top + plotHeight : plot.top + (1 - item.value / chartMaximum) * plotHeight
+    return { ...item, x, y }
+  })
+  const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
+  const areaPath = points.length > 0
+    ? `${linePath} L ${points.at(-1)?.x} ${plot.top + plotHeight} L ${points[0].x} ${plot.top + plotHeight} Z`
+    : ''
+
+  return (
+    <div className="admin-revenue-line-chart" role="img" aria-label="Biểu đồ đường doanh thu theo tháng">
+      <svg viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
+        <defs>
+          <linearGradient id="admin-revenue-line-fill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#d5a456" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="#d5a456" stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+        {Array.from({ length: 5 }, (_, index) => {
+          const value = chartMaximum * (1 - index / 4)
+          const y = plot.top + (plotHeight * index) / 4
+          return (
+            <g key={index}>
+              <line className="admin-revenue-line-chart__grid" x1={plot.left} x2={width - plot.right} y1={y} y2={y} />
+              <text className="admin-revenue-line-chart__axis" x={plot.left - 10} y={y + 4} textAnchor="end">
+                {chartMaximum === 0 ? '0 đ' : formatCompactCurrency(value)}
+              </text>
+            </g>
+          )
+        })}
+        {areaPath ? <path className="admin-revenue-line-chart__area" d={areaPath} /> : null}
+        {linePath ? <path className="admin-revenue-line-chart__line" d={linePath} /> : null}
+        {points.map((point) => (
+          <g key={point.key}>
+            <text className="admin-revenue-line-chart__value" x={point.x} y={Math.max(plot.top + 12, point.y - 11)} textAnchor="middle">
+              {formatCompactCurrency(point.value)}
+            </text>
+            <circle className="admin-revenue-line-chart__point" cx={point.x} cy={point.y} r="3.5" />
+            <text className="admin-revenue-line-chart__label" x={point.x} y={height - 10} textAnchor="middle">
+              {point.label.replace('Thg', 'Tháng')}
+            </text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  )
+}
+
 function OrderDetailDialog({
   order,
   onClose,
@@ -615,9 +719,7 @@ function OrderDetailDialog({
 
         <footer>
           <button className="admin-button" type="button" onClick={onClose}>Đóng</button>
-          <select className="admin-inline-select" value={order.status} onChange={(event) => onStatusChange(event.target.value as AdminOrder['status'])} aria-label="Cập nhật trạng thái đơn hàng">
-            {orderStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
-          </select>
+          <AdminSelect className="admin-inline-select" value={order.status} onChange={(value) => onStatusChange(value as AdminOrder['status'])} aria-label="Cập nhật trạng thái đơn hàng" options={orderStatuses.map((status) => ({ value: status, label: status }))} />
         </footer>
       </section>
     </div>
@@ -658,6 +760,15 @@ function formatCompactCurrency(value: number) {
   if (value >= 1_000_000) return `${trimNumber(value / 1_000_000)} tr`
   if (value >= 1_000) return `${trimNumber(value / 1_000)} nghìn`
   return formatCurrency(value)
+}
+
+function getRevenueChartMaximum(value: number) {
+  if (value <= 0) return 0
+  const desiredStep = value / 4
+  const magnitude = 10 ** Math.floor(Math.log10(desiredStep))
+  const normalizedStep = desiredStep / magnitude
+  const niceStep = [1, 1.5, 2, 2.5, 5, 10].find((step) => step >= normalizedStep) ?? 10
+  return niceStep * magnitude * 4
 }
 
 function trimNumber(value: number) {
@@ -708,6 +819,66 @@ function getMonthlyRevenue(orders: AdminOrder[], length: number, anchor = getRep
   })
 
   return months
+}
+
+function getRevenueChartData(orders: AdminOrder[], grouping: RevenueChartGrouping, anchor: Date) {
+  if (grouping === 'day') return getDailyRevenue(orders, 7, anchor)
+  if (grouping === 'year') return getYearlyRevenue(orders, 5, anchor)
+  return getMonthlyRevenue(orders, 12, anchor)
+}
+
+function getRevenueChartAnchor(anchor: Date, grouping: RevenueChartGrouping, page: number) {
+  const chartAnchor = new Date(anchor)
+  if (grouping === 'day') chartAnchor.setDate(chartAnchor.getDate() - page)
+  if (grouping === 'month') chartAnchor.setMonth(chartAnchor.getMonth() - page)
+  if (grouping === 'year') chartAnchor.setFullYear(chartAnchor.getFullYear() - page)
+  return chartAnchor
+}
+
+function getDailyRevenue(orders: AdminOrder[], length: number, anchor: Date) {
+  const days = Array.from({ length }, (_, reverseIndex) => {
+    const date = new Date(anchor)
+    date.setHours(0, 0, 0, 0)
+    date.setDate(date.getDate() - (length - reverseIndex - 1))
+    return {
+      key: formatDateKey(date),
+      label: date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+      value: 0,
+    }
+  })
+  const byKey = new Map(days.map((day) => [day.key, day]))
+
+  orders.forEach((order) => {
+    if (order.paymentStatus !== 'Đã thanh toán' || order.status === 'Đã hủy') return
+    const date = new Date(order.createdAt)
+    if (Number.isNaN(date.getTime())) return
+    const day = byKey.get(formatDateKey(date))
+    if (day) day.value += order.total
+  })
+
+  return days
+}
+
+function getYearlyRevenue(orders: AdminOrder[], length: number, anchor: Date) {
+  const years = Array.from({ length }, (_, reverseIndex) => {
+    const year = anchor.getFullYear() - (length - reverseIndex - 1)
+    return { key: String(year), label: `Năm ${year}`, value: 0 }
+  })
+  const byKey = new Map(years.map((year) => [year.key, year]))
+
+  orders.forEach((order) => {
+    if (order.paymentStatus !== 'Đã thanh toán' || order.status === 'Đã hủy') return
+    const date = new Date(order.createdAt)
+    if (Number.isNaN(date.getTime())) return
+    const year = byKey.get(String(date.getFullYear()))
+    if (year) year.value += order.total
+  })
+
+  return years
+}
+
+function formatDateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 function aggregateProducts(orders: AdminOrder[]) {
@@ -761,10 +932,14 @@ function exportReportCsv(orders: AdminOrder[]) {
 }
 
 function downloadCsv(fileName: string, headers: string[], rows: Array<Array<string | number>>) {
+  const separator = ';'
   const content = [headers, ...rows]
-    .map((row) => row.map(escapeCsvValue).join(','))
-    .join('\n')
-  const url = URL.createObjectURL(new Blob([`\uFEFF${content}`], { type: 'text/csv;charset=utf-8' }))
+    .map((row) => row.map(escapeCsvValue).join(separator))
+    .join('\r\n')
+  // Excel in the Vietnamese locale expects a semicolon separator. UTF-16LE with
+  // its BOM is recognized reliably by Excel on both macOS and Windows.
+  const csv = `sep=${separator}\r\n${content}`
+  const url = URL.createObjectURL(new Blob([encodeUtf16Le(csv)], { type: 'text/csv;charset=utf-16le' }))
   const anchor = document.createElement('a')
   anchor.href = url
   anchor.download = fileName
@@ -776,4 +951,18 @@ function downloadCsv(fileName: string, headers: string[], rows: Array<Array<stri
 
 function escapeCsvValue(value: string | number) {
   return `"${String(value).replaceAll('"', '""')}"`
+}
+
+function encodeUtf16Le(value: string) {
+  const bytes = new Uint8Array(2 + value.length * 2)
+  bytes[0] = 0xff
+  bytes[1] = 0xfe
+
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index)
+    bytes[index * 2 + 2] = codeUnit & 0xff
+    bytes[index * 2 + 3] = codeUnit >> 8
+  }
+
+  return bytes
 }

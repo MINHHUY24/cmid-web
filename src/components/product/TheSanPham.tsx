@@ -35,7 +35,9 @@ function ProductImagePreview({ image, productName }: ProductImagePreviewProps) {
     <img
       className="product-card__image"
       src={image.imageUrl}
-      alt={image.altText ?? productName}
+      alt={image.altText?.trim() || productName}
+      loading="lazy"
+      decoding="async"
       onError={() => setHasImageError(true)}
     />
   )

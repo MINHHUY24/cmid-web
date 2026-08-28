@@ -246,7 +246,7 @@ export function TrangThanhToanPage() {
   }
 
   return (
-    <div className="commerce-page checkout-page">
+    <main className="commerce-page checkout-page">
       <div className="commerce-shell">
         <nav className="commerce-breadcrumb" aria-label="Breadcrumb">
           <Link to="/">{common.home}</Link>
@@ -409,7 +409,7 @@ export function TrangThanhToanPage() {
           </section>
         </div>
       ) : null}
-    </div>
+    </main>
   )
 }
 

@@ -8,12 +8,13 @@ import {
   UserCircle,
   X,
 } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useCart } from '../../contexts/GioHangContext'
 import { useLanguage } from '../../contexts/NgonNguContext'
 import { useUser } from '../../contexts/NguoiDungContext'
 import { useColorTheme } from '../../hooks/useColorTheme'
+import logoImage from '../../assets/images/logo.webp'
 
 const navLinkClassName = ({ isActive }: { isActive: boolean }): string =>
   isActive ? 'site-nav__link site-nav__link--active' : 'site-nav__link'
@@ -39,8 +40,38 @@ export function SiteHeader() {
   const languageSelectorLabel = language === 'vi' ? 'Chọn ngôn ngữ' : 'Language selector'
   const mainNavigationLabel = language === 'vi' ? 'Điều hướng chính' : 'Main navigation'
 
+  useEffect(() => {
+    if (!isMenuOpen) return
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMenuOpen(false)
+    }
+    const previousOverflow = document.body.style.overflow
+
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', closeOnEscape)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [isMenuOpen])
+
+  const renderNavigationLinks = () => mainNavigation.map((item) => (
+    <NavLink
+      key={item.label}
+      to={item.to}
+      end={item.to === '/'}
+      className={navLinkClassName}
+      onClick={() => setIsMenuOpen(false)}
+    >
+      {item.label}
+    </NavLink>
+  ))
+
   return (
-    <header className="site-header">
+    <>
+      <header className="site-header">
       <div className="topbar">
         <div className="topbar__inner">
           <div className="topbar__contact">
@@ -117,6 +148,7 @@ export function SiteHeader() {
 
       <div className="site-header__main">
         <NavLink to="/" className="brand" aria-label={`CMID - ${content.common.home}`}>
+          <img className="brand__mark" src={logoImage} alt="" aria-hidden="true" />
           <span className="brand__copy">
             <strong>CMID</strong>
             <small>Stone &amp; Interior</small>
@@ -126,31 +158,50 @@ export function SiteHeader() {
         <button
           className="menu-toggle"
           type="button"
+          aria-controls="mobile-navigation"
           aria-label={isMenuOpen ? content.header.menuClose : content.header.menuOpen}
           aria-expanded={isMenuOpen}
           onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
         >
-          {isMenuOpen ? <X size={24} /> : <List size={24} />}
+          <List size={28} />
         </button>
 
-        <nav
-          className={isMenuOpen ? 'site-nav site-nav--open' : 'site-nav'}
-          aria-label={mainNavigationLabel}
-        >
-          {mainNavigation.map((item) => (
-            <NavLink
-              key={item.label}
-              to={item.to}
-              end={item.to === '/'}
-              className={navLinkClassName}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {item.label}
-            </NavLink>
-          ))}
+        <nav className="site-nav" aria-label={mainNavigationLabel}>
+          {renderNavigationLinks()}
         </nav>
 
       </div>
-    </header>
+      </header>
+      <div className={isMenuOpen ? 'mobile-navigation mobile-navigation--open' : 'mobile-navigation'}>
+      <button
+        className="mobile-navigation__backdrop"
+        type="button"
+        tabIndex={isMenuOpen ? 0 : -1}
+        aria-label={content.header.menuClose}
+        onClick={() => setIsMenuOpen(false)}
+      />
+      <aside
+        id="mobile-navigation"
+        className="mobile-navigation__panel"
+        aria-label={mainNavigationLabel}
+        aria-hidden={!isMenuOpen}
+      >
+        <div className="mobile-navigation__header">
+          <button
+            className="mobile-navigation__close"
+            type="button"
+            tabIndex={isMenuOpen ? 0 : -1}
+            aria-label={content.header.menuClose}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <X size={26} weight="bold" aria-hidden="true" />
+          </button>
+        </div>
+        <nav className="mobile-navigation__links" aria-label={mainNavigationLabel}>
+          {renderNavigationLinks()}
+        </nav>
+      </aside>
+      </div>
+    </>
   )
 }

@@ -26,6 +26,7 @@ import projectTowerImage from "../assets/images/du-an-thap-do-thi.jpg";
 import projectRiversideImage from "../assets/images/du-an-ven-song.jpg";
 import heroImage from "../assets/images/noi-that-phong-khach-cao-cap.jpg";
 import modelImage from "../assets/images/mo-hinh-khong-gian-3d.jpg";
+import { getNewsArticles } from "../content/news-articles";
 import { CategoryShortcut } from "../components/common/DanhMucNhanh";
 import { ProjectCard } from "../components/common/TheDuAn";
 import { SectionHeading } from "../components/common/TieuDeMuc";
@@ -97,18 +98,6 @@ const duAnNoiBat = [
   },
 ];
 
-const tinTuc = [
-  {
-    image: aboutImage,
-  },
-  {
-    image: projectRiversideImage,
-  },
-  {
-    image: projectGreenImage,
-  },
-];
-
 const thuongHieu = [
   "INSEE",
   "VICOSTONE",
@@ -124,6 +113,7 @@ export function TrangChuPage() {
   const { content, language } = useLanguage();
   const { home, common } = content;
   const productScrollerRef = useRef<HTMLDivElement>(null);
+  const recentArticles = getNewsArticles(language).slice(0, 3);
   const featuredProjects = [
     ...getAdminProjects(language),
     ...home.projects.map((project, index) => ({
@@ -144,7 +134,7 @@ export function TrangChuPage() {
   }
 
   return (
-    <div className="trang-chu">
+    <main className="trang-chu">
       <section
         className="trang-chu__hero"
         style={{ backgroundImage: `url(${heroImage})` }}
@@ -413,18 +403,20 @@ export function TrangChuPage() {
             </Link>
           </div>
           <div className="news-list">
-            {tinTuc.map((article, index) => (
-              <article key={home.news[index].title} className="news-item">
-                <img src={article.image} alt="" />
-                <div>
-                  <h3>{home.news[index].title}</h3>
-                  <p>{home.news[index].date}</p>
-                </div>
+            {recentArticles.map((article) => (
+              <article key={article.slug} className="news-item">
+                <Link to={`/tin-tuc-su-kien/${article.slug}`}>
+                  <img src={article.image} alt={article.title} loading="lazy" decoding="async" />
+                  <div>
+                    <h3>{article.title}</h3>
+                    <p><time dateTime={article.publishedAt}>{article.date}</time></p>
+                  </div>
+                </Link>
               </article>
             ))}
           </div>
         </section>
       </div>
-    </div>
+    </main>
   );
 }

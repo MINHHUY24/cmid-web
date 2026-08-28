@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { CamKetDichVu } from "../components/common/CamKetDichVu";
 import { StatusPanel } from "../components/common/KhunTranThai";
+import { Seo } from "../components/common/Seo";
 import { TheSanPhamLienQuan } from "../components/product/TheSanPhamLienQuan";
 import { ThuVienAnhSanPham } from "../components/product/ThuVienAnhSanPham";
 import { useCart } from "../contexts/GioHangContext";
@@ -26,6 +27,7 @@ import {
   getProductDescription,
   getProductName,
 } from "../utils/localizeProduct";
+import { getAbsoluteUrl } from "../utils/seo";
 
 type TabChiTiet = "mo-ta" | "thong-so" | "huong-dan" | "chinh-sach";
 
@@ -75,6 +77,7 @@ export function TrangChiTietSanPham() {
   const { addItem, dismissCartToast } = useCart();
   const { content, language } = useLanguage();
   const { productDetail } = content;
+  const requestedProductPath = id ? `/products/${id}` : "/products";
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -102,39 +105,66 @@ export function TrangChiTietSanPham() {
 
   if (isLoading) {
     return (
-      <div className="product-detail-shell product-detail-shell--status">
-        <StatusPanel title={productDetail.loading} />
-      </div>
+      <>
+        <Seo
+          title={language === "vi" ? "Đang tải sản phẩm | CMID" : "Loading product | CMID"}
+          description={language === "vi" ? "Đang tải thông tin sản phẩm CMID." : "Loading CMID product information."}
+          language={language}
+          canonicalPath={requestedProductPath}
+          robots="noindex,nofollow"
+        />
+        <main className="product-detail-shell product-detail-shell--status">
+          <StatusPanel title={productDetail.loading} />
+        </main>
+      </>
     );
   }
 
   if (errorMessage) {
     return (
-      <div className="product-detail-shell product-detail-shell--status">
-        <StatusPanel title={productDetail.loadFailed} tone="error">
-          <p>{errorMessage}</p>
-          <button
-            className="button button--small"
-            type="button"
-            onClick={retry}
-          >
-            {content.common.retry}
-          </button>
-        </StatusPanel>
-      </div>
+      <>
+        <Seo
+          title={language === "vi" ? "Sản phẩm chưa khả dụng | CMID" : "Product unavailable | CMID"}
+          description={language === "vi" ? "Thông tin sản phẩm hiện chưa khả dụng." : "Product information is currently unavailable."}
+          language={language}
+          canonicalPath={requestedProductPath}
+          robots="noindex,nofollow"
+        />
+        <main className="product-detail-shell product-detail-shell--status">
+          <StatusPanel title={productDetail.loadFailed} tone="error">
+            <p>{errorMessage}</p>
+            <button
+              className="button button--small"
+              type="button"
+              onClick={retry}
+            >
+              {content.common.retry}
+            </button>
+          </StatusPanel>
+        </main>
+      </>
     );
   }
 
   if (!product) {
     return (
-      <div className="product-detail-shell product-detail-shell--status">
-        <StatusPanel title={productDetail.notFound}>
-          <p>{productDetail.notFoundDescription}</p>
-          <Link className="button button--small button--gold" to="/products">
-            {productDetail.backToCatalog}
-          </Link>
-        </StatusPanel>
-      </div>
+      <>
+        <Seo
+          title={language === "vi" ? "Không tìm thấy sản phẩm | CMID" : "Product not found | CMID"}
+          description={productDetail.notFoundDescription}
+          language={language}
+          canonicalPath={requestedProductPath}
+          robots="noindex,nofollow"
+        />
+        <main className="product-detail-shell product-detail-shell--status">
+          <StatusPanel title={productDetail.notFound}>
+            <p>{productDetail.notFoundDescription}</p>
+            <Link className="button button--small button--gold" to="/products">
+              {productDetail.backToCatalog}
+            </Link>
+          </StatusPanel>
+        </main>
+      </>
     );
   }
 
@@ -149,6 +179,75 @@ export function TrangChiTietSanPham() {
   const actionLabel = isDirectOrder
     ? productDetail.buyNow
     : productDetail.requestQuote;
+  const canonicalPath = `/products/${product.id}`;
+  const seoDescription = createDescription(
+    productDescription,
+    language === "vi"
+      ? `${productName} tại CMID. Xem thông tin, giá và tư vấn sản phẩm.`
+      : `${productName} at CMID. View product details, pricing and consultation options.`,
+  );
+  const numericPrice = Number(product.price);
+  const hasPrice = Number.isFinite(numericPrice) && numericPrice > 0;
+  const productStructuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Product",
+        "@id": `${getAbsoluteUrl(canonicalPath)}#product`,
+        name: productName,
+        description: seoDescription,
+        image: primaryImage ? getAbsoluteUrl(primaryImage.imageUrl) : undefined,
+        sku: product.sku,
+        category: categoryName ?? undefined,
+        brand: { "@type": "Brand", name: brandName ?? "CMID" },
+        offers: hasPrice
+          ? {
+              "@type": "Offer",
+              url: getAbsoluteUrl(canonicalPath),
+              priceCurrency: "VND",
+              price: numericPrice,
+              availability:
+                product.status === "ACTIVE"
+                  ? "https://schema.org/InStock"
+                  : "https://schema.org/PreOrder",
+            }
+          : undefined,
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: content.common.home,
+            item: getAbsoluteUrl("/"),
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: content.common.products,
+            item: getAbsoluteUrl("/products"),
+          },
+          ...(product.category && categoryName
+            ? [
+                {
+                  "@type": "ListItem",
+                  position: 3,
+                  name: categoryName,
+                  item: getAbsoluteUrl(`/products?category=${product.category.slug}`),
+                },
+              ]
+            : []),
+          {
+            "@type": "ListItem",
+            position: product.category && categoryName ? 4 : 3,
+            name: productName,
+            item: getAbsoluteUrl(canonicalPath),
+          },
+        ],
+      },
+    ],
+  };
   const detailSpecs = [
     {
       label: productDetail.specs.availability,
@@ -183,7 +282,18 @@ export function TrangChiTietSanPham() {
   ];
 
   return (
-    <div className="trang-chi-tiet-san-pham">
+    <>
+      <Seo
+        title={`${productName} | CMID`}
+        description={seoDescription}
+        language={language}
+        canonicalPath={canonicalPath}
+        image={primaryImage?.imageUrl}
+        imageAlt={primaryImage?.altText?.trim() || productName}
+        type="product"
+        structuredData={productStructuredData}
+      />
+      <main className="trang-chi-tiet-san-pham">
       <div className="product-detail-shell">
         <nav className="product-detail-breadcrumb" aria-label="Breadcrumb">
           <Link aria-label={content.common.home} to="/">
@@ -194,7 +304,7 @@ export function TrangChiTietSanPham() {
           {product.category ? (
             <>
               <CaretRight size={14} aria-hidden="true" />
-              <Link to="/products">{categoryName}</Link>
+              <Link to={`/products?category=${product.category.slug}`}>{categoryName}</Link>
             </>
           ) : null}
           <CaretRight size={14} aria-hidden="true" />
@@ -437,6 +547,7 @@ export function TrangChiTietSanPham() {
           </section>
         ) : null}
       </div>
-    </div>
+      </main>
+    </>
   );
 }

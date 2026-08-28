@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /gio-hang
+Disallow: /thanh-toan
+Disallow: /dang-nhap
+Disallow: /tai-khoan
+
+Sitemap: https://cmid.vn/sitemap.xml

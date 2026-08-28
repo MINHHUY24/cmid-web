@@ -21,7 +21,7 @@ import {
   type ArticleCategoryKey,
 } from '../../content/news-articles'
 import { AdminImageUpload } from './AdminImageUpload'
-import { AdminPageHeading, AdminPanel, AdminStatus } from './AdminPrimitives'
+import { AdminPageHeading, AdminPanel, AdminSelect, AdminStatus } from './AdminPrimitives'
 import {
   ADMIN_CONTENT_UPDATED_EVENT,
   deleteAdminNewsArticle,
@@ -770,9 +770,7 @@ function SelectField({
   return (
     <label className="admin-field">
       <span>{label}{required ? <b>*</b> : null}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)} required={required}>
-        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-      </select>
+      <AdminSelect value={value} onChange={onChange} options={options} required={required} aria-label={label} />
     </label>
   )
 }

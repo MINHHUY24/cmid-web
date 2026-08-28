@@ -20,6 +20,7 @@ import {
   AdminCollectionManager,
   AdminPageHeading,
   AdminPanel,
+  AdminSelect,
   AdminStatus,
   type AdminEditableRecord,
 } from './AdminPrimitives'
@@ -65,7 +66,7 @@ function deleteRecord(collection: AdminDatabaseCollection, id: string, label: st
 
 const statusOptions = [
   { value: 'ACTIVE', label: 'Đang hoạt động' },
-  { value: 'INACTIVE', label: 'Tạm ẩn' },
+  { value: 'INACTIVE', label: 'Không hoạt động' },
 ]
 
 export function AdminOperationalView({ view, database, onToast }: OperationalViewProps) {
@@ -566,8 +567,8 @@ function AdminDocumentsView({ documents, onToast }: { documents: AdminDocument[]
         <AdminPanel title="Tải tài liệu mới">
           <form className="admin-compact-form" onSubmit={saveDocument}>
             <label className="admin-field"><span>Tên tài liệu <b>*</b></span><input value={title} onChange={(event) => setTitle(event.target.value)} required /></label>
-            <label className="admin-field"><span>Phân loại</span><select value={category} onChange={(event) => setCategory(event.target.value)}><option>Catalogue</option><option>Hồ sơ năng lực</option><option>Bảng giá</option><option>Hướng dẫn</option></select></label>
-            <label className="admin-field"><span>Phạm vi</span><select value={visibility} onChange={(event) => setVisibility(event.target.value as AdminDocument['visibility'])}><option value="PUBLIC">Công khai</option><option value="INTERNAL">Nội bộ</option></select></label>
+            <label className="admin-field"><span>Phân loại</span><AdminSelect value={category} onChange={setCategory} aria-label="Phân loại tài liệu" options={['Catalogue', 'Hồ sơ năng lực', 'Bảng giá', 'Hướng dẫn'].map((value) => ({ value, label: value }))} /></label>
+            <label className="admin-field"><span>Phạm vi</span><AdminSelect value={visibility} onChange={(value) => setVisibility(value as AdminDocument['visibility'])} aria-label="Phạm vi tài liệu" options={[{ value: 'PUBLIC', label: 'Công khai' }, { value: 'INTERNAL', label: 'Nội bộ' }]} /></label>
             <button className="admin-file-picker" type="button" onClick={() => fileRef.current?.click()}><UploadSimple size={23} /><span><strong>{file?.name ?? 'Chọn tệp từ thiết bị'}</strong><small>PDF, DOCX, XLSX hoặc tài liệu có dung lượng tối đa 2 MB</small></span></button>
             <input ref={fileRef} className="sr-only" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" onChange={selectFile} />
             {error ? <p className="admin-form-error" role="alert">{error}</p> : null}

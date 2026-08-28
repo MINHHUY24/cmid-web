@@ -2,7 +2,7 @@ import { Check, FloppyDisk, Trash, UploadSimple } from '@phosphor-icons/react'
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import type { Product, ProductStatus, SaleType } from '../../types/product'
 import { AdminImageUpload } from './AdminImageUpload'
-import { AdminPageHeading, AdminPanel } from './AdminPrimitives'
+import { AdminPageHeading, AdminPanel, AdminSelect } from './AdminPrimitives'
 import type { AdminBrand, AdminNamedRecord } from './admin-database'
 import { saveAdminProduct } from './admin-local-store'
 
@@ -240,43 +240,56 @@ export function AdminProductEditor({
           <AdminPanel title="Phân loại">
             <label className="admin-field">
               <span>Danh mục <b>*</b></span>
-              <select required value={form.categoryId} onChange={(event) => update('categoryId', event.target.value)}>
-                <option value="">Chọn danh mục</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}{category.status === 'INACTIVE' ? ' (đang ẩn)' : ''}
-                  </option>
-                ))}
-              </select>
+              <AdminSelect
+                required
+                value={form.categoryId}
+                onChange={(value) => update('categoryId', value)}
+                aria-label="Danh mục"
+                options={[
+                  { value: '', label: 'Chọn danh mục' },
+                  ...categories.map((category) => ({ value: category.id, label: `${category.name}${category.status === 'INACTIVE' ? ' (đang ẩn)' : ''}` })),
+                ]}
+              />
             </label>
             <label className="admin-field">
               <span>Thương hiệu</span>
-              <select value={form.brandId} onChange={(event) => update('brandId', event.target.value)}>
-                <option value="">Không có thương hiệu</option>
-                {brands.map((brand) => (
-                  <option key={brand.id} value={brand.id}>
-                    {brand.name}{brand.status === 'INACTIVE' ? ' (đang ẩn)' : ''}
-                  </option>
-                ))}
-              </select>
+              <AdminSelect
+                value={form.brandId}
+                onChange={(value) => update('brandId', value)}
+                aria-label="Thương hiệu"
+                options={[
+                  { value: '', label: 'Không có thương hiệu' },
+                  ...brands.map((brand) => ({ value: brand.id, label: `${brand.name}${brand.status === 'INACTIVE' ? ' (đang ẩn)' : ''}` })),
+                ]}
+              />
             </label>
           </AdminPanel>
 
           <AdminPanel title="Bán hàng và hiển thị">
             <label className="admin-field">
               <span>Loại bán</span>
-              <select value={form.saleType} onChange={(event) => update('saleType', event.target.value as SaleType)}>
-                <option value="DIRECT_ORDER">Mua trực tiếp, thêm vào giỏ</option>
-                <option value="REQUEST_QUOTE">Liên hệ báo giá</option>
-              </select>
+              <AdminSelect
+                value={form.saleType}
+                onChange={(value) => update('saleType', value as SaleType)}
+                aria-label="Loại bán"
+                options={[
+                  { value: 'DIRECT_ORDER', label: 'Mua trực tiếp, thêm vào giỏ' },
+                  { value: 'REQUEST_QUOTE', label: 'Liên hệ báo giá' },
+                ]}
+              />
             </label>
             <label className="admin-field">
               <span>Trạng thái catalogue</span>
-              <select value={form.status} onChange={(event) => update('status', event.target.value as ProductStatus)}>
-                <option value="ACTIVE">Đang bán và hiển thị</option>
-                <option value="INACTIVE">Ngưng bán</option>
-                <option value="DRAFT">Bản nháp</option>
-              </select>
+              <AdminSelect
+                value={form.status}
+                onChange={(value) => update('status', value as ProductStatus)}
+                aria-label="Trạng thái catalogue"
+                options={[
+                  { value: 'ACTIVE', label: 'Đang bán và hiển thị' },
+                  { value: 'INACTIVE', label: 'Ngưng bán' },
+                  { value: 'DRAFT', label: 'Bản nháp' },
+                ]}
+              />
             </label>
             <TextField label="Số lượng tồn kho" value={form.stock} type="number" min="0" onChange={(value) => update('stock', value)} />
             <label className="admin-checkbox">
