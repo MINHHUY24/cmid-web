@@ -400,6 +400,20 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .color-theme-swi
   box-shadow: 0 0 0 3px rgb(201 151 69 / 18%);
 }
 
+/* The news search is intentionally quiet: its input sits inside a bordered
+   field, so the page-wide gold focus halo is visually redundant. */
+.app-shell--site:not(.app-shell--home) .site-main .tin-tuc__search input:focus,
+.app-shell--site:not(.app-shell--home) .site-main .tin-tuc__search input:focus-visible {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.app-shell--site:not(.app-shell--home) .site-main .catalog-sort:focus-within {
+  border-color: transparent;
+  outline: 0;
+  background-color: transparent;
+}
+
 .app-shell--site:not(.app-shell--home) .site-main select option {
   color: var(--site-text);
   background: var(--site-surface-solid);
@@ -414,7 +428,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(.contact-for
 }
 
 .app-shell--site:not(.app-shell--home) :is(
-  .catalog-sort,
   .catalog-filter__box,
   .catalog-filter__search,
   .catalog-filter__range-inputs input,
@@ -429,7 +442,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(.contact-for
   .tin-tuc__search,
   .tin-tuc__sidebar nav button,
   .tin-tuc__tags button,
-  .tin-tuc__feed-top select,
   .tin-tuc__pagination button,
   .news-article__tags span,
   .auth-google-button,
@@ -440,6 +452,80 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(.contact-for
   border-color: var(--site-line-soft);
   color: var(--site-text);
   background-color: var(--site-field);
+}
+
+.app-shell--site:not(.app-shell--home) .catalog-sort__trigger {
+  border-color: var(--site-line);
+  color: var(--site-text);
+  background: linear-gradient(118deg, rgb(12 9 6 / 91%), rgb(28 20 14 / 80%));
+  box-shadow: inset 0 1px 0 rgb(255 244 222 / 8%);
+}
+
+.app-shell--site:not(.app-shell--home) .catalog-sort__trigger:hover,
+.app-shell--site:not(.app-shell--home) .catalog-sort--open .catalog-sort__trigger {
+  border-color: var(--site-gold);
+  background: linear-gradient(118deg, rgb(30 22 15 / 94%), rgb(42 30 20 / 86%));
+}
+
+.app-shell--site:not(.app-shell--home) .catalog-sort__trigger > svg {
+  color: var(--site-gold-strong);
+}
+
+.app-shell--site:not(.app-shell--home) .catalog-sort__menu {
+  border-color: var(--site-line);
+  background: linear-gradient(118deg, rgb(12 9 6 / 96%), rgb(26 19 13 / 93%));
+  box-shadow:
+    inset 0 1px 0 rgb(255 244 222 / 8%),
+    0 20px 46px rgb(0 0 0 / 34%);
+  backdrop-filter: blur(16px) saturate(112%);
+  -webkit-backdrop-filter: blur(16px) saturate(112%);
+}
+
+.app-shell--site:not(.app-shell--home) .catalog-sort__menu button {
+  color: var(--site-text);
+}
+
+.app-shell--site:not(.app-shell--home) .catalog-sort__menu button:hover,
+.app-shell--site:not(.app-shell--home) .catalog-sort__menu button:focus-visible,
+.app-shell--site:not(.app-shell--home) .catalog-sort__menu button.is-selected {
+  color: var(--site-heading);
+  background: rgb(207 157 76 / 18%);
+}
+
+.app-shell--site:not(.app-shell--home) .catalog-sort__menu button.is-selected svg {
+  color: var(--site-gold-strong);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .catalog-sort__trigger {
+  border-color: rgb(141 96 37 / 38%);
+  color: #3b3027;
+  background: linear-gradient(118deg, rgb(255 253 249 / 91%), rgb(237 226 212 / 82%));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 68%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .catalog-sort__trigger:hover,
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .catalog-sort--open .catalog-sort__trigger {
+  border-color: #b77c2a;
+  background: linear-gradient(118deg, rgb(255 253 249 / 98%), rgb(239 222 199 / 88%));
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .catalog-sort__menu {
+  border-color: rgb(141 96 37 / 36%);
+  background: linear-gradient(118deg, rgb(255 253 249 / 95%), rgb(238 226 211 / 91%));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 72%),
+    0 20px 46px rgb(66 43 20 / 16%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .catalog-sort__menu button {
+  color: #3b3027;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .catalog-sort__menu button:hover,
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .catalog-sort__menu button:focus-visible,
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .catalog-sort__menu button.is-selected {
+  color: #704513;
+  background: rgb(181 126 47 / 13%);
 }
 
 .app-shell--site:not(.app-shell--home) :is(
@@ -624,7 +710,7 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
   .tin-tuc__sidebar,
   .tin-tuc__feed-top,
   .tin-tuc__feed-top > p,
-  .tin-tuc__feed-top label,
+  .tin-tuc__feed-sort,
   .tin-tuc__featured-summary,
   .tin-tuc__featured > div > p:first-child,
   .bai-viet > div > p:first-child,
@@ -722,6 +808,27 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
 
 .app-shell--site:not(.app-shell--home) .payment-option:has(input:checked) :is(span, small) {
   color: #fff8ed;
+}
+
+/* Payment choices sit on especially dark surfaces. Give their standalone
+   Phosphor icons a dedicated contrast state instead of letting them inherit
+   the muted label colour. The dark icon on a selected gold option also keeps
+   the symbol visible beside the radio control. */
+.app-shell--site:not(.app-shell--home) .payment-option > svg {
+  color: #e1d0b8;
+  transition: color 180ms ease;
+}
+
+.app-shell--site:not(.app-shell--home) .payment-option input {
+  accent-color: #dbaa55;
+}
+
+.app-shell--site:not(.app-shell--home) .payment-option:has(input:checked) > svg {
+  color: #2c2116;
+}
+
+.app-shell--site:not(.app-shell--home) .payment-option:has(input:checked) input {
+  accent-color: #2c2116;
 }
 
 html[data-theme='light'] .app-shell--site:not(.app-shell--home) .payment-option:has(input:checked) :is(span, small) {
@@ -2244,11 +2351,35 @@ html[data-theme='light'] .maintenance-page__notice {
   }
 }
 
-/* About-page sections that receive a card surface need their own inner gutter. */
-html[data-theme='light'] .app-shell--site .trang-ve-cmid :is(
-  .about-categories,
-  .about-reach
-) {
+/* The category panel keeps the same geometry in both themes. Dark mode only
+   changes the material and contrast, so its outer frame never collapses. */
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .trang-ve-cmid .about-categories {
+  border-color: rgb(207 157 76 / 34%);
+  background:
+    linear-gradient(135deg, rgb(255 237 203 / 4%), transparent 45%),
+    rgb(23 17 12 / 94%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 244 222 / 6%),
+    0 18px 38px rgb(4 3 2 / 20%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .trang-ve-cmid .about-categories > div {
+  border-color: rgb(207 157 76 / 42%);
+  background: rgb(11 8 6 / 38%);
+  box-shadow: inset 0 1px 0 rgb(255 244 222 / 4%);
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .trang-ve-cmid .about-categories article {
+  border-color: rgb(207 157 76 / 28%);
+  background: transparent;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .trang-ve-cmid .about-categories span {
+  color: var(--site-gold-strong);
+}
+
+/* About-page reach content still uses the light card treatment. */
+html[data-theme='light'] .app-shell--site .trang-ve-cmid .about-reach {
   padding: clamp(26px, 3vw, 36px);
   border: 1px solid #e4d9ca;
   border-radius: var(--cmid-surface-radius);
@@ -2261,10 +2392,7 @@ html[data-theme='light'] .app-shell--site .trang-ve-cmid .about-reach {
 }
 
 @media (max-width: 720px) {
-  html[data-theme='light'] .app-shell--site .trang-ve-cmid :is(
-    .about-categories,
-    .about-reach
-  ) {
+  html[data-theme='light'] .app-shell--site .trang-ve-cmid .about-reach {
     padding: 24px 20px;
     border-radius: var(--cmid-surface-radius);
   }
@@ -2404,6 +2532,18 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main::befo
   filter: none;
   opacity: 1;
   transform: none;
+}
+
+/* Retain the warm product-detail canvas, with a subtly brighter right edge. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main:has(.trang-chi-tiet-san-pham) {
+  background:
+    radial-gradient(circle at 91% 18%, rgb(255 255 255 / 64%), transparent 32%),
+    linear-gradient(100deg, #efe8df 0%, #f5f0e8 58%, #fffdf9 100%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main:has(.trang-chi-tiet-san-pham)::before {
+  background: none;
+  opacity: 0;
 }
 
 /* Home: use the menu container width for the hero content so both cards start
@@ -3461,6 +3601,14 @@ html[data-theme='light'] .app-shell--site {
     color: var(--cmid-control-hover-ink) !important;
   }
 
+  .app-shell--site:not(.app-shell--home) .payment-option:not(:has(input:checked)):hover > svg {
+    color: #ffd88d;
+  }
+
+  .app-shell--site:not(.app-shell--home) .payment-option:not(:has(input:checked)):hover input {
+    accent-color: #ffd88d;
+  }
+
   /* Hero surfaces are intentionally dark in both themes, so their labels stay
      light while their hover still uses the same gold outline and warm response. */
   .app-shell--site .trang-chu__hero-panel :is(.button--gold, .button--outline-light):not(:disabled):hover,
@@ -3549,12 +3697,7 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home)
 html[data-theme='light'] .app-shell--site:not(.app-shell--home)
   .related-product-card h2 {
   color: #37312b;
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  left: 14px;
   display: -webkit-box !important;
-  width: auto !important;
   font-size: calc(0.76rem + 2px);
   font-weight: 700;
   line-height: 1.45;
@@ -3573,14 +3716,14 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home)
 
 html[data-theme='light'] .app-shell--site:not(.app-shell--home)
   .related-product-card .product-card__price-row strong {
-  color: #b47624;
-  font-size: calc(0.86rem + 2px);
+  color: #d4a452;
+  font-size: 16px;
 }
 
 html[data-theme='light'] .app-shell--site:not(.app-shell--home)
   .related-product-card .product-card__price-row span {
   color: #75695d;
-  font-size: calc(0.62rem + 2px);
+  font-size: 16px;
 }
 
 html[data-theme='light'] .app-shell--site:not(.app-shell--home) .related-products__control {
@@ -3609,15 +3752,71 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home)
   filter: none;
 }
 
-/* Keep the featured-product price line consistent with related products. */
+/* Featured product cards use the same carousel geometry and text rhythm as
+   related product cards. */
+html[data-theme='light'] .app-shell--site.app-shell--home .product-card--showcase {
+  border-color: rgb(255 255 255 / 82%);
+  background: #fffdf9;
+  box-shadow: none;
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--home .product-card--showcase .product-card__media {
+  background: #eee5d9;
+}
+
 html[data-theme='light'] .app-shell--site.app-shell--home .product-card--showcase .product-card__price-row strong {
-  color: #b47624;
-  font-size: calc(0.86rem + 2px);
+  color: #d4a452;
+  font-size: 16px;
 }
 
 html[data-theme='light'] .app-shell--site.app-shell--home .product-card--showcase .product-card__price-row span {
   color: #75695d;
-  font-size: calc(0.62rem + 2px);
+  font-size: 16px;
+}
+
+.app-shell--site.app-shell--home .product-card--showcase .product-card__quote-label {
+  margin-top: auto;
+  color: #d4a452;
+  font-size: 16px;
+}
+
+/* Keep the featured carousel's responsive density and controls aligned with
+   the related-products carousel. */
+@media (max-width: 960px) {
+  .app-shell--site.app-shell--home .home-product-grid {
+    grid-auto-columns: calc((100% - 48px) / 4);
+  }
+
+  .app-shell--site.app-shell--home .home-products__carousel {
+    padding-inline: 58px;
+  }
+
+  .app-shell--site.app-shell--home .home-products__control {
+    width: 42px;
+    height: 52px;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell--site.app-shell--home .home-product-grid {
+    grid-auto-columns: calc((100% - 32px) / 3);
+  }
+}
+
+@media (max-width: 540px) {
+  .app-shell--site.app-shell--home .home-product-grid {
+    grid-auto-columns: calc((100% - 10px) / 2);
+    gap: 10px;
+  }
+
+  .app-shell--site.app-shell--home .home-products__carousel {
+    padding-inline: 33px;
+  }
+
+  .app-shell--site.app-shell--home .home-products__control {
+    width: 27px;
+    height: 38px;
+  }
 }
 
 /* Let the long about-page heading define the panel width, leaving the same
@@ -3772,7 +3971,6 @@ html[data-theme='light'] .mobile-navigation {
 
 /* Standard native selects use one chevron position across the public site. */
 .app-shell--site:not(.app-shell--home) :is(
-  .tin-tuc__feed-top select,
   .account-profile__control select
 ) {
   padding-right: 32px;
@@ -3785,8 +3983,45 @@ html[data-theme='light'] .mobile-navigation {
 }
 
 html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
-  .tin-tuc__feed-top select,
   .account-profile__control select
 ) {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 6 5 5 5-5' stroke='%23483e34' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+/* On phones the home header occupies space instead of covering the hero card. */
+@media (max-width: 720px) {
+  .app-shell--site .topbar__inner,
+  .app-shell--site .topbar__actions {
+    min-height: 50px;
+  }
+
+  .app-shell--site .topbar__account-link {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .app-shell--site.app-shell--home .site-header {
+    position: sticky;
+    inset: auto;
+    top: 0;
+    z-index: 30;
+  }
+
+  .app-shell--site.app-shell--home .trang-chu__hero,
+  .app-shell--site.app-shell--home .trang-chu__hero-content {
+    block-size: auto;
+    min-height: 610px;
+    min-height: max(610px, calc(100svh - 130px));
+  }
+
+  .app-shell--site.app-shell--home .trang-chu__hero-content {
+    align-items: flex-start;
+    padding: 36px 0 72px;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-shell--site .topbar__account-link span {
+    display: none;
+  }
 }

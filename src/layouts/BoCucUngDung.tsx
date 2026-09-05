@@ -1,5 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { CartToast } from '../components/cart/ThongBaoGioHang'
+import { FloatingActions } from '../components/common/FloatingActions'
+import { LanguageWelcomeDialog } from '../components/common/ChonNgonNguDialog'
 import { SiteFooter } from '../components/layout/ChanTrang'
 import { SiteHeader } from '../components/layout/DauTrang'
 import { SiteSeo } from '../components/common/SiteSeo'
@@ -39,6 +41,9 @@ export function AppLayout() {
         </div>
         <SiteFooter />
         <CartToast />
+        <FloatingActions />
+        <LanguageWelcomeDialog />
+        <div id="site-modal-root" />
       </div>
     </CartProvider>
   )

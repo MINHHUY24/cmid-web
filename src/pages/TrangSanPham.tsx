@@ -1,4 +1,4 @@
-import { CaretDown, CaretLeft, CaretRight } from "@phosphor-icons/react";
+import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import productHeroImage from "../assets/images/hero-san-pham-cmid.png";
@@ -8,13 +8,15 @@ import {
   type ProductFilterOption,
 } from "../components/product/BoLocSanPham";
 import { ProductCard } from "../components/product/TheSanPham";
+import { CatalogSortDropdown } from "../components/product/CatalogSortDropdown";
 import { useProducts } from "../hooks/useProducts";
 import type { Product } from "../types/product";
 import { useLanguage } from "../contexts/NgonNguContext";
 
 type SortOrder = "newest" | "price-asc" | "price-desc";
 
-const PRODUCTS_PER_PAGE = 12;
+const PRODUCTS_PER_PAGE = 8;
+const CATALOG_SKELETON_CARD_COUNT = 8;
 
 function getProductPrice(product: Product): number {
   const price = Number(product.price);
@@ -59,6 +61,60 @@ function createFilterOptions(
 
   return Array.from(options.values()).sort((firstOption, secondOption) =>
     firstOption.label.localeCompare(secondOption.label, "vi"),
+  );
+}
+
+function ProductCatalogLoadingSkeleton({ label }: { label: string }) {
+  return (
+    <section
+      className="catalog-loading"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      aria-label={label}
+    >
+      <span className="sr-only">{label}</span>
+
+      <aside className="catalog-loading__filters" aria-hidden="true">
+        <div className="catalog-loading__filter">
+          <span className="catalog-skeleton catalog-skeleton--filter-title" />
+          <span className="catalog-skeleton catalog-skeleton--filter-line" />
+          <span className="catalog-skeleton catalog-skeleton--filter-line catalog-skeleton--short" />
+          <span className="catalog-skeleton catalog-skeleton--filter-line catalog-skeleton--medium" />
+        </div>
+        <div className="catalog-loading__filter">
+          <span className="catalog-skeleton catalog-skeleton--filter-title" />
+          <span className="catalog-skeleton catalog-skeleton--search" />
+          <span className="catalog-skeleton catalog-skeleton--filter-line catalog-skeleton--medium" />
+          <span className="catalog-skeleton catalog-skeleton--filter-line catalog-skeleton--short" />
+        </div>
+        <div className="catalog-loading__filter catalog-loading__filter--compact">
+          <span className="catalog-skeleton catalog-skeleton--filter-title" />
+          <span className="catalog-skeleton catalog-skeleton--range" />
+        </div>
+      </aside>
+
+      <section className="catalog-loading__results" aria-hidden="true">
+        <div className="catalog-loading__grid">
+          {Array.from({ length: CATALOG_SKELETON_CARD_COUNT }, (_, index) => (
+            <article className="catalog-skeleton-card" key={index}>
+              <div className="catalog-skeleton catalog-skeleton-card__media" />
+              <div className="catalog-skeleton-card__body">
+                <span className="catalog-skeleton catalog-skeleton--eyebrow" />
+                <span className="catalog-skeleton catalog-skeleton--title" />
+                <span className="catalog-skeleton catalog-skeleton--title catalog-skeleton--short" />
+                <span className="catalog-skeleton catalog-skeleton--metadata" />
+                <div className="catalog-skeleton-card__price-row">
+                  <span className="catalog-skeleton catalog-skeleton--price" />
+                  <span className="catalog-skeleton catalog-skeleton--availability" />
+                </div>
+                <span className="catalog-skeleton catalog-skeleton--action" />
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </section>
   );
 }
 
@@ -239,12 +295,6 @@ export function TrangSanPhamPage() {
     (safeCurrentPage - 1) * PRODUCTS_PER_PAGE,
     safeCurrentPage * PRODUCTS_PER_PAGE,
   );
-  const displayStart =
-    displayedProducts.length === 0
-      ? 0
-      : (safeCurrentPage - 1) * PRODUCTS_PER_PAGE + 1;
-  const displayEnd =
-    (safeCurrentPage - 1) * PRODUCTS_PER_PAGE + displayedProducts.length;
 
   function resetFilters() {
     setSelectedCategories([]);
@@ -299,37 +349,25 @@ export function TrangSanPhamPage() {
           </nav>
           {!isLoading && !errorMessage ? (
             <div className="catalog-toolbar__controls">
-              <p>
-                {content.product.showing(
-                  displayStart,
-                  displayEnd,
-                  products.length,
-                )}
-              </p>
-              <label className="catalog-sort">
-                <span className="sr-only">{content.product.sortNewest}</span>
-                <select
-                  value={sortOrder}
-                  onChange={(event) => {
-                    setSortOrder(event.target.value as SortOrder);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <option value="newest">{content.product.sortNewest}</option>
-                  <option value="price-asc">
-                    {content.product.sortPriceAsc}
-                  </option>
-                  <option value="price-desc">
-                    {content.product.sortPriceDesc}
-                  </option>
-                </select>
-                <CaretDown size={15} weight="bold" aria-hidden="true" />
-              </label>
+              <p>{content.product.totalProducts(sortedProducts.length)}</p>
+              <CatalogSortDropdown
+                label={content.product.sortNewest}
+                value={sortOrder}
+                options={[
+                  { value: "newest", label: content.product.sortNewest },
+                  { value: "price-asc", label: content.product.sortPriceAsc },
+                  { value: "price-desc", label: content.product.sortPriceDesc },
+                ]}
+                onChange={(value) => {
+                  setSortOrder(value as SortOrder);
+                  setCurrentPage(1);
+                }}
+              />
             </div>
           ) : null}
         </div>
 
-        {isLoading ? <StatusPanel title={content.product.loading} /> : null}
+        {isLoading ? <ProductCatalogLoadingSkeleton label={content.product.loading} /> : null}
 
         {!isLoading && errorMessage ? (
           <StatusPanel title={content.product.loadFailed} tone="error">

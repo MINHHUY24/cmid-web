@@ -1,5 +1,6 @@
 .trang-chi-tiet-san-pham {
-  background: #fcfbf8;
+  min-height: 70vh;
+  background: transparent;
 }
 
 .product-detail-shell {
@@ -418,7 +419,7 @@
   align-self: center;
   padding: 32px 38px 32px 34px;
   color: #655f58;
-  font-size: calc(0.82rem + 2px);
+  font-size: calc(0.82rem + 5px);
   line-height: 1.7;
 }
 
@@ -527,7 +528,7 @@
   margin-top: 40px;
 }
 
-.related-products h2 {
+.related-products > h2 {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -541,8 +542,8 @@
   text-transform: uppercase;
 }
 
-.related-products h2::before,
-.related-products h2::after {
+.related-products > h2::before,
+.related-products > h2::after {
   width: 27px;
   height: 1px;
   background: var(--cmid-gold);
@@ -623,6 +624,8 @@
 }
 
 .related-product-card .product-card__body {
+  flex-direction: column;
+  justify-content: flex-end;
   min-height: 108px;
   padding: 14px;
 }
@@ -638,15 +641,21 @@
   margin-top: auto;
 }
 
+.related-product-card .product-card__quote-label {
+  margin-top: auto;
+  color: #d4a452;
+  font-size: 16px;
+}
+
 .related-product-card .product-card__price-row strong {
-  color: #b47624;
-  font-size: calc(0.86rem + 2px);
+  color: #d4a452;
+  font-size: 16px;
   font-weight: 700;
 }
 
 .related-product-card .product-card__price-row span {
   color: #75695d;
-  font-size: calc(0.62rem + 2px);
+  font-size: 16px;
 }
 
 .product-consultation {
@@ -828,7 +837,10 @@
     padding: 0;
   }
 
-  .product-detail-tabs__description > div:first-child,
+  .product-detail-tabs__description > div:first-child {
+    font-size: calc(0.78rem + 5px);
+  }
+
   .product-detail-tabs__copy {
     font-size: calc(0.78rem + 2px);
   }
@@ -842,13 +854,13 @@
     margin-top: 34px;
   }
 
-  .related-products h2 {
+  .related-products > h2 {
     gap: 10px;
     font-size: calc(1.7rem + 2px);
   }
 
-  .related-products h2::before,
-  .related-products h2::after {
+  .related-products > h2::before,
+  .related-products > h2::after {
     width: 15px;
   }
 

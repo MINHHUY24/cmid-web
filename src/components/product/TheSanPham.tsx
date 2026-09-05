@@ -53,6 +53,7 @@ export function ProductCard({ product, variant = 'catalog', className = '' }: Pr
     product.images.find((image) => image.isPrimary) ?? product.images[0]
   const has3DModel = product.models3D.length > 0
   const canAddToCart = product.saleType === 'DIRECT_ORDER' && product.status === 'ACTIVE'
+  const isQuoteOnly = product.saleType === 'REQUEST_QUOTE'
   const actionLabel = canAddToCart ? content.product.addToCart : content.product.quote
   const actionPath = `/lien-he?bao-gia-san-pham=${product.id}`
   const availabilityLabel = product.status === 'ACTIVE' ? content.product.inStock : content.product.madeToOrder
@@ -74,10 +75,14 @@ export function ProductCard({ product, variant = 'catalog', className = '' }: Pr
           </div>
           <div className="product-card__body">
             <h2>{productName}</h2>
-            <div className="product-card__price-row">
-              <strong>{formatCurrency(product.price, language)}</strong>
-              {product.unit ? <span>/{product.unit}</span> : null}
-            </div>
+            {isQuoteOnly ? (
+              <span className="product-card__quote-label">{content.product.quote}</span>
+            ) : (
+              <div className="product-card__price-row">
+                <strong>{formatCurrency(product.price, language)}</strong>
+                {product.unit ? <span>/{product.unit}</span> : null}
+              </div>
+            )}
           </div>
         </Link>
       </article>
@@ -108,9 +113,11 @@ export function ProductCard({ product, variant = 'catalog', className = '' }: Pr
           <span>SKU: {product.sku}</span>
         </p>
 
-        <div className="product-card__price-row">
-          <strong>{formatCurrency(product.price, language)}</strong>
-          {product.unit ? <span>/{product.unit}</span> : null}
+        <div className={isQuoteOnly ? 'product-card__price-row product-card__price-row--quote' : 'product-card__price-row'}>
+          {!isQuoteOnly ? <>
+            <strong>{formatCurrency(product.price, language)}</strong>
+            {product.unit ? <span>/{product.unit}</span> : null}
+          </> : null}
           <span className="product-card__availability">
             <i aria-hidden="true" />
             {availabilityLabel}

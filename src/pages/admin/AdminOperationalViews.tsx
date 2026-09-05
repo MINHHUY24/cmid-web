@@ -613,7 +613,7 @@ const adminSettingsSaveActions: Record<SaveableSettingsTab, {
     toast: 'Đã lưu thông tin doanh nghiệp.',
   },
   commerce: {
-    fields: ['freeShippingThreshold', 'defaultVatPercent'],
+    fields: ['freeShippingThreshold', 'defaultVatPercent', 'paymentQrTimeoutSeconds'],
     label: 'Lưu chính sách thương mại',
     activity: 'Cập nhật chính sách thương mại',
     toast: 'Đã lưu chính sách thương mại.',
@@ -743,7 +743,15 @@ function AdminSettingsView({ settings, onToast }: { settings: AdminSettings; onT
               </>
             ) : null}
             {tab === 'commerce' ? (
-              <><label className="admin-field"><span>{t('Ngưỡng miễn phí giao hàng')}</span><input type="number" value={form.freeShippingThreshold} onChange={(event) => update('freeShippingThreshold', Number(event.target.value))} /></label><label className="admin-field"><span>{t('Thuế VAT mặc định (%)')}</span><input type="number" min="0" max="100" value={form.defaultVatPercent} onChange={(event) => update('defaultVatPercent', Number(event.target.value))} /></label></>
+              <>
+                <label className="admin-field"><span>{t('Ngưỡng miễn phí giao hàng')}</span><input type="number" value={form.freeShippingThreshold} onChange={(event) => update('freeShippingThreshold', Number(event.target.value))} /></label>
+                <label className="admin-field"><span>{t('Thuế VAT mặc định (%)')}</span><input type="number" min="0" max="100" value={form.defaultVatPercent} onChange={(event) => update('defaultVatPercent', Number(event.target.value))} /></label>
+                <label className="admin-field">
+                  <span>{t('Thời gian hiển thị QR (giây)')}</span>
+                  <input type="number" min="30" step="1" value={form.paymentQrTimeoutSeconds} onChange={(event) => update('paymentQrTimeoutSeconds', Math.max(30, Number(event.target.value) || 30))} />
+                  <small>{t('Tối thiểu 30 giây. Khi hết thời gian, QR không còn hiệu lực trong luồng thanh toán.')}</small>
+                </label>
+              </>
             ) : null}
             {tab === 'notifications' ? <><label className="admin-field"><span>{t('Email nhận thông báo đơn hàng')}</span><input type="email" value={form.orderNotificationEmail} onChange={(event) => update('orderNotificationEmail', event.target.value)} /></label><div className="admin-settings-note"><CheckCircle size={20} /><p>{t('Email này sẽ nhận thông báo khi backend gửi sự kiện đơn hàng mới.')}</p></div></> : null}
             {tab === 'maintenance' ? (

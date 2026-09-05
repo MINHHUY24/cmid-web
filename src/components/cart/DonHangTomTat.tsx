@@ -13,6 +13,7 @@ interface DonHangTomTatProps {
   formId?: string
   onAction?: () => void
   showProducts?: boolean
+  disabled?: boolean
 }
 
 export function DonHangTomTat({
@@ -22,6 +23,7 @@ export function DonHangTomTat({
   formId,
   onAction,
   showProducts = false,
+  disabled = false,
 }: DonHangTomTatProps) {
   const { content, language } = useLanguage()
   const subtotal = items.reduce(
@@ -88,6 +90,7 @@ export function DonHangTomTat({
           type={onAction ? 'button' : 'submit'}
           form={onAction ? undefined : formId}
           onClick={onAction}
+          disabled={disabled}
         >
           {actionLabel}
         </button>

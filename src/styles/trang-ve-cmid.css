@@ -124,11 +124,18 @@
   font-size: calc(0.75rem + 2px);
 }
 
-.about-categories,
 .about-partners,
 .about-projects {
   padding-top: 0;
   border-top: 0;
+}
+
+.about-categories {
+  padding: clamp(26px, 3vw, 36px);
+  border: 1px solid #e4d9ca;
+  border-radius: var(--about-surface-radius);
+  background: #fffefa;
+  box-shadow: 0 8px 30px rgb(60 45 30 / 6%);
 }
 
 .about-categories > h2,
@@ -393,6 +400,12 @@
 .about-cta .button {
   flex: none;
   min-width: 165px;
+}
+
+@media (max-width: 720px) {
+  .about-categories {
+    padding: 24px 20px;
+  }
 }
 
 @media (max-width: 960px) {

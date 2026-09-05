@@ -4,6 +4,7 @@ import { getProductPrice } from '../../utils/order'
 
 const ADMIN_DATABASE_KEY = 'cmid-admin-database-v2'
 export const ADMIN_DATABASE_UPDATED_EVENT = 'cmid-admin-database-updated'
+export const MIN_PAYMENT_QR_TIMEOUT_SECONDS = 30
 
 export type AdminDatabaseCollection =
   | 'categories'
@@ -207,6 +208,7 @@ export interface AdminSettings {
   weekendHours: string
   freeShippingThreshold: number
   defaultVatPercent: number
+  paymentQrTimeoutSeconds: number
   orderNotificationEmail: string
   maintenanceMode: boolean
   adminLanguage: AppLanguage
@@ -356,6 +358,7 @@ const seedDatabase: AdminDatabase = {
     weekendHours: '08:00 - 17:00',
     freeShippingThreshold: 5000000,
     defaultVatPercent: 10,
+    paymentQrTimeoutSeconds: 300,
     orderNotificationEmail: 'sales@cmid.vn',
     maintenanceMode: false,
     adminLanguage: 'vi',
@@ -442,6 +445,14 @@ export function getAdminDatabase(): AdminDatabase {
   }
 }
 
+export function getPaymentQrTimeoutSeconds() {
+  const configuredValue = Number(getAdminDatabase().settings.paymentQrTimeoutSeconds)
+
+  return Number.isFinite(configuredValue)
+    ? Math.max(MIN_PAYMENT_QR_TIMEOUT_SECONDS, Math.round(configuredValue))
+    : 300
+}
+
 export function saveAdminDatabase(database: AdminDatabase) {
   if (typeof window === 'undefined') return
   window.localStorage.setItem(ADMIN_DATABASE_KEY, JSON.stringify(database))
@@ -471,6 +482,7 @@ export function createAdminOrderFromCheckout(input: {
   phone: string
   address: string
   paymentMethod: string
+  paymentStatus?: AdminOrder['paymentStatus']
   note: string
   items: Array<{ product: Product; quantity: number }>
 }) {
@@ -499,7 +511,7 @@ export function createAdminOrderFromCheckout(input: {
     vat,
     total: subtotal + vat,
     paymentMethod: input.paymentMethod,
-    paymentStatus: 'Chưa thanh toán',
+    paymentStatus: input.paymentStatus ?? 'Chưa thanh toán',
     status: 'Chờ xác nhận',
     note: input.note,
     createdAt: new Date().toISOString(),

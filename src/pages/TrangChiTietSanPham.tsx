@@ -178,16 +178,20 @@ export function TrangChiTietSanPham() {
   const actionPath = `/lien-he?bao-gia-san-pham=${product.id}`;
   const actionLabel = isDirectOrder
     ? productDetail.buyNow
-    : productDetail.requestQuote;
+    : productDetail.requestQuoteAndConsultation;
   const canonicalPath = `/products/${product.id}`;
   const seoDescription = createDescription(
     productDescription,
-    language === "vi"
-      ? `${productName} tại CMID. Xem thông tin, giá và tư vấn sản phẩm.`
-      : `${productName} at CMID. View product details, pricing and consultation options.`,
+    isDirectOrder
+      ? language === "vi"
+        ? `${productName} tại CMID. Xem thông tin, giá và tư vấn sản phẩm.`
+        : `${productName} at CMID. View product details, pricing and consultation options.`
+      : language === "vi"
+        ? `${productName} tại CMID. Liên hệ CMID để nhận báo giá và tư vấn sản phẩm.`
+        : `${productName} at CMID. Contact CMID for a quote and product consultation.`,
   );
   const numericPrice = Number(product.price);
-  const hasPrice = Number.isFinite(numericPrice) && numericPrice > 0;
+  const hasPrice = isDirectOrder && Number.isFinite(numericPrice) && numericPrice > 0;
   const productStructuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -343,39 +347,43 @@ export function TrangChiTietSanPham() {
               ))}
             </dl>
 
-            <div className="product-detail-price">
-              <strong>{formatCurrency(product.price, language)}</strong>
-              {product.unit ? <span>/{product.unit}</span> : null}
-            </div>
+            {isDirectOrder ? (
+              <>
+                <div className="product-detail-price">
+                  <strong>{formatCurrency(product.price, language)}</strong>
+                  {product.unit ? <span>/{product.unit}</span> : null}
+                </div>
 
-            <div className="product-detail-quantity">
-              <span>{productDetail.quantity}</span>
-              <div>
-                <button
-                  type="button"
-                  aria-label={content.cart.decrease(productName)}
-                  disabled={quantity === 1}
-                  onClick={() =>
-                    setQuantity((currentQuantity) =>
-                      Math.max(1, currentQuantity - 1),
-                    )
-                  }
-                >
-                  <Minus size={15} aria-hidden="true" />
-                </button>
-                <output aria-label={productDetail.quantity}>{quantity}</output>
-                <button
-                  type="button"
-                  aria-label={content.cart.increase(productName)}
-                  onClick={() =>
-                    setQuantity((currentQuantity) => currentQuantity + 1)
-                  }
-                >
-                  <Plus size={15} aria-hidden="true" />
-                </button>
-              </div>
-              {product.unit ? <small>{product.unit}</small> : null}
-            </div>
+                <div className="product-detail-quantity">
+                  <span>{productDetail.quantity}</span>
+                  <div>
+                    <button
+                      type="button"
+                      aria-label={content.cart.decrease(productName)}
+                      disabled={quantity === 1}
+                      onClick={() =>
+                        setQuantity((currentQuantity) =>
+                          Math.max(1, currentQuantity - 1),
+                        )
+                      }
+                    >
+                      <Minus size={15} aria-hidden="true" />
+                    </button>
+                    <output aria-label={productDetail.quantity}>{quantity}</output>
+                    <button
+                      type="button"
+                      aria-label={content.cart.increase(productName)}
+                      onClick={() =>
+                        setQuantity((currentQuantity) => currentQuantity + 1)
+                      }
+                    >
+                      <Plus size={15} aria-hidden="true" />
+                    </button>
+                  </div>
+                  {product.unit ? <small>{product.unit}</small> : null}
+                </div>
+              </>
+            ) : null}
 
             <div className="product-detail-actions">
               {isDirectOrder ? (
@@ -399,23 +407,27 @@ export function TrangChiTietSanPham() {
                   {actionLabel}
                 </Link>
               )}
-              <button
-                className="product-detail-actions__secondary"
-                type="button"
-                onClick={() => {
-                  addItem(product, quantity);
-                  setIsAddedToCart(true);
-                }}
-              >
-                <ShoppingCartSimple size={18} aria-hidden="true" />
-                {isAddedToCart ? productDetail.added : productDetail.addToCart}
-              </button>
-              <Link
-                className="product-detail-actions__secondary"
-                to={`/lien-he?tu-van-san-pham=${product.id}`}
-              >
-                {productDetail.consultation}
-              </Link>
+              {isDirectOrder ? (
+                <button
+                  className="product-detail-actions__secondary"
+                  type="button"
+                  onClick={() => {
+                    addItem(product, quantity);
+                    setIsAddedToCart(true);
+                  }}
+                >
+                  <ShoppingCartSimple size={18} aria-hidden="true" />
+                  {isAddedToCart ? productDetail.added : productDetail.addToCart}
+                </button>
+              ) : null}
+              {isDirectOrder ? (
+                <Link
+                  className="product-detail-actions__secondary"
+                  to={`/lien-he?tu-van-san-pham=${product.id}`}
+                >
+                  {productDetail.consultation}
+                </Link>
+              ) : null}
             </div>
           </div>
         </section>

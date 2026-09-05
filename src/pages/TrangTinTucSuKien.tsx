@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, MagnifyingGlass } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import interiorImage from '../assets/images/hero-tin-tuc-cmid.png'
+import { CatalogSortDropdown } from '../components/product/CatalogSortDropdown'
 import {
   getNewsArticles,
   newsCategoryKeys,
@@ -113,13 +114,18 @@ export function TrangTinTucSuKienPage() {
         <section className="tin-tuc__feed" id="danh-sach-bai-viet">
           <div className="tin-tuc__feed-top">
             <p>{news.latest}</p>
-            <label>
-              {news.sort}
-              <select value={sortBy} onChange={(event) => changeSort(event.target.value as 'newest' | 'popular')}>
-                <option value="newest">{news.newest}</option>
-                <option value="popular">{news.popular}</option>
-              </select>
-            </label>
+            <div className="tin-tuc__feed-sort">
+              <span>{news.sort}</span>
+              <CatalogSortDropdown
+                label={news.sort}
+                value={sortBy}
+                options={[
+                  { value: 'newest', label: news.newest },
+                  { value: 'popular', label: news.popular },
+                ]}
+                onChange={(value) => changeSort(value as 'newest' | 'popular')}
+              />
+            </div>
           </div>
 
           {showFeatured ? (

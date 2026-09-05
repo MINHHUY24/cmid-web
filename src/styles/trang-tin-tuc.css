@@ -166,7 +166,7 @@
   font-size: calc(0.69rem + 2px);
 }
 
-.tin-tuc__feed-top label {
+.tin-tuc__feed-sort {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -175,14 +175,8 @@
   white-space: nowrap;
 }
 
-.tin-tuc__feed-top select {
-  min-height: 33px;
-  padding: 0 22px 0 8px;
-  border: 1px solid #d9d1c6;
-  border-radius: 4px;
-  color: #4d463e;
-  background: #fff;
-  font-size: calc(0.66rem + 2px);
+.tin-tuc__feed-sort .catalog-sort {
+  width: 176px;
 }
 
 .tin-tuc__featured {

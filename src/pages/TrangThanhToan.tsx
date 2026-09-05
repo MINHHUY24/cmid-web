@@ -1,13 +1,45 @@
-import { Bank, CaretDown, Check, CheckCircle, CreditCard, MagnifyingGlass, Truck } from '@phosphor-icons/react'
-import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Bank, CaretDown, Check, CheckCircle, CreditCard, MagnifyingGlass, Truck, Wallet, WarningCircle, X } from '@phosphor-icons/react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { DonHangTomTat } from '../components/cart/DonHangTomTat'
-import { useCart } from '../contexts/GioHangContext'
+import { PaymentQrDialog } from '../components/payment/PaymentQrDialog'
+import momoQrAsset from '../components/payment/momo-qr.png'
+import { useCart, type CartItem } from '../contexts/GioHangContext'
 import { useLanguage } from '../contexts/NgonNguContext'
 import { useUser } from '../contexts/NguoiDungContext'
-import { createAdminOrderFromCheckout } from './admin/admin-database'
+import { createMomoPayment, getMomoPaymentStatus, type MomoPaymentStatus } from '../services/payment.service'
+import { formatCurrency } from '../utils/formatCurrency'
+import { getOrderCosts, getProductPrice } from '../utils/order'
+import {
+  ADMIN_DATABASE_UPDATED_EVENT,
+  createAdminOrderFromCheckout,
+  getPaymentQrTimeoutSeconds,
+} from './admin/admin-database'
+import { getPaymentErrorMessage } from './TrangThanhToan.helpers'
 
-type PaymentMethod = 'bank' | 'cod' | 'card'
+type PaymentMethod = 'bank' | 'cod' | 'momo' | 'card'
+
+type PendingPayment = {
+  customer: string
+  email: string
+  phone: string
+  address: string
+  paymentMethod: PaymentMethod
+  paymentMethodLabel: string
+  note: string
+  items: CartItem[]
+  amount: number
+  orderCode: string
+}
+
+const isMockPaymentMode = import.meta.env.DEV && import.meta.env.VITE_PAYMENT_MODE === 'mock'
+const paymentRecipientName = import.meta.env.VITE_PAYMENT_RECIPIENT_NAME?.trim() || 'LÊ MINH HUY'
+const vnpayBankId = import.meta.env.VITE_VNPAY_BANK_ID?.trim() || 'TCB'
+const vnpayBankName = import.meta.env.VITE_VNPAY_BANK_NAME?.trim() || 'Techcombank'
+const vnpayAccountNumber = import.meta.env.VITE_VNPAY_ACCOUNT_NUMBER?.trim() || '2410 5873 6252'
+const momoAccountLabel = import.meta.env.VITE_MOMO_ACCOUNT_LABEL?.trim() || '******097'
+const vnpayQrImageUrl = import.meta.env.VITE_VNPAY_QR_IMAGE_URL?.trim()
+const momoQrImageUrl = import.meta.env.VITE_MOMO_QR_IMAGE_URL?.trim()
 
 type CheckoutDropdownOption = {
   value: string
@@ -47,6 +79,10 @@ function normalizeSearchText(value: string) {
     .trim()
 }
 
+function compareAdministrativeLabels(left: string, right: string) {
+  return left.localeCompare(right, 'vi', { numeric: true, sensitivity: 'base' })
+}
+
 function getAdministrativeDisplayName(value: string) {
   return value.replace(/^(?:Thành phố|Tỉnh|TP\.?|Quận|Huyện|Thị xã|Thị trấn|Phường|Xã)\s+/iu, '')
 }
@@ -70,13 +106,51 @@ function toAdministrativeOption(unit: { name: string }): CheckoutDropdownOption 
   }
 }
 
+function hasValidCardData(formData: FormData) {
+  const number = String(formData.get('card-number') ?? '').replaceAll(/\s/g, '')
+  const holder = String(formData.get('card-holder') ?? '').trim()
+  const expiry = String(formData.get('card-expiry') ?? '').trim()
+  const cvc = String(formData.get('card-cvc') ?? '').trim()
+
+  return /^\d{16,19}$/u.test(number) && Boolean(holder) && /^\d{2}\/\d{2}$/u.test(expiry) && /^\d{3,4}$/u.test(cvc)
+}
+
+function createPaymentOrderCode() {
+  const now = new Date()
+  const date = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
+    .map((value) => String(value).padStart(2, '0'))
+    .join('')
+  const serial = String(Math.floor(Math.random() * 900) + 100)
+
+  return `CMID-${date}-${serial}`
+}
+
+function createVietQrQuickLink(amount: number, orderCode: string) {
+  const accountNumber = vnpayAccountNumber.replaceAll(/\s/g, '')
+  const parameters = new URLSearchParams({
+    amount: String(amount),
+    addInfo: orderCode.slice(0, 25),
+    accountName: paymentRecipientName,
+  })
+
+  return `https://img.vietqr.io/image/${encodeURIComponent(vnpayBankId)}-${encodeURIComponent(accountNumber)}-compact2.png?${parameters.toString()}`
+}
+
 export function TrangThanhToanPage() {
   const { clearCart, items } = useCart()
-  const { content } = useLanguage()
+  const { content, language } = useLanguage()
   const { user, profile, updateProfile } = useUser()
   const { checkout, common } = content
+  const [searchParams] = useSearchParams()
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank')
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isPaymentStarting, setIsPaymentStarting] = useState(false)
+  const [paymentError, setPaymentError] = useState('')
+  const [paymentNotice, setPaymentNotice] = useState('')
+  const [momoPaymentStatus, setMomoPaymentStatus] = useState<MomoPaymentStatus | null>(null)
+  const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null)
+  const [paymentTimeoutSeconds, setPaymentTimeoutSeconds] = useState(getPaymentQrTimeoutSeconds)
+  const [paymentCountdown, setPaymentCountdown] = useState(0)
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false)
   const [administrativeData, setAdministrativeData] = useState<AdministrativeData | null>(null)
   const [isAdministrativeDataLoading, setIsAdministrativeDataLoading] = useState(true)
@@ -87,6 +161,20 @@ export function TrangThanhToanPage() {
     ward: getAdministrativeDisplayName(profile.ward),
   }))
   const [locationError, setLocationError] = useState('')
+  const momoOrderId = searchParams.get('momoOrderId')
+
+  useEffect(() => {
+    const syncPaymentTimeout = () => setPaymentTimeoutSeconds(getPaymentQrTimeoutSeconds())
+    const syncPaymentTimeoutFromStorage = () => syncPaymentTimeout()
+
+    window.addEventListener(ADMIN_DATABASE_UPDATED_EVENT, syncPaymentTimeout)
+    window.addEventListener('storage', syncPaymentTimeoutFromStorage)
+
+    return () => {
+      window.removeEventListener(ADMIN_DATABASE_UPDATED_EVENT, syncPaymentTimeout)
+      window.removeEventListener('storage', syncPaymentTimeoutFromStorage)
+    }
+  }, [])
 
   useEffect(() => {
     let isCurrent = true
@@ -123,10 +211,120 @@ export function TrangThanhToanPage() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!momoOrderId) return
+
+    let isCurrent = true
+    let retryTimeout: number | undefined
+    let attempts = 0
+
+    const checkMomoPaymentStatus = () => {
+      attempts += 1
+      void getMomoPaymentStatus(momoOrderId)
+        .then((status) => {
+          if (!isCurrent) return
+          setMomoPaymentStatus(status)
+
+          if (status.paymentStatus === 'PAID') {
+            clearCart()
+            setIsSubmitted(true)
+            return
+          }
+
+          if (status.paymentStatus === 'FAILED') {
+            setPaymentError(checkout.momoPaymentFailed)
+            return
+          }
+
+          if (attempts < 10) {
+            retryTimeout = window.setTimeout(checkMomoPaymentStatus, 2_000)
+          }
+        })
+        .catch((error: unknown) => {
+          if (isCurrent) setPaymentError(getPaymentErrorMessage(error))
+        })
+    }
+
+    checkMomoPaymentStatus()
+
+    return () => {
+      isCurrent = false
+      if (retryTimeout !== undefined) window.clearTimeout(retryTimeout)
+    }
+  }, [checkout.momoPaymentFailed, clearCart, momoOrderId])
+
+  useEffect(() => {
+    if (!paymentNotice) return undefined
+
+    const noticeTimer = window.setTimeout(() => setPaymentNotice(''), 4_500)
+    return () => window.clearTimeout(noticeTimer)
+  }, [paymentNotice])
+
+  const completePendingPayment = useCallback((isSuccessful: boolean) => {
+    if (!pendingPayment) return
+
+    setPendingPayment(null)
+    setPaymentCountdown(0)
+
+    if (!isSuccessful) {
+      setPaymentNotice(checkout.paymentCancelled)
+      return
+    }
+
+    createAdminOrderFromCheckout({
+      customer: pendingPayment.customer,
+      email: pendingPayment.email,
+      phone: pendingPayment.phone,
+      address: pendingPayment.address,
+      paymentMethod: pendingPayment.paymentMethodLabel,
+      note: pendingPayment.note,
+      items: pendingPayment.items,
+      paymentStatus: 'Đã thanh toán',
+    })
+    setIsSubmitted(true)
+    clearCart()
+  }, [checkout.paymentCancelled, clearCart, pendingPayment])
+
+  useEffect(() => {
+    if (!isMockPaymentMode || !pendingPayment || (pendingPayment.paymentMethod !== 'bank' && pendingPayment.paymentMethod !== 'momo')) {
+      return undefined
+    }
+
+    const paymentConfirmationTimer = window.setTimeout(
+      () => completePendingPayment(true),
+      paymentTimeoutSeconds * 1_000,
+    )
+
+    return () => window.clearTimeout(paymentConfirmationTimer)
+  }, [completePendingPayment, paymentTimeoutSeconds, pendingPayment])
+
+  useEffect(() => {
+    if (!pendingPayment || (pendingPayment.paymentMethod !== 'bank' && pendingPayment.paymentMethod !== 'momo')) {
+      return undefined
+    }
+
+    const deadline = Date.now() + paymentTimeoutSeconds * 1_000
+    const updateCountdown = () => {
+      const nextCountdown = Math.max(0, Math.ceil((deadline - Date.now()) / 1_000))
+      setPaymentCountdown(nextCountdown)
+
+      if (nextCountdown === 0 && !isMockPaymentMode) {
+        window.clearInterval(countdownTimer)
+        setPendingPayment(null)
+        setPaymentNotice(checkout.paymentQrExpired)
+      }
+    }
+
+    const countdownTimer = window.setInterval(updateCountdown, 250)
+    updateCountdown()
+
+    return () => window.clearInterval(countdownTimer)
+  }, [checkout.paymentQrExpired, paymentTimeoutSeconds, pendingPayment])
+
   const provinceOptions = useMemo(
     () => administrativeData?.provinces
       .map(toAdministrativeOption)
-      .sort((left, right) => left.label.localeCompare(right.label, 'vi')) ?? [],
+      .sort((left, right) => compareAdministrativeLabels(left.label, right.label)) ?? [],
     [administrativeData],
   )
   const selectedProvince = useMemo(
@@ -138,7 +336,7 @@ export function TrangThanhToanPage() {
       ? administrativeData?.districts
           .filter((district) => district.idProvince === selectedProvince.idProvince)
           .map(toAdministrativeOption)
-          .sort((left, right) => left.label.localeCompare(right.label, 'vi')) ?? []
+          .sort((left, right) => compareAdministrativeLabels(left.label, right.label)) ?? []
       : [],
     [administrativeData, selectedProvince],
   )
@@ -155,9 +353,13 @@ export function TrangThanhToanPage() {
       ? administrativeData?.wards
           .filter((ward) => ward.idDistrict === selectedDistrict.idDistrict)
           .map(toAdministrativeOption)
-          .sort((left, right) => left.label.localeCompare(right.label, 'vi')) ?? []
+          .sort((left, right) => compareAdministrativeLabels(left.label, right.label)) ?? []
       : [],
     [administrativeData, selectedDistrict],
+  )
+  const checkoutTotal = useMemo(
+    () => getOrderCosts(items.reduce((total, item) => total + getProductPrice(item.product.price) * item.quantity, 0)).total,
+    [items],
   )
 
   function handleProvinceChange(city: string) {
@@ -175,7 +377,7 @@ export function TrangThanhToanPage() {
     setLocationError('')
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     if (!user) {
@@ -190,6 +392,8 @@ export function TrangThanhToanPage() {
     }
 
     setLocationError('')
+    setPaymentError('')
+    setPaymentNotice('')
 
     const formData = new FormData(event.currentTarget)
     const getFieldValue = (fieldName: string) =>
@@ -198,7 +402,13 @@ export function TrangThanhToanPage() {
     const paymentMethodLabels: Record<PaymentMethod, string> = {
       bank: checkout.bank,
       cod: checkout.cod,
+      momo: checkout.momo,
       card: checkout.card,
+    }
+
+    if (isMockPaymentMode && submittedPaymentMethod === 'card' && !hasValidCardData(formData)) {
+      setPaymentError(checkout.cardInvalid)
+      return
     }
 
     const fullName = getFieldValue('name') || profile.fullName || user.name
@@ -213,6 +423,75 @@ export function TrangThanhToanPage() {
       .filter(Boolean)
       .join(', ')
 
+    const shouldSaveAddress = formData.get('save-address') === 'on'
+
+    const nextProfile = {
+      ...profile,
+      fullName,
+      phone,
+      ...(shouldSaveAddress
+        ? {
+            city: deliveryLocation.city,
+            district: deliveryLocation.district,
+            ward: deliveryLocation.ward,
+            address,
+          }
+        : {}),
+    }
+
+    if (submittedPaymentMethod === 'bank' || submittedPaymentMethod === 'momo' || submittedPaymentMethod === 'card') {
+      const hasQrPayment = submittedPaymentMethod === 'bank'
+        ? Boolean(vnpayAccountNumber)
+        : submittedPaymentMethod === 'momo'
+
+      if (isMockPaymentMode || hasQrPayment) {
+        updateProfile(nextProfile)
+        setPaymentCountdown(paymentTimeoutSeconds)
+        setPendingPayment({
+          customer: fullName,
+          email: getFieldValue('email'),
+          phone,
+          address: submittedAddress,
+          paymentMethod: submittedPaymentMethod,
+          paymentMethodLabel: paymentMethodLabels[submittedPaymentMethod],
+          note: getFieldValue('note'),
+          items,
+          amount: checkoutTotal,
+          orderCode: createPaymentOrderCode(),
+        })
+        return
+      }
+
+      if (submittedPaymentMethod !== 'momo') {
+        setPaymentError(checkout.vnpayNotConfigured)
+        return
+      }
+
+      setIsPaymentStarting(true)
+
+      try {
+        const payment = await createMomoPayment({
+          paymentMethod: submittedPaymentMethod === 'momo' ? 'MOMO_WALLET' : 'MOMO_CARD',
+          customer: {
+            name: fullName,
+            email: getFieldValue('email'),
+            phone,
+          },
+          address: submittedAddress,
+          note: getFieldValue('note') || undefined,
+          items: items.map((item) => ({ productId: item.product.id, quantity: item.quantity })),
+        })
+
+        updateProfile(nextProfile)
+        window.location.assign(payment.payUrl)
+        return
+      } catch (error: unknown) {
+        setPaymentError(getPaymentErrorMessage(error))
+        setIsPaymentStarting(false)
+        return
+      }
+    }
+
     createAdminOrderFromCheckout({
       customer: fullName,
       email: getFieldValue('email'),
@@ -225,21 +504,7 @@ export function TrangThanhToanPage() {
       items,
     })
 
-    const shouldSaveAddress = formData.get('save-address') === 'on'
-
-    updateProfile({
-      ...profile,
-      fullName,
-      phone,
-      ...(shouldSaveAddress
-        ? {
-            city: deliveryLocation.city,
-            district: deliveryLocation.district,
-            ward: deliveryLocation.ward,
-            address,
-          }
-        : {}),
-    })
+    updateProfile(nextProfile)
 
     setIsSubmitted(true)
     clearCart()
@@ -263,6 +528,13 @@ export function TrangThanhToanPage() {
             <h2>{checkout.successTitle}</h2>
             <p>{checkout.successDescription}</p>
             <Link className="button button--gold" to="/products">{checkout.continueShopping}</Link>
+          </section>
+        ) : momoOrderId && (momoPaymentStatus?.paymentStatus === 'PENDING' || (!momoPaymentStatus && !paymentError)) ? (
+          <section className="checkout-success" aria-live="polite">
+            <CheckCircle size={48} weight="thin" aria-hidden="true" />
+            <h2>{checkout.momoPendingTitle}</h2>
+            <p>{checkout.momoPendingDescription}</p>
+            {paymentError ? <p className="checkout-form__payment-error" role="alert">{paymentError}</p> : null}
           </section>
         ) : items.length === 0 ? (
           <section className="commerce-empty">
@@ -358,6 +630,11 @@ export function TrangThanhToanPage() {
                     <span><strong>{checkout.bank}</strong><small>{checkout.bankDescription}</small></span>
                   </label>
                   <label className="payment-option">
+                    <input type="radio" name="payment" value="momo" checked={paymentMethod === 'momo'} onChange={() => setPaymentMethod('momo')} />
+                    <Wallet size={26} weight="thin" aria-hidden="true" />
+                    <span><strong>{checkout.momo}</strong><small>{checkout.momoDescription}</small></span>
+                  </label>
+                  <label className="payment-option">
                     <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} />
                     <Truck size={26} weight="thin" aria-hidden="true" />
                     <span><strong>{checkout.cod}</strong><small>{checkout.codDescription}</small></span>
@@ -368,6 +645,35 @@ export function TrangThanhToanPage() {
                     <span><strong>{checkout.card}</strong><small>{checkout.cardDescription}</small></span>
                   </label>
                 </div>
+                {isMockPaymentMode && paymentMethod === 'card' ? (
+                  <section className="checkout-card-form" aria-labelledby="card-form-title">
+                    <h3 id="card-form-title">{checkout.cardFormTitle}</h3>
+                    <div className="checkout-form__grid checkout-form__grid--card">
+                      <label className="checkout-card-form__number">
+                        <span className="form-label-text">{checkout.cardNumber} <b>*</b></span>
+                        <input name="card-number" inputMode="numeric" autoComplete="off" maxLength={19} pattern="[0-9 ]{16,19}" placeholder="1234 5678 9012 3456" required />
+                      </label>
+                      <label>
+                        <span className="form-label-text">{checkout.cardHolder} <b>*</b></span>
+                        <input name="card-holder" autoComplete="off" maxLength={80} placeholder="NGUYEN VAN A" required />
+                      </label>
+                      <label>
+                        <span className="form-label-text">{checkout.cardExpiry} <b>*</b></span>
+                        <input name="card-expiry" inputMode="numeric" autoComplete="off" maxLength={5} pattern="[0-9]{2}/[0-9]{2}" placeholder="MM/YY" required />
+                      </label>
+                      <label>
+                        <span className="form-label-text">{checkout.cardCvc} <b>*</b></span>
+                        <input name="card-cvc" inputMode="numeric" autoComplete="off" maxLength={4} pattern="[0-9]{3,4}" placeholder="123" required />
+                      </label>
+                    </div>
+                    <label className="checkout-form__save-address checkout-form__save-card">
+                      <input name="save-card" type="checkbox" />
+                      <span className="checkout-form__save-address-box" aria-hidden="true"><Check size={13} weight="bold" /></span>
+                      <span>{checkout.saveCard}</span>
+                    </label>
+                  </section>
+                ) : null}
+                {paymentError ? <p className="checkout-form__payment-error" role="alert">{paymentError}</p> : null}
               </fieldset>
 
               <fieldset>
@@ -378,10 +684,11 @@ export function TrangThanhToanPage() {
 
             <DonHangTomTat
               items={items}
-              actionLabel={checkout.placeOrder}
+              actionLabel={isPaymentStarting ? checkout.redirectingToMomo : checkout.placeOrder}
               formId="checkout-form"
               onAction={user ? undefined : () => setIsLoginDialogOpen(true)}
               showProducts
+              disabled={isPaymentStarting}
             />
           </div>
         )}
@@ -407,6 +714,66 @@ export function TrangThanhToanPage() {
               </Link>
             </div>
           </section>
+        </div>
+      ) : null}
+
+      {pendingPayment?.paymentMethod === 'bank' || pendingPayment?.paymentMethod === 'momo' ? (
+        <PaymentQrDialog
+          method={pendingPayment.paymentMethod}
+          amount={formatCurrency(pendingPayment.amount, language)}
+          orderCode={pendingPayment.orderCode}
+          recipientName={paymentRecipientName}
+          recipientDetail={pendingPayment.paymentMethod === 'bank' ? `${vnpayBankName} • ${vnpayAccountNumber}` : `MoMo • ${momoAccountLabel}`}
+          qrImageUrl={!isMockPaymentMode ? (pendingPayment.paymentMethod === 'bank' ? vnpayQrImageUrl || createVietQrQuickLink(pendingPayment.amount, pendingPayment.orderCode) : momoQrImageUrl || momoQrAsset) : undefined}
+          labels={{
+            title: pendingPayment.paymentMethod === 'bank' ? checkout.vnpayQrTitle : checkout.momoQrTitle,
+            amount: checkout.paymentQrAmount,
+            orderCode: checkout.paymentQrOrderCode,
+            recipient: checkout.paymentQrRecipient,
+          waiting: checkout.paymentQrWaiting,
+          waitingDescription: checkout.paymentQrWaitingDescription,
+          timeRemaining: checkout.paymentQrTimeRemaining,
+          cancel: checkout.paymentQrCancel,
+          testSuccess: checkout.paymentQrTestSuccess,
+          close: checkout.paymentQrClose,
+          }}
+          remainingSeconds={paymentCountdown}
+          onCancel={() => completePendingPayment(false)}
+          onTestSuccess={import.meta.env.DEV ? () => completePendingPayment(true) : undefined}
+        />
+      ) : pendingPayment ? (
+        <div className="auth-dialog-backdrop" role="presentation" onMouseDown={() => completePendingPayment(false)}>
+          <section
+            className="auth-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="payment-confirmation-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <h2 id="payment-confirmation-title">{checkout.paymentConfirmationTitle}</h2>
+            <p>{checkout.paymentConfirmationDescription}</p>
+            <div className="auth-dialog__actions">
+              <button type="button" className="button button--ghost" onClick={() => completePendingPayment(false)}>
+                {checkout.paymentConfirmationCancel}
+              </button>
+              <button type="button" className="button button--gold" onClick={() => completePendingPayment(true)}>
+                {checkout.paymentConfirmationSuccess}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+      {paymentNotice ? (
+        <div className="checkout-payment-toast" role="status" aria-live="polite">
+          <span className="checkout-payment-toast__icon" aria-hidden="true">
+            <WarningCircle size={27} weight="fill" />
+          </span>
+          <div className="checkout-payment-toast__content">
+            <strong>{checkout.paymentNoticeTitle}</strong>
+          </div>
+          <button type="button" aria-label={content.cart.closeNotification} onClick={() => setPaymentNotice('')}>
+            <X size={22} weight="bold" aria-hidden="true" />
+          </button>
         </div>
       ) : null}
     </main>

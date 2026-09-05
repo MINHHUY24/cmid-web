@@ -103,10 +103,42 @@ export interface SiteContent {
     notePlaceholder: string;
     bank: string;
     bankDescription: string;
+    momo: string;
+    momoDescription: string;
     cod: string;
     codDescription: string;
     card: string;
     cardDescription: string;
+    redirectingToMomo: string;
+    momoPendingTitle: string;
+    momoPendingDescription: string;
+    momoPaymentFailed: string;
+    vnpayNotConfigured: string;
+    paymentConfirmationTitle: string;
+    paymentConfirmationDescription: string;
+    paymentConfirmationSuccess: string;
+    paymentConfirmationCancel: string;
+    paymentNoticeTitle: string;
+    paymentCancelled: string;
+    vnpayQrTitle: string;
+    momoQrTitle: string;
+    paymentQrAmount: string;
+    paymentQrOrderCode: string;
+    paymentQrRecipient: string;
+    paymentQrWaiting: string;
+    paymentQrWaitingDescription: string;
+    paymentQrTimeRemaining: string;
+    paymentQrExpired: string;
+    paymentQrCancel: string;
+    paymentQrTestSuccess: string;
+    paymentQrClose: string;
+    cardFormTitle: string;
+    cardNumber: string;
+    cardHolder: string;
+    cardExpiry: string;
+    cardCvc: string;
+    cardInvalid: string;
+    saveCard: string;
     placeOrder: string;
     successTitle: string;
     successDescription: string;
@@ -117,7 +149,7 @@ export interface SiteContent {
   product: {
     categoryEyebrow: string;
     catalogDescription: string;
-    showing: (start: number, end: number, total: number) => string;
+    totalProducts: (total: number) => string;
     sortNewest: string;
     sortPriceAsc: string;
     sortPriceDesc: string;
@@ -255,6 +287,7 @@ export interface SiteContent {
     quantity: string;
     buyNow: string;
     requestQuote: string;
+    requestQuoteAndConsultation: string;
     addToCart: string;
     added: string;
     consultation: string;
@@ -503,12 +536,44 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       selectWard: "Chọn phường / xã",
       notePlaceholder:
         "Nhập ghi chú hoặc yêu cầu đặc biệt cho đơn hàng nếu có...",
-      bank: "Chuyển khoản ngân hàng",
-      bankDescription: "Thanh toán qua tài khoản ngân hàng của CMID.",
+      bank: "Quét mã VNPAY-QR",
+      bankDescription: "Quét mã VNPAY-QR bằng ứng dụng ngân hàng để thanh toán.",
+      momo: "Ví MoMo",
+      momoDescription: "Thanh toán an toàn bằng Ví MoMo.",
       cod: "Thanh toán khi nhận hàng",
       codDescription: "Thanh toán bằng tiền mặt khi nhận hàng.",
       card: "Thanh toán bằng thẻ",
       cardDescription: "Hỗ trợ Visa, MasterCard, JCB và ATM nội địa.",
+      redirectingToMomo: "Đang tạo phiên thanh toán và chuyển bạn đến MoMo…",
+      momoPendingTitle: "Đang xác nhận thanh toán MoMo",
+      momoPendingDescription: "MoMo đang gửi kết quả giao dịch về CMID. Đơn hàng sẽ được xác nhận ngay khi hệ thống nhận được kết quả.",
+      momoPaymentFailed: "Giao dịch MoMo chưa thành công. Bạn có thể thử lại hoặc chọn một phương thức khác.",
+      vnpayNotConfigured: "Phương thức VNPAY/thẻ hiện chưa sẵn sàng. Vui lòng chọn Ví MoMo hoặc thanh toán khi nhận hàng.",
+      paymentConfirmationTitle: "Xác nhận thanh toán",
+      paymentConfirmationDescription: "Vui lòng xác nhận để hoàn tất đơn hàng của bạn.",
+      paymentConfirmationSuccess: "Hoàn tất thanh toán",
+      paymentConfirmationCancel: "Quay lại",
+      paymentNoticeTitle: "Thanh toán chưa hoàn tất",
+      paymentCancelled: "Đơn hàng chưa được tạo. Bạn có thể thanh toán lại khi sẵn sàng.",
+      vnpayQrTitle: "Quét mã VNPAY-QR",
+      momoQrTitle: "Thanh toán bằng Ví MoMo",
+      paymentQrAmount: "Số tiền thanh toán",
+      paymentQrOrderCode: "Mã đơn hàng",
+      paymentQrRecipient: "Người nhận",
+      paymentQrWaiting: "Đang chờ thanh toán",
+      paymentQrWaitingDescription: "Đơn hàng sẽ được xác nhận ngay khi giao dịch thành công.",
+      paymentQrTimeRemaining: "Thời gian thanh toán còn lại",
+      paymentQrExpired: "Đã hết thời gian thanh toán. Vui lòng tạo lại đơn hàng để nhận mã QR mới.",
+      paymentQrCancel: "Hủy",
+      paymentQrTestSuccess: "Thanh toán thành công (test)",
+      paymentQrClose: "Đóng cửa sổ thanh toán",
+      cardFormTitle: "Thông tin thẻ",
+      cardNumber: "Số thẻ",
+      cardHolder: "Tên chủ thẻ",
+      cardExpiry: "Ngày hết hạn",
+      cardCvc: "CVC",
+      cardInvalid: "Vui lòng điền đầy đủ thông tin thẻ hợp lệ để tiếp tục.",
+      saveCard: "Lưu thẻ này cho lần sau",
       placeOrder: "Tiến hành đặt hàng",
       successTitle: "CMID đã nhận đơn hàng của bạn",
       successDescription:
@@ -522,8 +587,7 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       categoryEyebrow: "Danh mục CMID",
       catalogDescription:
         "Vật liệu và nội thất cao cấp cho không gian sống đẳng cấp",
-      showing: (start, end, total) =>
-        `Hiển thị ${start}–${end} trong ${total} sản phẩm`,
+      totalProducts: (total) => `${total} sản phẩm`,
       sortNewest: "Sắp xếp: Mới nhất",
       sortPriceAsc: "Giá: Thấp đến cao",
       sortPriceDesc: "Giá: Cao đến thấp",
@@ -808,6 +872,7 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       quantity: "Số lượng",
       buyNow: "Mua ngay",
       requestQuote: "Yêu cầu báo giá",
+      requestQuoteAndConsultation: "Yêu cầu báo giá & tư vấn",
       addToCart: "Thêm vào giỏ",
       added: "Đã thêm vào giỏ",
       consultation: "Yêu cầu tư vấn",
@@ -1151,13 +1216,45 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       selectDistrict: "Select district",
       selectWard: "Select ward",
       notePlaceholder: "Add a note or special request for this order...",
-      bank: "Bank transfer",
-      bankDescription: "Pay via CMID bank account.",
+      bank: "VNPAY-QR scan",
+      bankDescription: "Scan a VNPAY-QR code with your banking app to pay.",
+      momo: "MoMo wallet",
+      momoDescription: "Pay securely with your MoMo wallet.",
       cod: "Cash on delivery",
       codDescription: "Pay in cash when your order arrives.",
       card: "Pay by card",
       cardDescription:
-        "Visa, MasterCard, JCB and domestic ATM cards are accepted.",
+        "Visa, MasterCard, JCB and domestic ATM cards are supported.",
+      redirectingToMomo: "Creating your payment session and redirecting you to MoMo…",
+      momoPendingTitle: "Confirming your MoMo payment",
+      momoPendingDescription: "MoMo is sending the transaction result to CMID. Your order will be confirmed as soon as it arrives.",
+      momoPaymentFailed: "The MoMo transaction was not successful. You can try again or choose another payment method.",
+      vnpayNotConfigured: "VNPAY/card payments are not available yet. Please choose the MoMo wallet or cash on delivery.",
+      paymentConfirmationTitle: "Confirm payment",
+      paymentConfirmationDescription: "Please confirm to complete your order.",
+      paymentConfirmationSuccess: "Complete payment",
+      paymentConfirmationCancel: "Go back",
+      paymentNoticeTitle: "Payment not completed",
+      paymentCancelled: "No order was created. You can try the payment again when you are ready.",
+      vnpayQrTitle: "Scan VNPAY-QR code",
+      momoQrTitle: "Pay with MoMo wallet",
+      paymentQrAmount: "Payment amount",
+      paymentQrOrderCode: "Order code",
+      paymentQrRecipient: "Recipient",
+      paymentQrWaiting: "Waiting for payment",
+      paymentQrWaitingDescription: "Your order will be confirmed as soon as the transaction succeeds.",
+      paymentQrTimeRemaining: "Payment time remaining",
+      paymentQrExpired: "Payment time has expired. Please create a new order to receive a new QR code.",
+      paymentQrCancel: "Cancel",
+      paymentQrTestSuccess: "Payment successful (test)",
+      paymentQrClose: "Close payment window",
+      cardFormTitle: "Card information",
+      cardNumber: "Card number",
+      cardHolder: "Cardholder name",
+      cardExpiry: "Expiry date",
+      cardCvc: "CVC",
+      cardInvalid: "Enter complete, valid card details to continue.",
+      saveCard: "Save this card for next time",
       placeOrder: "Place order",
       successTitle: "CMID has received your order",
       successDescription:
@@ -1170,8 +1267,7 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       categoryEyebrow: "CMID catalogue",
       catalogDescription:
         "Premium materials and interiors for exceptional living spaces",
-      showing: (start, end, total) =>
-        `Showing ${start}–${end} of ${total} products`,
+      totalProducts: (total) => `${total} products`,
       sortNewest: "Sort: Newest",
       sortPriceAsc: "Price: Low to high",
       sortPriceDesc: "Price: High to low",
@@ -1461,6 +1557,7 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       quantity: "Quantity",
       buyNow: "Buy now",
       requestQuote: "Request a quote",
+      requestQuoteAndConsultation: "Request a quote & consultation",
       addToCart: "Add to cart",
       added: "Added to cart",
       consultation: "Request consultation",

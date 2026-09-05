@@ -87,17 +87,28 @@
 }
 
 .topbar__account-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   max-width: 150px;
   overflow: hidden;
   font-size: calc(0.68rem + 2px);
   font-weight: 600;
+  line-height: 1;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
+.topbar__account-link > svg {
+  display: block;
+  flex: 0 0 auto;
+}
+
 .topbar__account-link span {
+  display: block;
   overflow: hidden;
+  line-height: 1;
   text-overflow: ellipsis;
 }
 
