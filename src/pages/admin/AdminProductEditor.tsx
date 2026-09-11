@@ -201,7 +201,7 @@ export function AdminProductEditor({
             </div>
             <div className="admin-form-grid admin-form-grid--two">
               <TextField label="Mã sản phẩm (SKU)" value={form.sku} required onChange={(value) => update('sku', value)} />
-              <TextField label="Đơn giá (VNĐ)" value={form.price} type="number" required min="0" onChange={(value) => update('price', value)} />
+              <PriceField value={form.price} onChange={(value) => update('price', value)} />
             </div>
             <TextField label="Đơn vị tính" value={form.unit} required onChange={(value) => update('unit', value)} />
             <TextAreaField label="Mô tả sản phẩm (VI)" value={form.description} onChange={(value) => update('description', value)} />
@@ -443,6 +443,40 @@ function TextField({
     <label className="admin-field">
       <span>{label}{required ? <b>*</b> : null}</span>
       <input type={type} min={min} required={required} value={value} onChange={(event) => onChange(event.target.value)} />
+    </label>
+  )
+}
+
+function PriceField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  function formatPrice(amount: string) {
+    return amount === '' ? '' : new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(Number(amount))
+  }
+
+  return (
+    <label className="admin-field">
+      <span>Đơn giá (VNĐ)<b>*</b></span>
+      <input
+        type="text"
+        inputMode="numeric"
+        required
+        value={formatPrice(value)}
+        onChange={(event) => {
+          const input = event.currentTarget
+          const digitsBeforeCaret = input.value.slice(0, input.selectionStart ?? input.value.length).replace(/\D/g, '').length
+          const amount = input.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '')
+          const formatted = formatPrice(amount)
+          // Keep the cursor beside the edited digit when grouping separators move.
+          let caret = 0
+          let digits = 0
+          while (caret < formatted.length && digits < digitsBeforeCaret) {
+            if (/\d/.test(formatted[caret])) digits += 1
+            caret += 1
+          }
+          input.value = formatted
+          input.setSelectionRange(caret, caret)
+          onChange(amount)
+        }}
+      />
     </label>
   )
 }

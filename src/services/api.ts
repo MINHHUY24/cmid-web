@@ -28,6 +28,10 @@ function getApiUrl(path: string): string {
 }
 
 function getErrorMessage(payload: unknown, status: number): string {
+  if (status === 413) {
+    return 'Dữ liệu gửi lên vượt giới hạn máy chủ. Hãy giảm dung lượng ảnh hoặc số ảnh rồi thử lại.'
+  }
+
   if (typeof payload === 'object' && payload !== null && 'message' in payload) {
     const { message } = payload
 

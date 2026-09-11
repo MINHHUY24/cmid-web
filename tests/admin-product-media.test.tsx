@@ -44,13 +44,28 @@ beforeEach(() => {
   vi.mocked(trellis.saveTrellisModel).mockResolvedValue({ modelUrl: '/models/generated/abc123.glb', fileName: 'chair.glb', fileSize: 2048 })
   vi.mocked(productService.saveProduct).mockImplementation(async (savedProduct) => savedProduct)
 })
-afterEach(cleanup)
+afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 function editor(input = product) {
   return render(<AdminProductEditor product={input} categories={[{ id: 'cat-1', name: 'Ghế', slug: 'ghe', status: 'ACTIVE' }]} brands={[]} onCancel={() => {}} onSaved={() => {}} />)
 }
 
 describe('product media', () => {
+  it('finishes saving to the API even when the browser product cache is full', async () => {
+    localStorage.setItem('cmid-admin-products', JSON.stringify([{ ...product, name: 'Old name' }]))
+    const onSaved = vi.fn()
+    render(<AdminProductEditor product={product} categories={[{ id: 'cat-1', name: 'Ghế', slug: 'ghe', status: 'ACTIVE' }]} brands={[]} onCancel={() => {}} onSaved={onSaved} />)
+    await screen.findByText('TRELLIS đã kết nối')
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Quota exceeded', 'QuotaExceededError')
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu sản phẩm' }))
+    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce())
+    expect(productService.saveProduct).toHaveBeenCalledOnce()
+    expect(getAdminProducts()).toEqual([])
+    expect(screen.queryByText('Quota exceeded')).toBeNull()
+  })
+
   it('keeps missing left view empty after save/reopen and extras at the end', () => {
     const slots = createProductImageSlots(product.images)
     expect(slots.map((slot) => slot.imageUrl)).toEqual(['/front.png', '', '/right.png', '/back.png', '/detail.png'])
@@ -75,8 +90,16 @@ describe('product media', () => {
   })
 
   it('allows product-specific technical details, guidance and sales policy to be saved and edited again', async () => {
-    const mounted = editor()
+    const mounted = editor({ ...product, price: '6900000.00' })
     await screen.findByText('TRELLIS đã kết nối')
+    const priceInput = screen.getByLabelText(/Đơn giá/) as HTMLInputElement
+    expect(priceInput.value).toBe('6.900.000')
+    fireEvent.change(priceInput, { target: { value: '' } })
+    expect(priceInput.value).toBe('')
+    fireEvent.change(priceInput, { target: { value: '7900000' } })
+    expect(priceInput.value).toBe('7.900.000')
+    fireEvent.change(priceInput, { target: { value: '6.900.000' } })
+    expect(priceInput.value).toBe('6.900.000')
     fireEvent.click(screen.getByRole('button', { name: 'Thêm thông số' }))
     fireEvent.change(screen.getByLabelText('Tên thông số 1'), { target: { value: 'Kích thước' } })
     fireEvent.change(screen.getByLabelText('Giá trị thông số 1'), { target: { value: '180 × 85 × 78 cm' } })
@@ -89,6 +112,7 @@ describe('product media', () => {
     await waitFor(() => expect(getAdminProducts()[0]).toBeDefined())
     const saved = getAdminProducts()[0]
     expect(saved).toMatchObject({
+      price: '6900000',
       descriptionHighlights: ['Khung gỗ tự nhiên', 'Đệm mút đàn hồi'],
       technicalSpecifications: [{ label: 'Kích thước', value: '180 × 85 × 78 cm' }],
       usageGuide: 'Lắp đặt trên bề mặt phẳng.',
@@ -98,6 +122,7 @@ describe('product media', () => {
     })
     mounted.unmount()
     editor(saved)
+    expect((screen.getByLabelText(/Đơn giá/) as HTMLInputElement).value).toBe('6.900.000')
     expect((screen.getByLabelText('Tên thông số 1') as HTMLInputElement).value).toBe('Kích thước')
     expect((screen.getByLabelText('Hướng dẫn') as HTMLTextAreaElement).value).toBe('Lắp đặt trên bề mặt phẳng.')
   })

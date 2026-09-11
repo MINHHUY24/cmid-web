@@ -91,7 +91,13 @@ export function saveAdminProduct(product: Product) {
     products.unshift(product)
   }
 
-  writeStorage(ADMIN_PRODUCTS_KEY, products)
+  try {
+    writeStorage(ADMIN_PRODUCTS_KEY, products)
+  } catch {
+    // The API has already saved the product. A full/unavailable browser cache
+    // must not report that save as failed or override API data with stale data.
+    try { window.localStorage.removeItem(ADMIN_PRODUCTS_KEY) } catch { /* Storage may be blocked. */ }
+  }
   window.dispatchEvent(new Event(ADMIN_PRODUCTS_UPDATED_EVENT))
 }
 
