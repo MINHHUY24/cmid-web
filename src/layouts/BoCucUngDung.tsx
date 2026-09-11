@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { CartToast } from '../components/cart/ThongBaoGioHang'
 import { FloatingActions } from '../components/common/FloatingActions'
 import { LanguageWelcomeDialog } from '../components/common/ChonNgonNguDialog'
+import { PullToRefresh } from '../components/common/PullToRefresh'
 import { SiteFooter } from '../components/layout/ChanTrang'
 import { SiteHeader } from '../components/layout/DauTrang'
 import { SiteSeo } from '../components/common/SiteSeo'
@@ -35,6 +36,7 @@ export function AppLayout() {
     <CartProvider>
       <div className={shellClassName}>
         <SiteSeo />
+        <PullToRefresh />
         <SiteHeader />
         <div className="site-main">
           <Outlet />

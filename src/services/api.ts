@@ -1,3 +1,5 @@
+import { getAccessToken } from './auth-token'
+
 const apiUrl = import.meta.env.VITE_API_URL
 
 export class ApiError extends Error {
@@ -8,6 +10,10 @@ export class ApiError extends Error {
     this.name = 'ApiError'
     this.status = status
   }
+}
+
+type ApiFetchOptions = RequestInit & {
+  skipAuth?: boolean
 }
 
 function getApiUrl(path: string): string {
@@ -37,15 +43,20 @@ function getErrorMessage(payload: unknown, status: number): string {
   return `Yêu cầu API thất bại (${status}).`
 }
 
-export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+export async function apiFetch<T>(path: string, options?: ApiFetchOptions): Promise<T> {
   let response: Response
+
+  const { skipAuth = false, ...requestOptions } = options ?? {}
+  const accessToken = skipAuth ? null : getAccessToken()
 
   try {
     response = await fetch(getApiUrl(path), {
-      ...options,
+      ...requestOptions,
+      credentials: requestOptions.credentials ?? 'include',
       headers: {
         Accept: 'application/json',
-        ...options?.headers,
+        ...(accessToken ? { Authorization: 'Bearer ' + accessToken } : {}),
+        ...requestOptions.headers,
       },
     })
   } catch {
@@ -62,6 +73,16 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
     }
 
     throw new ApiError(getErrorMessage(payload, response.status), response.status)
+  }
+
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return undefined as T
+  }
+
+  const contentType = response.headers.get('content-type') ?? ''
+
+  if (!contentType.includes('application/json')) {
+    return undefined as T
   }
 
   return (await response.json()) as T

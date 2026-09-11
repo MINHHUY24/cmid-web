@@ -1,8 +1,19 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { AuthenticatedUser, CustomerProfile } from './NguoiDungContext'
 import { UserContext } from './NguoiDungContext'
+import {
+  getCurrentAuthenticatedUser,
+  loginWithGoogleCredential,
+  logoutAuthSession,
+  refreshAuthSession,
+  type ServerAuthenticatedUser,
+} from '../services/auth.service'
+import {
+  clearAccessToken,
+  setAccessToken,
+} from '../services/auth-token'
 
-const USER_STORAGE_KEY = 'cmid-user'
+const LEGACY_USER_STORAGE_KEY = 'cmid-user'
 const PROFILE_STORAGE_PREFIX = 'cmid-customer-profile:'
 const GOOGLE_SCRIPT_URL = 'https://accounts.google.com/gsi/client'
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
@@ -19,24 +30,25 @@ const EMPTY_CUSTOMER_PROFILE: CustomerProfile = {
   address: '',
 }
 
-interface GoogleTokenResponse {
-  access_token?: string
-  error?: string
-  error_description?: string
+interface GoogleCredentialResponse {
+  credential?: string
 }
 
-interface GoogleTokenClient {
-  requestAccessToken: (options?: { prompt?: string }) => void
+interface GooglePromptMomentNotification {
+  isNotDisplayed?: () => boolean
+  isSkippedMoment?: () => boolean
 }
 
 interface GoogleIdentity {
   accounts: {
-    oauth2: {
-      initTokenClient: (config: {
+    id: {
+      initialize: (config: {
         client_id: string
-        scope: string
-        callback: (response: GoogleTokenResponse) => void
-      }) => GoogleTokenClient
+        callback: (response: GoogleCredentialResponse) => void
+        auto_select?: boolean
+        cancel_on_tap_outside?: boolean
+      }) => void
+      prompt: (listener?: (notification: GooglePromptMomentNotification) => void) => void
     }
   }
 }
@@ -47,25 +59,8 @@ declare global {
   }
 }
 
-interface GoogleProfile {
-  sub: string
-  name: string
-  email: string
-  picture?: string
-}
-
-function getSavedUser(): AuthenticatedUser | null {
-  try {
-    const savedUser = window.localStorage.getItem(USER_STORAGE_KEY)
-    return savedUser ? (JSON.parse(savedUser) as AuthenticatedUser) : null
-  } catch {
-    window.localStorage.removeItem(USER_STORAGE_KEY)
-    return null
-  }
-}
-
 function getProfileStorageKey(userId: string) {
-  return `${PROFILE_STORAGE_PREFIX}${userId}`
+  return PROFILE_STORAGE_PREFIX + userId
 }
 
 function createEmptyProfile(): CustomerProfile {
@@ -115,8 +110,19 @@ function normalizeProfile(profile: CustomerProfile): CustomerProfile {
   }
 }
 
+function toAuthenticatedUser(user: ServerAuthenticatedUser): AuthenticatedUser {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    picture: user.picture,
+    role: user.role,
+    emailVerified: user.emailVerified,
+  }
+}
+
 function loadGoogleIdentityScript(): Promise<void> {
-  if (window.google?.accounts.oauth2) {
+  if (window.google?.accounts.id) {
     return Promise.resolve()
   }
 
@@ -140,70 +146,122 @@ function loadGoogleIdentityScript(): Promise<void> {
   })
 }
 
-async function requestGoogleProfile(): Promise<GoogleProfile> {
+async function requestGoogleCredential(): Promise<string> {
   if (!GOOGLE_CLIENT_ID) {
     throw new Error('Google đăng nhập chưa được cấu hình. Thêm VITE_GOOGLE_CLIENT_ID vào file .env.')
   }
 
   await loadGoogleIdentityScript()
 
-  if (!window.google?.accounts.oauth2) {
+  const googleIdentity = window.google?.accounts.id
+
+  if (!googleIdentity) {
     throw new Error('Google Identity Services chưa sẵn sàng. Vui lòng thử lại.')
   }
 
-  const accessToken = await new Promise<string>((resolve, reject) => {
-    const tokenClient = window.google?.accounts.oauth2.initTokenClient({
+  return new Promise((resolve, reject) => {
+    let isSettled = false
+    const timeout = window.setTimeout(() => {
+      if (!isSettled) {
+        isSettled = true
+        reject(new Error('Đăng nhập Google đã hết thời gian chờ.'))
+      }
+    }, 60_000)
+
+    const rejectOnce = (message: string) => {
+      if (isSettled) return
+      isSettled = true
+      window.clearTimeout(timeout)
+      reject(new Error(message))
+    }
+
+    const resolveOnce = (credential: string) => {
+      if (isSettled) return
+      isSettled = true
+      window.clearTimeout(timeout)
+      resolve(credential)
+    }
+
+    googleIdentity.initialize({
       client_id: GOOGLE_CLIENT_ID,
-      scope: 'openid email profile',
+      auto_select: false,
+      cancel_on_tap_outside: true,
       callback: (response) => {
-        if (response.error || !response.access_token) {
-          reject(new Error(response.error_description ?? response.error ?? 'Không thể đăng nhập với Google.'))
+        if (!response.credential) {
+          rejectOnce('Google không trả về credential hợp lệ.')
           return
         }
 
-        resolve(response.access_token)
+        resolveOnce(response.credential)
       },
     })
 
-    tokenClient?.requestAccessToken({ prompt: 'select_account' })
+    googleIdentity.prompt((notification) => {
+      if (notification.isNotDisplayed?.() || notification.isSkippedMoment?.()) {
+        rejectOnce('Không thể mở hộp thoại Google. Vui lòng kiểm tra cấu hình Google Login.')
+      }
+    })
   })
-
-  const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  })
-
-  if (!response.ok) {
-    throw new Error('Không thể lấy thông tin tài khoản Google. Vui lòng thử lại.')
-  }
-
-  return (await response.json()) as GoogleProfile
 }
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthenticatedUser | null>(getSavedUser)
-  const [profile, setProfile] = useState<CustomerProfile>(() => getSavedProfile(getSavedUser()?.id))
+  const [user, setUser] = useState<AuthenticatedUser | null>(null)
+  const [profile, setProfile] = useState<CustomerProfile>(createEmptyProfile)
+  const [isAuthLoading, setIsAuthLoading] = useState(true)
   const [isSigningIn, setIsSigningIn] = useState(false)
+
+  const applyAuthenticatedUser = useCallback((nextUser: AuthenticatedUser) => {
+    setUser(nextUser)
+    setProfile(getSavedProfile(nextUser.id))
+  }, [])
+
+  useEffect(() => {
+    let isCurrent = true
+
+    window.localStorage.removeItem(LEGACY_USER_STORAGE_KEY)
+
+    void refreshAuthSession()
+      .then(async (session) => {
+        setAccessToken(session.accessToken)
+        const response = await getCurrentAuthenticatedUser()
+
+        if (isCurrent) {
+          applyAuthenticatedUser(toAuthenticatedUser(response.user))
+        }
+      })
+      .catch(() => {
+        clearAccessToken()
+
+        if (isCurrent) {
+          setUser(null)
+          setProfile(createEmptyProfile())
+        }
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsAuthLoading(false)
+        }
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [applyAuthenticatedUser])
 
   const signInWithGoogle = useCallback(async () => {
     setIsSigningIn(true)
 
     try {
-      const profile = await requestGoogleProfile()
-      const authenticatedUser: AuthenticatedUser = {
-        id: profile.sub,
-        name: profile.name || profile.email,
-        email: profile.email,
-        picture: profile.picture,
-      }
-
-      window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(authenticatedUser))
-      setUser(authenticatedUser)
-      setProfile(getSavedProfile(authenticatedUser.id))
+      const credential = await requestGoogleCredential()
+      const session = await loginWithGoogleCredential(credential)
+      setAccessToken(session.accessToken)
+      const authenticatedUser = toAuthenticatedUser(session.user)
+      applyAuthenticatedUser(authenticatedUser)
       return authenticatedUser
     } finally {
       setIsSigningIn(false)
     }
-  }, [])
+  }, [applyAuthenticatedUser])
 
   const updateProfile = useCallback(
     (nextProfile: CustomerProfile) => {
@@ -218,15 +276,29 @@ export function UserProvider({ children }: { children: ReactNode }) {
     [user],
   )
 
-  const signOut = useCallback(() => {
-    window.localStorage.removeItem(USER_STORAGE_KEY)
+  const signOut = useCallback(async () => {
+    clearAccessToken()
     setUser(null)
     setProfile(createEmptyProfile())
+
+    try {
+      await logoutAuthSession()
+    } catch {
+      // The browser state is cleared even if the network is unavailable.
+    }
   }, [])
 
   const value = useMemo(
-    () => ({ user, profile, isSigningIn, signInWithGoogle, updateProfile, signOut }),
-    [isSigningIn, profile, signInWithGoogle, signOut, updateProfile, user],
+    () => ({
+      user,
+      profile,
+      isAuthLoading,
+      isSigningIn,
+      signInWithGoogle,
+      updateProfile,
+      signOut,
+    }),
+    [isAuthLoading, isSigningIn, profile, signInWithGoogle, signOut, updateProfile, user],
   )
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>

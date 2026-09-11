@@ -66,6 +66,95 @@ function getRelatedProducts(products: Product[], product: Product): Product[] {
   return [...sameCategoryProducts, ...remainingProducts];
 }
 
+function ProductDetailLoadingSkeleton({ label }: { label: string }) {
+  return (
+    <main className="trang-chi-tiet-san-pham">
+      <div
+        className="product-detail-shell product-detail-loading"
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+        aria-label={label}
+      >
+        <span className="sr-only">{label}</span>
+
+        <nav className="product-detail-loading__breadcrumb" aria-hidden="true">
+          <span className="product-detail-skeleton product-detail-skeleton--crumb product-detail-skeleton--crumb-short" />
+          <span className="product-detail-skeleton product-detail-skeleton--crumb" />
+          <span className="product-detail-skeleton product-detail-skeleton--crumb product-detail-skeleton--crumb-current" />
+        </nav>
+
+        <section className="product-detail-overview" aria-hidden="true">
+          <div className="product-detail-loading__gallery">
+            <div className="product-detail-skeleton product-detail-loading__image" />
+            <div className="product-detail-loading__thumbnails">
+              {Array.from({ length: 3 }, (_, index) => (
+                <span className="product-detail-skeleton" key={index} />
+              ))}
+            </div>
+          </div>
+
+          <div className="product-detail-loading__summary">
+            <span className="product-detail-skeleton product-detail-skeleton--title" />
+            <span className="product-detail-skeleton product-detail-skeleton--title product-detail-skeleton--title-short" />
+            <div className="product-detail-loading__meta">
+              <span className="product-detail-skeleton" />
+              <span className="product-detail-skeleton" />
+              <span className="product-detail-skeleton" />
+            </div>
+            <dl className="product-detail-loading__spec-list">
+              {Array.from({ length: 5 }, (_, index) => (
+                <div key={index}>
+                  <span className="product-detail-skeleton product-detail-skeleton--spec-label" />
+                  <span className="product-detail-skeleton product-detail-skeleton--spec-value" />
+                </div>
+              ))}
+            </dl>
+            <span className="product-detail-skeleton product-detail-skeleton--price" />
+            <div className="product-detail-loading__quantity">
+              <span className="product-detail-skeleton product-detail-skeleton--quantity-label" />
+              <span className="product-detail-skeleton product-detail-skeleton--quantity-control" />
+            </div>
+            <div className="product-detail-loading__actions">
+              <span className="product-detail-skeleton product-detail-skeleton--primary-action" />
+              <span className="product-detail-skeleton product-detail-skeleton--secondary-action" />
+              <span className="product-detail-skeleton product-detail-skeleton--secondary-action" />
+            </div>
+          </div>
+        </section>
+
+        <section className="product-detail-loading__assurances" aria-hidden="true">
+          {Array.from({ length: 5 }, (_, index) => (
+            <div key={index}>
+              <span className="product-detail-skeleton product-detail-skeleton--assurance-icon" />
+              <span className="product-detail-skeleton product-detail-skeleton--assurance-title" />
+              <span className="product-detail-skeleton product-detail-skeleton--assurance-copy" />
+            </div>
+          ))}
+        </section>
+
+        <section className="product-detail-loading__tabs" aria-hidden="true">
+          <div className="product-detail-loading__tab-list">
+            {Array.from({ length: 4 }, (_, index) => (
+              <span className="product-detail-skeleton" key={index} />
+            ))}
+          </div>
+          <div className="product-detail-loading__tab-content">
+            <div>
+              <span className="product-detail-skeleton product-detail-skeleton--copy" />
+              <span className="product-detail-skeleton product-detail-skeleton--copy" />
+              <span className="product-detail-skeleton product-detail-skeleton--copy product-detail-skeleton--copy-short" />
+              <span className="product-detail-skeleton product-detail-skeleton--copy" />
+              <span className="product-detail-skeleton product-detail-skeleton--copy product-detail-skeleton--copy-medium" />
+            </div>
+            <span className="product-detail-skeleton product-detail-loading__tab-visual" />
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
 export function TrangChiTietSanPham() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -113,9 +202,7 @@ export function TrangChiTietSanPham() {
           canonicalPath={requestedProductPath}
           robots="noindex,nofollow"
         />
-        <main className="product-detail-shell product-detail-shell--status">
-          <StatusPanel title={productDetail.loading} />
-        </main>
+        <ProductDetailLoadingSkeleton label={productDetail.loading} />
       </>
     );
   }
@@ -174,6 +261,17 @@ export function TrangChiTietSanPham() {
   const categoryName = getCategoryName(product.category, language);
   const brandName = getBrandName(product.brand, language);
   const productDescription = getProductDescription(product, language);
+  const descriptionHighlights = product.descriptionHighlights?.filter(Boolean).length
+    ? product.descriptionHighlights.filter(Boolean)
+    : productDetail.descriptionPoints;
+  const usageGuide = product.usageGuide?.trim() || productDetail.guide;
+  const usageGuidePoints = product.usageGuidePoints?.filter(Boolean).length
+    ? product.usageGuidePoints.filter(Boolean)
+    : productDetail.guidePoints;
+  const salesPolicy = product.salesPolicy?.trim() || productDetail.policy;
+  const salesPolicyPoints = product.salesPolicyPoints?.filter(Boolean).length
+    ? product.salesPolicyPoints.filter(Boolean)
+    : productDetail.policyPoints;
   const isDirectOrder = product.saleType === "DIRECT_ORDER";
   const actionPath = `/lien-he?bao-gia-san-pham=${product.id}`;
   const actionLabel = isDirectOrder
@@ -283,6 +381,12 @@ export function TrangChiTietSanPham() {
           ? productDetail.specs.yes
           : productDetail.specs.no,
     },
+    ...(product.technicalSpecifications ?? [])
+      .filter((specification) => specification.label.trim() && specification.value.trim())
+      .map((specification) => ({
+        label: specification.label.trim(),
+        value: specification.value.trim(),
+      })),
   ];
 
   return (
@@ -320,6 +424,7 @@ export function TrangChiTietSanPham() {
           aria-labelledby="product-detail-title"
         >
           <ThuVienAnhSanPham
+            productId={product.id}
             productName={productName}
             images={product.images}
             models3D={product.models3D}
@@ -468,7 +573,7 @@ export function TrangChiTietSanPham() {
                   )}
                 </p>
                 <ul>
-                  {productDetail.descriptionPoints.map((point) => (
+                  {descriptionHighlights.map((point) => (
                     <li key={point}>
                       <Check size={15} weight="bold" aria-hidden="true" />{" "}
                       {point}
@@ -499,9 +604,9 @@ export function TrangChiTietSanPham() {
 
           {activeTab === "huong-dan" ? (
             <div className="product-detail-tabs__copy">
-              <p>{productDetail.guide}</p>
+              <p>{usageGuide}</p>
               <ul>
-                {productDetail.guidePoints.map((point) => (
+                {usageGuidePoints.map((point) => (
                   <li key={point}>{point}</li>
                 ))}
               </ul>
@@ -510,9 +615,9 @@ export function TrangChiTietSanPham() {
 
           {activeTab === "chinh-sach" ? (
             <div className="product-detail-tabs__copy">
-              <p>{productDetail.policy}</p>
+              <p>{salesPolicy}</p>
               <ul>
-                {productDetail.policyPoints.map((point) => (
+                {salesPolicyPoints.map((point) => (
                   <li key={point}>{point}</li>
                 ))}
               </ul>

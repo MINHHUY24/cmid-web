@@ -1,9 +1,11 @@
-import { ArrowsOutSimple, ImageSquare } from '@phosphor-icons/react'
+import { ArrowsOutSimple, Cube, ImageSquare } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { ProductImage, ProductModel3D } from '../../types/product'
 import { useLanguage } from '../../contexts/NgonNguContext'
 
 interface ThuVienAnhSanPhamProps {
+  productId: number
   productName: string
   images: ProductImage[]
   models3D: ProductModel3D[]
@@ -42,6 +44,7 @@ function createGalleryImages(
 }
 
 export function ThuVienAnhSanPham({
+  productId,
   productName,
   images,
   models3D,
@@ -53,6 +56,7 @@ export function ThuVienAnhSanPham({
   )
   const [selectedImageId, setSelectedImageId] = useState(galleryImages[0]?.id ?? '')
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null)
+  const activeModels = models3D.filter((model) => model.isActive && model.modelUrl)
   const selectedImage =
     galleryImages.find((image) => image.id === selectedImageId) ?? galleryImages[0]
   const hasImageError = selectedImage?.imageUrl === failedImageUrl
@@ -97,6 +101,14 @@ export function ThuVienAnhSanPham({
             >
               <img src={image.imageUrl} alt="" loading="lazy" decoding="async" />
             </button>
+          ))}
+          {activeModels.map((model) => (
+            <Link
+              key={`viewer-${model.id}`}
+              className="product-gallery__thumbnail product-gallery__thumbnail--model"
+              aria-label={`Mở trang trải nghiệm 3D của ${productName}`}
+              to={`/products/${productId}/3d`}
+            ><Cube size={24} /><span>3D</span></Link>
           ))}
         </div>
       ) : null}

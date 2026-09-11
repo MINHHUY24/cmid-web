@@ -23,6 +23,7 @@ export interface ProductImage {
   altText: string | null
   isPrimary: boolean
   sortOrder: number
+  view?: 'front' | 'left' | 'right' | 'back' | 'extra'
 }
 
 export interface ProductModel3D {
@@ -37,6 +38,11 @@ export interface ProductModel3D {
   isActive: boolean
 }
 
+export interface ProductTechnicalSpecification {
+  label: string
+  value: string
+}
+
 export interface Product {
   id: number
   sku: string
@@ -45,6 +51,12 @@ export interface Product {
   slug: string
   description: string | null
   descriptionEn?: string | null
+  descriptionHighlights?: string[]
+  technicalSpecifications?: ProductTechnicalSpecification[]
+  usageGuide?: string | null
+  usageGuidePoints?: string[]
+  salesPolicy?: string | null
+  salesPolicyPoints?: string[]
   price: string | null
   unit: string | null
   saleType: SaleType

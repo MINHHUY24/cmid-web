@@ -15,6 +15,7 @@ import { TrangHeThongShowroomPage } from "../pages/TrangHeThongTrungBay";
 import { TrangLienHePage } from "../pages/TrangLienHe";
 import { TrangSanPhamPage } from "../pages/TrangSanPham";
 import { TrangChiTietSanPham } from "../pages/TrangChiTietSanPham";
+import { TrangTraiNghiem3D } from "../pages/TrangTraiNghiem3D";
 import { TrangGioHangPage } from "../pages/TrangGioHang";
 import { TrangThanhToanPage } from "../pages/TrangThanhToan";
 import { TrangTinTucSuKienPage } from "../pages/TrangTinTucSuKien";
@@ -49,6 +50,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/admin" element={<TrangQuanTriPage />} />
+      <Route path="products/:id/3d" element={<TrangTraiNghiem3D />} />
       <Route element={<PublicWebsiteGate />}>
         <Route index element={<TrangChuPage />} />
         <Route path="products" element={<TrangSanPhamPage />} />

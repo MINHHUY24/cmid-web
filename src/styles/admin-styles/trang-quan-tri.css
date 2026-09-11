@@ -3144,6 +3144,18 @@
   transform: translateY(0);
 }
 
+.admin-login-form__submit--secondary {
+  margin-top: 12px;
+  border-color: #d7d5ce;
+  color: #5c5141;
+  background: transparent;
+}
+
+.admin-login-form__submit--secondary:hover:not(:disabled) {
+  border-color: #aa752e;
+  background: #f3f3ef;
+}
+
 .admin-login-form__demo {
   gap: 7px 15px;
   margin-top: 22px;
@@ -3448,4 +3460,220 @@
   .admin-login-panel__footer {
     bottom: 30px;
   }
+}
+
+/* Product views and the integrated TRELLIS workspace. */
+.admin-editor-grid .admin-product-media-panel {
+  padding: 24px;
+  border: 1px solid #ded6c8;
+  border-radius: 10px;
+}
+
+.admin-product-media-panel > h2 {
+  margin: 0 0 18px;
+  padding: 0;
+}
+
+.admin-product-content-section {
+  margin: 20px 23px 0;
+  padding: 20px;
+  border: 1px solid #e6dfd4;
+  border-radius: 8px;
+  background: #fcfbf8;
+}
+
+.admin-product-content-section__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.admin-product-content-section__heading h3,
+.admin-product-content-section__heading p {
+  margin: 0;
+}
+
+.admin-product-content-section__heading h3 {
+  color: #454039;
+  font-size: 0.92rem;
+}
+
+.admin-product-content-section__heading p {
+  max-width: 550px;
+  margin-top: 5px;
+  color: #807970;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.admin-product-specifications {
+  display: grid;
+  gap: 9px;
+}
+
+.admin-product-specification {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.7fr) minmax(180px, 1.3fr) 36px;
+  gap: 9px;
+}
+
+.admin-product-specification input {
+  min-width: 0;
+  height: 40px;
+  padding: 0 11px;
+  border: 1px solid #ddd4c6;
+  border-radius: 6px;
+  color: #4f4941;
+  background: #fff;
+  font: inherit;
+}
+
+.admin-product-specification input:focus {
+  border-color: #aa7935;
+  outline: 2px solid rgb(170 121 53 / 14%);
+  outline-offset: 1px;
+}
+
+.admin-product-specification__remove {
+  display: grid;
+  width: 36px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid #e3d9cc;
+  border-radius: 6px;
+  color: #8f6b48;
+  background: #fffdfa;
+}
+
+.admin-product-specification__remove:hover {
+  border-color: #ba7957;
+  color: #9b4b34;
+}
+
+.admin-product-images__intro,
+.admin-trellis__hint,
+.admin-trellis__heading p {
+  margin: 0 0 18px;
+  color: #777269;
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+.admin-product-images {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 20px;
+}
+
+.admin-product-images .admin-upload-dropzone {
+  min-height: 180px;
+  height: 200px;
+  padding: 16px;
+}
+
+.admin-product-images .admin-upload-dropzone img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.admin-product-images .admin-upload-field__label {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-product-images .admin-upload-field__label button { font-size: 0.75rem; }
+.admin-product-images__add { margin-top: 20px; }
+
+.admin-trellis {
+  margin-top: 30px;
+  padding: 24px;
+  border: 1px solid #e6e0d5;
+  border-radius: 8px;
+}
+
+.admin-trellis__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-trellis__heading h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 10px;
+  color: #34332e;
+  font-size: 1.12rem;
+}
+
+.admin-trellis__connection {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: 5px;
+  background: #f2eee7;
+  color: #80705a;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.admin-trellis__connection::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.admin-trellis__connection.is-ready { color: #3f7051; background: #edf3ed; }
+.admin-trellis__connection.is-offline { color: #975b37; }
+.admin-trellis__controls,
+.admin-trellis__actions { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.admin-trellis__controls { margin-bottom: 20px; }
+.admin-trellis__controls .admin-field { margin: 0; padding: 0; min-width: 170px; flex: 1; }
+.admin-trellis__controls .admin-button { min-height: 43px; }
+.admin-trellis__actions { margin-bottom: 16px; }
+.admin-trellis__empty {
+  min-height: 240px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 28px;
+  border: 1px dashed #d9cdb9;
+  border-radius: 8px;
+  color: #8e7b5e;
+  background: #faf8f3;
+  text-align: center;
+  font-size: 0.85rem;
+}
+.admin-trellis__status {
+  padding: 12px 16px;
+  background: #f8f4ec;
+  border-left: 3px solid #b38135;
+  color: #655744;
+  line-height: 1.6;
+  font-size: 0.85rem;
+}
+.admin-trellis .product-model-viewer { height: 400px; margin-bottom: 12px; }
+.admin-trellis button:disabled,
+.admin-product-images button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+@media (max-width: 640px) {
+  .admin-editor-grid .admin-product-media-panel { padding: 16px; }
+  .admin-trellis { padding: 16px; }
+  .admin-product-content-section { margin: 16px 16px 0; padding: 16px; }
+  .admin-product-content-section__heading { align-items: stretch; flex-direction: column; }
+  .admin-product-content-section__heading .admin-button { width: 100%; justify-content: center; }
+  .admin-product-specification { grid-template-columns: minmax(0, 1fr) 36px; }
+  .admin-product-specification input:first-child { grid-column: 1 / -1; }
+  .admin-product-images { grid-template-columns: minmax(0, 1fr); }
+  .admin-trellis__controls > .admin-button,
+  .admin-trellis__actions > .admin-button { width: 100%; justify-content: center; }
+  .admin-trellis .product-model-viewer { height: 340px; }
 }

@@ -11,6 +11,9 @@ interface AdminImageUploadProps {
   required?: boolean
   accept?: string
   maxSizeMb?: number
+  disabled?: boolean
+  showDataMode?: boolean
+  onUploadingChange?: (uploading: boolean) => void
 }
 
 export function AdminImageUpload({
@@ -22,6 +25,9 @@ export function AdminImageUpload({
   required = false,
   accept = 'image/jpeg,image/png,image/webp,image/avif',
   maxSizeMb = 6,
+  disabled = false,
+  showDataMode = true,
+  onUploadingChange,
 }: AdminImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
@@ -44,12 +50,14 @@ export function AdminImageUpload({
 
     try {
       setIsUploading(true)
+      onUploadingChange?.(true)
       onChange(await uploadAdminImage(file))
       setError(null)
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : 'Không thể tải ảnh lên.')
     } finally {
       setIsUploading(false)
+      onUploadingChange?.(false)
     }
   }
 
@@ -61,7 +69,7 @@ export function AdminImageUpload({
           {required ? <b>*</b> : null}
         </label>
         {value ? (
-          <button type="button" onClick={() => onChange('')}>
+          <button type="button" disabled={disabled || isUploading} onClick={() => onChange('')}>
             <Trash size={16} /> Xóa ảnh
           </button>
         ) : null}
@@ -71,10 +79,11 @@ export function AdminImageUpload({
         type="button"
         className={`admin-upload-dropzone${value ? ' has-image' : ''}`}
         onClick={() => inputRef.current?.click()}
-        disabled={isUploading}
+        disabled={disabled || isUploading}
+        aria-label={`Chọn ảnh: ${label}`}
       >
         {value ? (
-          <img src={value} alt="Ảnh xem trước" />
+          <img src={value} alt={`Ảnh xem trước: ${label}`} />
         ) : (
           <>
             <span><ImageSquare size={30} weight="thin" /></span>
@@ -92,9 +101,10 @@ export function AdminImageUpload({
         type="file"
         accept={accept}
         onChange={handleFile}
+        disabled={disabled || isUploading}
       />
       <small className="admin-upload-field__helper">
-        {helper} Chế độ dữ liệu: {getAdminDataMode() === 'backend' ? 'API quản trị' : 'bản demo cục bộ'}.
+        {helper}{showDataMode ? ` Chế độ dữ liệu: ${getAdminDataMode() === 'backend' ? 'API quản trị' : 'bản demo cục bộ'}.` : ''}
       </small>
       {error ? <p className="admin-upload-field__error" role="alert">{error}</p> : null}
     </div>

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useProducts } from '../../hooks/useProducts'
+import { useUser, type AuthenticatedUser } from '../../contexts/NguoiDungContext'
+import { getCurrentAdmin } from '../../services/auth.service'
 import type { Product } from '../../types/product'
 import {
   AdminDashboardView,
@@ -15,7 +17,18 @@ import { AdminOperationalView } from './AdminOperationalViews'
 import { AdminProductEditor } from './AdminProductEditor'
 import { AdminToast } from './AdminPrimitives'
 import { TrangDangNhapQuanTri } from './TrangDangNhapQuanTri'
-import { getAdminSession, signOutAdmin, type AdminSession } from './admin-auth'
+import {
+  getAdminDemoSession,
+  isAdminDemoEnabled,
+  signInAdminDemo,
+  signOutAdminDemo,
+} from './admin-demo-auth'
+import {
+  isAdminUser,
+  toAdminSession,
+  type AdminRole,
+  type AdminSession,
+} from './admin-auth'
 import {
   ADMIN_DATABASE_UPDATED_EVENT,
   getAdminDatabase,
@@ -49,21 +62,106 @@ const operationalViews = new Set<AdminView>([
 ])
 
 export function TrangQuanTriPage() {
-  const [session, setSession] = useState<AdminSession | null>(() => getAdminSession())
+  const { user, isAuthLoading, signOut } = useUser()
+  const [demoSession, setDemoSession] = useState(getAdminDemoSession)
 
-  if (!session) {
-    return <TrangDangNhapQuanTri onSignedIn={setSession} />
+  if (isAdminDemoEnabled && demoSession) {
+    return (
+      <AuthenticatedAdmin
+        session={demoSession}
+        onSignOut={() => {
+          signOutAdminDemo()
+          setDemoSession(null)
+        }}
+      />
+    )
   }
 
-  return <AuthenticatedAdmin session={session} onSessionChange={setSession} />
+  if (isAdminDemoEnabled && !isAdminUser(user)) {
+    return <TrangDangNhapQuanTri onDemoSignIn={() => setDemoSession(signInAdminDemo())} />
+  }
+
+  if (isAuthLoading) {
+    return <AdminAccessState message="Đang xác minh quyền truy cập quản trị..." />
+  }
+
+  if (!user) {
+    return <TrangDangNhapQuanTri />
+  }
+
+  if (!isAdminUser(user)) {
+    return (
+      <AdminAccessState
+        message="Tài khoản này chưa được cấp quyền quản trị trên hệ thống."
+        onSignOut={() => {
+          void signOut()
+        }}
+      />
+    )
+  }
+
+  return (
+    <AdminAuthorizationGate
+      key={`${user.id}:${user.role}`}
+      user={user}
+      onSignOut={() => {
+        void signOut()
+      }}
+    />
+  )
+}
+
+function AdminAuthorizationGate({
+  user,
+  onSignOut,
+}: {
+  user: AuthenticatedUser & { role: AdminRole }
+  onSignOut: () => void
+}) {
+  const [accessState, setAccessState] = useState<'checking' | 'allowed' | 'denied'>('checking')
+
+  useEffect(() => {
+    let isCurrent = true
+
+    void getCurrentAdmin()
+      .then(() => {
+        if (isCurrent) {
+          setAccessState('allowed')
+        }
+      })
+      .catch(() => {
+        if (isCurrent) {
+          setAccessState('denied')
+        }
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [])
+
+  if (accessState === 'checking') {
+    return <AdminAccessState message="Đang xác minh quyền truy cập quản trị..." />
+  }
+
+  if (accessState === 'denied') {
+    return (
+      <AdminAccessState
+        message="Tài khoản này chưa được cấp quyền quản trị trên hệ thống."
+        onSignOut={onSignOut}
+      />
+    )
+  }
+
+  return <AuthenticatedAdmin session={toAdminSession(user)} onSignOut={onSignOut} />
 }
 
 function AuthenticatedAdmin({
   session,
-  onSessionChange,
+  onSignOut,
 }: {
   session: AdminSession
-  onSessionChange: (session: AdminSession | null) => void
+  onSignOut: () => void
 }) {
   const { products, isLoading, errorMessage, retry } = useProducts()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -118,8 +216,7 @@ function AuthenticatedAdmin({
   }
 
   function signOut() {
-    signOutAdmin()
-    onSessionChange(null)
+    onSignOut()
   }
 
   function changeOrderStatus(orderId: string, status: AdminOrder['status']) {
@@ -208,5 +305,35 @@ function AuthenticatedAdmin({
         {toast ? <AdminToast message={toast} onClose={() => setToast(null)} /> : null}
       </AdminLayout>
     </AdminLanguageProvider>
+  )
+}
+
+function AdminAccessState({
+  message,
+  onSignOut,
+}: {
+  message: string
+  onSignOut?: () => void
+}) {
+  return (
+    <main className="admin-login-page">
+      <section className="admin-login-panel" aria-live="polite">
+        <div className="admin-login-panel__brand">
+          <strong>CMID</strong>
+          <span>ADMIN CONSOLE</span>
+        </div>
+        <div className="admin-login-form">
+          <div className="admin-login-form__heading">
+            <h1>Quyền truy cập quản trị</h1>
+            <p>{message}</p>
+          </div>
+          {onSignOut ? (
+            <button className="admin-login-form__submit" type="button" onClick={onSignOut}>
+              Đăng xuất
+            </button>
+          ) : null}
+        </div>
+      </section>
+    </main>
   )
 }

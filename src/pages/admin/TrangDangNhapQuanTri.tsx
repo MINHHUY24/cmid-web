@@ -1,51 +1,29 @@
 import {
   ArrowRight,
-  EnvelopeSimple,
-  Eye,
-  EyeSlash,
-  LockKey,
   ShieldCheck,
 } from '@phosphor-icons/react'
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import interiorImage from '../../assets/images/khong-gian-trung-bay-vat-lieu.jpg'
-import {
-  adminDemoCredentials,
-  signInAdmin,
-  type AdminSession,
-} from './admin-auth'
+import { useUser } from '../../contexts/NguoiDungContext'
+import { adminDemoCredentials, isAdminDemoEnabled } from './admin-demo-auth'
 
-export function TrangDangNhapQuanTri({
-  onSignedIn,
-}: {
-  onSignedIn: (session: AdminSession) => void
-}) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [remember, setRemember] = useState(true)
-  const [showPassword, setShowPassword] = useState(false)
+export function TrangDangNhapQuanTri({ onDemoSignIn }: { onDemoSignIn?: () => void }) {
+  const { isSigningIn, signInWithGoogle } = useUser()
   const [error, setError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const showDemo = isAdminDemoEnabled && Boolean(onDemoSignIn)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function handleGoogleSignIn() {
     setError(null)
-    setIsSubmitting(true)
 
-    window.setTimeout(() => {
-      const session = signInAdmin(email, password, remember)
-      setIsSubmitting(false)
-      if (!session) {
-        setError('Email hoặc mật khẩu quản trị không chính xác.')
-        return
-      }
-      onSignedIn(session)
-    }, 450)
-  }
-
-  function fillDemoAccount() {
-    setEmail(adminDemoCredentials.email)
-    setPassword(adminDemoCredentials.password)
-    setError(null)
+    try {
+      await signInWithGoogle()
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Không thể đăng nhập. Vui lòng thử lại.',
+      )
+    }
   }
 
   return (
@@ -66,75 +44,54 @@ export function TrangDangNhapQuanTri({
           <span>ADMIN CONSOLE</span>
         </div>
 
-        <form className="admin-login-form" onSubmit={handleSubmit}>
+        <div className="admin-login-form">
           <div className="admin-login-form__heading">
             <span><ShieldCheck size={18} weight="duotone" /> Khu vực bảo mật</span>
             <h2 id="admin-login-title">Đăng nhập quản trị</h2>
-            <p>Dùng tài khoản quản trị được cấp để tiếp tục.</p>
+            <p>{showDemo
+              ? 'Dùng tài khoản mẫu bên dưới để vào trang quản trị và thử các chức năng.'
+              : 'Dùng tài khoản Google đã được cấp quyền trên hệ thống để tiếp tục.'}</p>
           </div>
 
-          <label className="admin-login-field">
-            <span>Email quản trị</span>
-            <div>
-              <EnvelopeSimple size={19} aria-hidden="true" />
-              <input
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete="username"
-                placeholder="admin@cmid.vn"
-                required
-              />
-            </div>
-          </label>
+          {showDemo ? (
+            <button
+              className="admin-login-form__submit"
+              type="button"
+              onClick={onDemoSignIn}
+              disabled={isSigningIn}
+            >
+              <span>Đăng nhập bằng tài khoản mẫu</span>
+              <ArrowRight size={18} />
+            </button>
+          ) : null}
 
-          <label className="admin-login-field">
-            <span>Mật khẩu</span>
-            <div>
-              <LockKey size={19} aria-hidden="true" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="current-password"
-                placeholder="Nhập mật khẩu"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((current) => !current)}
-                aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-              >
-                {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </label>
-
-          <div className="admin-login-form__options">
-            <label>
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(event) => setRemember(event.target.checked)}
-              />
-              <span>Ghi nhớ đăng nhập</span>
-            </label>
-            <button type="button" onClick={fillDemoAccount}>Điền tài khoản mẫu</button>
-          </div>
-
-          {error ? <p className="admin-login-form__error" role="alert">{error}</p> : null}
-
-          <button className="admin-login-form__submit" type="submit" disabled={isSubmitting}>
-            <span>{isSubmitting ? 'Đang xác thực...' : 'Đăng nhập'}</span>
+          <button
+            className={`admin-login-form__submit${showDemo ? ' admin-login-form__submit--secondary' : ''}`}
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={isSigningIn}
+          >
+            <span>{isSigningIn ? 'Đang xác thực...' : 'Tiếp tục với Google'}</span>
             <ArrowRight size={18} />
           </button>
 
+          {error ? <p className="admin-login-form__error" role="alert">{error}</p> : null}
+
           <div className="admin-login-form__demo">
-            <strong>Tài khoản thử nghiệm</strong>
-            <code>{adminDemoCredentials.email}</code>
-            <code>{adminDemoCredentials.password}</code>
+            {showDemo ? (
+              <>
+                <strong>Tài khoản thử nghiệm</strong>
+                <code>{adminDemoCredentials.email}</code>
+                <code>{adminDemoCredentials.password}</code>
+              </>
+            ) : (
+              <>
+                <strong>Quyền truy cập</strong>
+                <p>Dùng tài khoản đã được cấp quyền quản trị để truy cập hệ thống.</p>
+              </>
+            )}
           </div>
-        </form>
+        </div>
 
         <small className="admin-login-panel__footer">CMID Premium Administration</small>
       </section>

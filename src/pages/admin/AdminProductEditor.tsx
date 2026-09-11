@@ -1,7 +1,9 @@
-import { Check, FloppyDisk, Trash, UploadSimple } from '@phosphor-icons/react'
-import { useState, type ChangeEvent, type FormEvent } from 'react'
-import type { Product, ProductStatus, SaleType } from '../../types/product'
+import { Check, FloppyDisk, Plus, Trash } from '@phosphor-icons/react'
+import { useId, useState, type FormEvent } from 'react'
+import type { Product, ProductStatus, ProductTechnicalSpecification, SaleType } from '../../types/product'
 import { AdminImageUpload } from './AdminImageUpload'
+import { AdminTrellisModel } from './AdminTrellisModel'
+import { createProductImageSlots, PRODUCT_IMAGE_VIEWS, toProductImages, type ProductImageSlot } from './admin-product-images'
 import { AdminPageHeading, AdminPanel, AdminSelect } from './AdminPrimitives'
 import type { AdminBrand, AdminNamedRecord } from './admin-database'
 import { saveAdminProduct } from './admin-local-store'
@@ -28,14 +30,17 @@ interface ProductEditorState {
   isFeatured: boolean
   description: string
   descriptionEn: string
-  imageUrl: string
-  altText: string
+  descriptionHighlights: string
+  technicalSpecifications: ProductTechnicalSpecification[]
+  usageGuide: string
+  usageGuidePoints: string
+  salesPolicy: string
+  salesPolicyPoints: string
+  images: ProductImageSlot[]
   modelUrl: string
   modelFileName: string
   modelFileSize: number | null
 }
-
-const MAX_MODEL_SIZE = 40 * 1024 * 1024
 
 export function AdminProductEditor({
   product,
@@ -47,44 +52,43 @@ export function AdminProductEditor({
   const [form, setForm] = useState<ProductEditorState>(() =>
     createEditorState(product, categories, brands),
   )
-  const [modelError, setModelError] = useState<string | null>(null)
+  const [modelBusy, setModelBusy] = useState(false)
+  const [uploadingImages, setUploadingImages] = useState<Set<string>>(() => new Set())
+  const mediaBusy = modelBusy || uploadingImages.size > 0
   const [saveError, setSaveError] = useState<string | null>(null)
 
   function update<K extends keyof ProductEditorState>(key: K, value: ProductEditorState[K]) {
     setForm((current) => ({ ...current, [key]: value }))
   }
 
-  function handleModelFile(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file) return
-
-    if (!file.name.toLocaleLowerCase('vi').endsWith('.glb')) {
-      setModelError('Vui lòng chọn đúng tệp mô hình định dạng GLB.')
-      return
-    }
-
-    if (file.size > MAX_MODEL_SIZE) {
-      setModelError('Tệp GLB không được vượt quá 40 MB.')
-      return
-    }
-
-    update('modelUrl', URL.createObjectURL(file))
-    update('modelFileName', file.name)
-    update('modelFileSize', file.size)
-    setModelError(null)
+  function updateImage(key: string, imageUrl: string) {
+    setForm((current) => ({ ...current, images: current.images.map((slot) => slot.key === key ? { ...slot, imageUrl } : slot) }))
   }
 
-  function clearModel() {
-    update('modelUrl', '')
-    update('modelFileName', '')
-    update('modelFileSize', null)
-    setModelError(null)
+  function updateTechnicalSpecification(index: number, key: keyof ProductTechnicalSpecification, value: string) {
+    setForm((current) => ({
+      ...current,
+      technicalSpecifications: current.technicalSpecifications.map((specification, currentIndex) =>
+        currentIndex === index ? { ...specification, [key]: value } : specification,
+      ),
+    }))
+  }
+
+  function addTechnicalSpecification() {
+    update('technicalSpecifications', [...form.technicalSpecifications, { label: '', value: '' }])
+  }
+
+  function removeTechnicalSpecification(index: number) {
+    update('technicalSpecifications', form.technicalSpecifications.filter((_, currentIndex) => currentIndex !== index))
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSaveError(null)
+    if (mediaBusy) {
+      setSaveError('Vui lòng đợi hình ảnh và mô hình xử lý xong trước khi lưu.')
+      return
+    }
 
     const category = categories.find((item) => item.id === form.categoryId)
     const brand = brands.find((item) => item.id === form.brandId)
@@ -92,13 +96,12 @@ export function AdminProductEditor({
       setSaveError('Vui lòng chọn danh mục sản phẩm.')
       return
     }
-    if (!form.imageUrl) {
-      setSaveError('Vui lòng tải ảnh chính cho sản phẩm.')
+    if (!form.images[0]?.imageUrl) {
+      setSaveError('Vui lòng tải ảnh mặt trước cho sản phẩm.')
       return
     }
 
     const id = product?.id ?? Date.now()
-    const existingPrimaryImage = product?.images.find((image) => image.isPrimary)
     const existingModel = product?.models3D[0]
     const nextProduct: Product = {
       id,
@@ -108,6 +111,14 @@ export function AdminProductEditor({
       slug: product?.slug ?? (toSlug(form.name) || `san-pham-${id}`),
       description: form.description.trim() || null,
       descriptionEn: form.descriptionEn.trim() || null,
+      descriptionHighlights: textLines(form.descriptionHighlights),
+      technicalSpecifications: form.technicalSpecifications
+        .map((specification) => ({ label: specification.label.trim(), value: specification.value.trim() }))
+        .filter((specification) => specification.label && specification.value),
+      usageGuide: form.usageGuide.trim() || null,
+      usageGuidePoints: textLines(form.usageGuidePoints),
+      salesPolicy: form.salesPolicy.trim() || null,
+      salesPolicyPoints: textLines(form.salesPolicyPoints),
       price: form.price.trim() || null,
       unit: form.unit.trim() || null,
       saleType: form.saleType,
@@ -132,25 +143,13 @@ export function AdminProductEditor({
             slug: brand.slug,
           }
         : null,
-      images: form.imageUrl
-        ? [
-            {
-              id: existingPrimaryImage?.id ?? id + 10,
-              productId: id,
-              imageUrl: form.imageUrl,
-              altText: form.altText.trim() || null,
-              isPrimary: true,
-              sortOrder: 0,
-            },
-            ...(product?.images.filter((image) => !image.isPrimary) ?? []),
-          ]
-        : product?.images.filter((image) => !image.isPrimary) ?? [],
+      images: toProductImages(form.images, id, form.name),
       models3D: form.modelUrl
         ? [{
             id: existingModel?.id ?? id + 20,
             productId: id,
             modelUrl: form.modelUrl,
-            posterUrl: form.imageUrl || null,
+            posterUrl: form.images[0]?.imageUrl || null,
             format: 'GLB',
             version: form.modelFileName || existingModel?.version || null,
             lodLevel: form.modelFileSize ? `${form.modelFileSize} bytes` : existingModel?.lodLevel ?? null,
@@ -178,7 +177,7 @@ export function AdminProductEditor({
         action={(
           <div className="admin-heading-actions">
             <button className="admin-button" type="button" onClick={onCancel}>Hủy</button>
-            <button className="admin-button admin-button--primary" type="submit">
+            <button className="admin-button admin-button--primary" type="submit" disabled={mediaBusy}>
               <FloppyDisk size={17} /> Lưu sản phẩm
             </button>
           </div>
@@ -201,38 +200,114 @@ export function AdminProductEditor({
             <TextField label="Đơn vị tính" value={form.unit} required onChange={(value) => update('unit', value)} />
             <TextAreaField label="Mô tả sản phẩm (VI)" value={form.description} onChange={(value) => update('description', value)} />
             <TextAreaField label="Mô tả sản phẩm (EN)" value={form.descriptionEn} onChange={(value) => update('descriptionEn', value)} />
+            <TextAreaField
+              label="Điểm nổi bật"
+              value={form.descriptionHighlights}
+              onChange={(value) => update('descriptionHighlights', value)}
+              helper="Mỗi dòng là một điểm nổi bật, hiển thị trong tab Mô tả."
+            />
           </AdminPanel>
 
-          <AdminPanel title="Hình ảnh và trải nghiệm 3D">
-            <div className="admin-field">
-              <AdminImageUpload
-                id="admin-product-primary-image"
-                label="Ảnh chính"
-                value={form.imageUrl}
-                onChange={(value) => update('imageUrl', value)}
-                helper="Chọn JPG, PNG, WEBP hoặc AVIF. Ảnh này hiển thị trên card sản phẩm và trang chi tiết."
-                required
-              />
-            </div>
-            <TextField label="Mô tả thay thế cho ảnh" value={form.altText} onChange={(value) => update('altText', value)} />
-            <label className="admin-field">
-              <span>Mô hình 3D (GLB, tùy chọn)</span>
-              <input type="file" accept=".glb,model/gltf-binary" onChange={handleModelFile} />
-              <small>Tối đa 40 MB. Bản demo dùng đường dẫn cục bộ trong phiên hiện tại.</small>
-            </label>
-            {form.modelFileName || form.modelUrl ? (
-              <div className="admin-form-note">
-                <UploadSimple size={17} />
-                <span>
-                  {form.modelFileName || 'Mô hình GLB hiện có'}
-                  {form.modelFileSize ? `, ${formatFileSize(form.modelFileSize)}` : ''}
-                </span>
-                <button className="admin-button" type="button" onClick={clearModel}>
-                  <Trash size={15} /> Xóa mô hình
+          <AdminPanel title="Nội dung trang chi tiết">
+            <section className="admin-product-content-section" aria-labelledby="technical-specifications-title">
+              <div className="admin-product-content-section__heading">
+                <div>
+                  <h3 id="technical-specifications-title">Thông số kỹ thuật</h3>
+                  <p>Thêm các thông số riêng của sản phẩm để hiển thị trong tab Thông số kỹ thuật.</p>
+                </div>
+                <button className="admin-button" type="button" onClick={addTechnicalSpecification}>
+                  <Plus size={16} /> Thêm thông số
                 </button>
               </div>
-            ) : null}
-            {modelError ? <p className="admin-upload-field__error" role="alert">{modelError}</p> : null}
+              <div className="admin-product-specifications">
+                {form.technicalSpecifications.map((specification, index) => (
+                  <div className="admin-product-specification" key={index}>
+                    <input
+                      aria-label={`Tên thông số ${index + 1}`}
+                      value={specification.label}
+                      onChange={(event) => updateTechnicalSpecification(index, 'label', event.target.value)}
+                      placeholder="Ví dụ: Kích thước"
+                    />
+                    <input
+                      aria-label={`Giá trị thông số ${index + 1}`}
+                      value={specification.value}
+                      onChange={(event) => updateTechnicalSpecification(index, 'value', event.target.value)}
+                      placeholder="Ví dụ: 180 × 85 × 78 cm"
+                    />
+                    <button
+                      className="admin-product-specification__remove"
+                      type="button"
+                      aria-label={`Xóa thông số ${index + 1}`}
+                      onClick={() => removeTechnicalSpecification(index)}
+                    >
+                      <Trash size={17} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <TextAreaField
+              label="Hướng dẫn"
+              value={form.usageGuide}
+              onChange={(value) => update('usageGuide', value)}
+              helper="Nội dung mở đầu trong tab Hướng dẫn."
+            />
+            <TextAreaField
+              label="Các lưu ý hướng dẫn"
+              value={form.usageGuidePoints}
+              onChange={(value) => update('usageGuidePoints', value)}
+              helper="Mỗi dòng là một lưu ý."
+            />
+            <TextAreaField
+              label="Chính sách bán hàng"
+              value={form.salesPolicy}
+              onChange={(value) => update('salesPolicy', value)}
+              helper="Nội dung mở đầu trong tab Chính sách bán hàng."
+            />
+            <TextAreaField
+              label="Các điểm trong chính sách"
+              value={form.salesPolicyPoints}
+              onChange={(value) => update('salesPolicyPoints', value)}
+              helper="Mỗi dòng là một điều khoản hoặc lưu ý."
+            />
+          </AdminPanel>
+
+          <AdminPanel title="Hình ảnh và trải nghiệm 3D" className="admin-product-media-panel">
+            <p className="admin-product-images__intro">Ảnh mặt trước hiển thị đầu tiên trên danh sách và trang chi tiết sản phẩm. Sắp xếp bốn góc theo thứ tự bên dưới.</p>
+            <div className="admin-product-images">
+              {form.images.map((slot, index) => (
+                <AdminImageUpload
+                  key={slot.key}
+                  id={`admin-product-image-${slot.key}`}
+                  label={`${index + 1}. ${PRODUCT_IMAGE_VIEWS[index]?.label ?? `Ảnh bổ sung ${index - 3}`}`}
+                  value={slot.imageUrl}
+                  onChange={(value) => updateImage(slot.key, value)}
+                  onUploadingChange={(uploading) => setUploadingImages((current) => {
+                    const next = new Set(current)
+                    if (uploading) next.add(slot.key)
+                    else next.delete(slot.key)
+                    return next
+                  })}
+                  disabled={modelBusy}
+                  showDataMode={false}
+                  helper={index === 0 ? 'Ảnh chính của sản phẩm.' : index < 4 ? 'Dùng thêm góc này khi tạo mô hình 3D.' : 'Hiển thị tiếp trong thư viện ảnh sản phẩm.'}
+                  required={index === 0}
+                />
+              ))}
+            </div>
+            <button className="admin-button admin-product-images__add" type="button" disabled={mediaBusy} onClick={() => update('images', [...form.images, { key: `extra-${crypto.randomUUID()}`, imageUrl: '' }])}>
+              <Plus size={17} /> Thêm ảnh khác
+            </button>
+            <AdminTrellisModel
+              images={uploadingImages.size ? [] : form.images.slice(0, 4).map((slot) => slot.imageUrl)}
+              productName={form.name}
+              productKey={String(product?.id ?? 'new')}
+              modelUrl={form.modelUrl}
+              onBusyChange={setModelBusy}
+              onSaved={(model) => setForm((current) => ({ ...current, modelUrl: model.modelUrl, modelFileName: model.fileName, modelFileSize: model.fileSize }))}
+              onRemove={() => setForm((current) => ({ ...current, modelUrl: '', modelFileName: '', modelFileSize: null }))}
+            />
           </AdminPanel>
         </div>
 
@@ -312,7 +387,6 @@ function createEditorState(
   categories: AdminNamedRecord[],
   brands: AdminBrand[],
 ): ProductEditorState {
-  const image = product?.images.find((item) => item.isPrimary) ?? product?.images[0]
   const model = product?.models3D[0]
 
   return {
@@ -331,8 +405,13 @@ function createEditorState(
     isFeatured: product?.isFeatured ?? false,
     description: product?.description ?? '',
     descriptionEn: product?.descriptionEn ?? '',
-    imageUrl: image?.imageUrl ?? '',
-    altText: image?.altText ?? '',
+    descriptionHighlights: product?.descriptionHighlights?.join('\n') ?? '',
+    technicalSpecifications: product?.technicalSpecifications ?? [],
+    usageGuide: product?.usageGuide ?? '',
+    usageGuidePoints: product?.usageGuidePoints?.join('\n') ?? '',
+    salesPolicy: product?.salesPolicy ?? '',
+    salesPolicyPoints: product?.salesPolicyPoints?.join('\n') ?? '',
+    images: createProductImageSlots(product?.images),
     modelUrl: model?.modelUrl ?? '',
     modelFileName: model?.version ?? '',
     modelFileSize: null,
@@ -362,13 +441,25 @@ function TextField({
   )
 }
 
-function TextAreaField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+function TextAreaField({ label, value, onChange, helper }: { label: string; value: string; onChange: (value: string) => void; helper?: string }) {
+  const id = useId()
+  const helperId = `${id}-helper`
   return (
-    <label className="admin-field">
-      <span>{label}</span>
-      <textarea value={value} onChange={(event) => onChange(event.target.value)} />
-    </label>
+    <div className="admin-field">
+      <label htmlFor={id}><span>{label}</span></label>
+      <textarea
+        id={id}
+        value={value}
+        aria-describedby={helper ? helperId : undefined}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      {helper ? <small id={helperId}>{helper}</small> : null}
+    </div>
   )
+}
+
+function textLines(value: string) {
+  return value.split('\n').map((item) => item.trim()).filter(Boolean)
 }
 
 function toSlug(value: string) {
@@ -389,9 +480,4 @@ function toNumericId(value: string) {
   let hash = 0
   for (const character of value) hash = (hash * 31 + character.charCodeAt(0)) >>> 0
   return hash || Date.now()
-}
-
-function formatFileSize(bytes: number) {
-  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
