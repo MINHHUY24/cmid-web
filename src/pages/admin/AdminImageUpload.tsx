@@ -1,5 +1,5 @@
 import { ImageSquare, Trash, UploadSimple } from '@phosphor-icons/react'
-import { useRef, useState, type ChangeEvent } from 'react'
+import { useRef, useState, type ChangeEvent, type DragEvent } from 'react'
 import { getAdminDataMode, uploadAdminImage } from '../../services/admin.service'
 
 interface AdminImageUploadProps {
@@ -30,12 +30,12 @@ export function AdminImageUpload({
   onUploadingChange,
 }: AdminImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const dragDepth = useRef(0)
   const [error, setError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
 
-  async function handleFile(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-    event.target.value = ''
+  async function uploadFile(file: File | undefined) {
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
@@ -61,6 +61,43 @@ export function AdminImageUpload({
     }
   }
 
+  function handleFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    void uploadFile(file)
+  }
+
+  function isFileDrag(event: DragEvent<HTMLButtonElement>) {
+    return Array.from(event.dataTransfer.types).includes('Files')
+  }
+
+  function handleDragEnter(event: DragEvent<HTMLButtonElement>) {
+    if (disabled || isUploading || !isFileDrag(event)) return
+    event.preventDefault()
+    dragDepth.current += 1
+    setIsDragging(true)
+  }
+
+  function handleDragOver(event: DragEvent<HTMLButtonElement>) {
+    if (disabled || isUploading || !isFileDrag(event)) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'copy'
+  }
+
+  function handleDragLeave(event: DragEvent<HTMLButtonElement>) {
+    if (!isFileDrag(event)) return
+    dragDepth.current = Math.max(0, dragDepth.current - 1)
+    if (dragDepth.current === 0) setIsDragging(false)
+  }
+
+  function handleDrop(event: DragEvent<HTMLButtonElement>) {
+    if (disabled || isUploading || !isFileDrag(event)) return
+    event.preventDefault()
+    dragDepth.current = 0
+    setIsDragging(false)
+    void uploadFile(event.dataTransfer.files[0])
+  }
+
   return (
     <div className="admin-upload-field">
       <div className="admin-upload-field__label">
@@ -77,18 +114,22 @@ export function AdminImageUpload({
 
       <button
         type="button"
-        className={`admin-upload-dropzone${value ? ' has-image' : ''}`}
+        className={`admin-upload-dropzone${value ? ' has-image' : ''}${isDragging ? ' is-dragging' : ''}`}
         onClick={() => inputRef.current?.click()}
         disabled={disabled || isUploading}
         aria-label={`Chọn ảnh: ${label}`}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         {value ? (
           <img src={value} alt={`Ảnh xem trước: ${label}`} />
         ) : (
           <>
             <span><ImageSquare size={30} weight="thin" /></span>
-            <strong>{isUploading ? 'Đang tải ảnh...' : 'Chọn ảnh từ thiết bị'}</strong>
-            <small>Bấm để chọn ảnh và tải lên</small>
+            <strong>{isUploading ? 'Đang tải ảnh...' : isDragging ? 'Thả ảnh vào đây' : 'Chọn ảnh từ thiết bị'}</strong>
+            <small>{isDragging ? 'Thả để tải ảnh lên' : 'Bấm hoặc kéo thả ảnh để tải lên'}</small>
           </>
         )}
         {value ? <i><UploadSimple size={17} /> Thay ảnh</i> : null}

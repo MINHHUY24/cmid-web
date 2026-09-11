@@ -2088,6 +2088,13 @@
   background: #f7efe0;
 }
 
+.admin-upload-dropzone.is-dragging {
+  border-color: var(--admin-gold-dark);
+  border-style: solid;
+  background: #f4e7cf;
+  box-shadow: inset 0 0 0 2px rgb(185 126 43 / 20%);
+}
+
 .admin-upload-dropzone:disabled {
   cursor: wait;
   opacity: 0.65;
