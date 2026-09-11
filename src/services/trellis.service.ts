@@ -34,10 +34,17 @@ function assetUrl(value: string | null) {
   return `${remoteTrellisUrl}${value.startsWith('/') ? '' : '/'}${value}`
 }
 
+function previewUrl(value: string | null) {
+  if (!value || /^https?:\/\//.test(value)) return value
+  // Older bridges include Vite's proxy prefix in the API response.
+  const path = `/${value.replace(/^\/+/, '')}`.replace(/^\/trellis-api(?=\/)/, '')
+  return trellisUrl(path)
+}
+
 function jobWithAssetUrls(job: TrellisJob): TrellisJob {
   return {
     ...job,
-    previewUrl: assetUrl(job.previewUrl),
+    previewUrl: previewUrl(job.previewUrl),
     savedUrl: assetUrl(job.savedUrl),
   }
 }
