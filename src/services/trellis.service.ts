@@ -23,10 +23,29 @@ export class TrellisApiError extends Error {
   }
 }
 
+const remoteTrellisUrl = import.meta.env.VITE_TRELLIS_API_URL?.trim().replace(/\/$/, '')
+
+function trellisUrl(path: string) {
+  return remoteTrellisUrl ? `${remoteTrellisUrl}${path}` : `/trellis-api${path}`
+}
+
+function assetUrl(value: string | null) {
+  if (!value || !remoteTrellisUrl || /^https?:\/\//.test(value)) return value
+  return `${remoteTrellisUrl}${value.startsWith('/') ? '' : '/'}${value}`
+}
+
+function jobWithAssetUrls(job: TrellisJob): TrellisJob {
+  return {
+    ...job,
+    previewUrl: assetUrl(job.previewUrl),
+    savedUrl: assetUrl(job.savedUrl),
+  }
+}
+
 async function trellisFetch<T>(path: string, options?: RequestInit): Promise<T> {
   let response: Response
   try {
-    response = await fetch(`/trellis-api${path}`, {
+    response = await fetch(trellisUrl(path), {
       ...options,
       signal: options?.signal ?? AbortSignal.timeout(30_000),
     })
@@ -57,17 +76,18 @@ export async function createTrellisJob(images: string[], steps: number, signal: 
     formData.set(views[index], blob, `${views[index]}.png`)
   }))
   formData.set('steps', String(steps))
-  return trellisFetch<TrellisJob>('/jobs', { method: 'POST', body: formData, signal })
+  return jobWithAssetUrls(await trellisFetch<TrellisJob>('/jobs', { method: 'POST', body: formData, signal }))
 }
 
 export function getTrellisJob(id: string, signal?: AbortSignal) {
-  return trellisFetch<TrellisJob>(`/jobs/${encodeURIComponent(id)}`, { signal })
+  return trellisFetch<TrellisJob>(`/jobs/${encodeURIComponent(id)}`, { signal }).then(jobWithAssetUrls)
 }
 
 export function cancelTrellisJob(id: string) {
-  return trellisFetch<TrellisJob>(`/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  return trellisFetch<TrellisJob>(`/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }).then(jobWithAssetUrls)
 }
 
-export function saveTrellisModel(id: string) {
-  return trellisFetch<SavedTrellisModel>(`/jobs/${encodeURIComponent(id)}/save`, { method: 'POST' })
+export async function saveTrellisModel(id: string) {
+  const saved = await trellisFetch<SavedTrellisModel>(`/jobs/${encodeURIComponent(id)}/save`, { method: 'POST' })
+  return { ...saved, modelUrl: assetUrl(saved.modelUrl) ?? saved.modelUrl }
 }
