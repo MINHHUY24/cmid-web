@@ -3,7 +3,9 @@ import type { AdminSession } from './admin-auth'
 
 const DEMO_SESSION_KEY = 'cmid-admin-demo-session'
 
-export const isAdminDemoEnabled = import.meta.env.DEV && getAdminDataMode() === 'local'
+// The deployed catalogue still uses local admin data during the review phase,
+// so keep the sample account available unless it is explicitly disabled.
+export const isAdminDemoEnabled = getAdminDataMode() === 'local' && import.meta.env.VITE_ADMIN_DEMO_ENABLED !== 'false'
 
 export const adminDemoCredentials = {
   email: 'admincmid@gmail.com',
@@ -27,7 +29,7 @@ export function getAdminDemoSession(): AdminSession | null {
 }
 
 export function signInAdminDemo(): AdminSession {
-  if (!isAdminDemoEnabled) throw new Error('Đăng nhập mẫu chỉ dùng trong môi trường test cục bộ.')
+  if (!isAdminDemoEnabled) throw new Error('Đăng nhập mẫu hiện chưa được bật.')
 
   try {
     window.sessionStorage.setItem(DEMO_SESSION_KEY, 'active')
