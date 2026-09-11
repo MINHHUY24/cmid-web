@@ -7,6 +7,8 @@ import { createProductImageSlots, PRODUCT_IMAGE_VIEWS, toProductImages, type Pro
 import { AdminPageHeading, AdminPanel, AdminSelect } from './AdminPrimitives'
 import type { AdminBrand, AdminNamedRecord } from './admin-database'
 import { saveAdminProduct } from './admin-local-store'
+import { saveProduct } from '../../services/product.service'
+import { isAdminDemoEnabled } from './admin-demo-auth'
 
 interface AdminProductEditorProps {
   product?: Product
@@ -56,6 +58,7 @@ export function AdminProductEditor({
   const [uploadingImages, setUploadingImages] = useState<Set<string>>(() => new Set())
   const mediaBusy = modelBusy || uploadingImages.size > 0
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   function update<K extends keyof ProductEditorState>(key: K, value: ProductEditorState[K]) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -82,7 +85,7 @@ export function AdminProductEditor({
     update('technicalSpecifications', form.technicalSpecifications.filter((_, currentIndex) => currentIndex !== index))
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSaveError(null)
     if (mediaBusy) {
@@ -160,13 +163,16 @@ export function AdminProductEditor({
     }
 
     try {
-      saveAdminProduct(nextProduct)
-    } catch {
-      setSaveError('Không thể lưu sản phẩm. Dữ liệu ảnh hoặc mô hình có thể vượt giới hạn bộ nhớ cục bộ.')
+      setIsSaving(true)
+      const savedProduct = await saveProduct(nextProduct, isAdminDemoEnabled)
+      saveAdminProduct(savedProduct)
+      onSaved(savedProduct)
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Không thể lưu sản phẩm lên máy chủ.')
       return
+    } finally {
+      setIsSaving(false)
     }
-
-    onSaved(nextProduct)
   }
 
   return (
@@ -177,8 +183,8 @@ export function AdminProductEditor({
         action={(
           <div className="admin-heading-actions">
             <button className="admin-button" type="button" onClick={onCancel}>Hủy</button>
-            <button className="admin-button admin-button--primary" type="submit" disabled={mediaBusy}>
-              <FloppyDisk size={17} /> Lưu sản phẩm
+            <button className="admin-button admin-button--primary" type="submit" disabled={mediaBusy || isSaving}>
+              <FloppyDisk size={17} /> {isSaving ? 'Đang lưu...' : 'Lưu sản phẩm'}
             </button>
           </div>
         )}

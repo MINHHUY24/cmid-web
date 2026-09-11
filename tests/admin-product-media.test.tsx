@@ -5,6 +5,7 @@ import { createProductImageSlots, toProductImages } from '../src/pages/admin/adm
 import { getAdminProducts } from '../src/pages/admin/admin-local-store'
 import type { Product } from '../src/types/product'
 import * as trellis from '../src/services/trellis.service'
+import * as productService from '../src/services/product.service'
 
 vi.mock('../src/services/trellis.service', async (original) => ({
   ...await original<typeof trellis>(),
@@ -13,6 +14,9 @@ vi.mock('../src/services/trellis.service', async (original) => ({
 }))
 vi.mock('../src/components/product/ProductModelViewer', () => ({
   ProductModelViewer: ({ src }: { src: string }) => <div data-testid="model-preview">{src}</div>,
+}))
+vi.mock('../src/services/product.service', () => ({
+  saveProduct: vi.fn(),
 }))
 
 const product: Product = {
@@ -38,6 +42,7 @@ beforeEach(() => {
   vi.mocked(trellis.createTrellisJob).mockResolvedValue(completed)
   vi.mocked(trellis.getTrellisJob).mockResolvedValue(completed)
   vi.mocked(trellis.saveTrellisModel).mockResolvedValue({ modelUrl: '/models/generated/abc123.glb', fileName: 'chair.glb', fileSize: 2048 })
+  vi.mocked(productService.saveProduct).mockImplementation(async (savedProduct) => savedProduct)
 })
 afterEach(cleanup)
 
@@ -81,6 +86,7 @@ describe('product media', () => {
     fireEvent.change(screen.getByLabelText('Chính sách bán hàng'), { target: { value: 'Bảo hành theo điều kiện của CMID.' } })
     fireEvent.change(screen.getByLabelText('Các điểm trong chính sách'), { target: { value: 'Kiểm tra sản phẩm khi nhận hàng' } })
     fireEvent.click(screen.getByRole('button', { name: 'Lưu sản phẩm' }))
+    await waitFor(() => expect(getAdminProducts()[0]).toBeDefined())
     const saved = getAdminProducts()[0]
     expect(saved).toMatchObject({
       descriptionHighlights: ['Khung gỗ tự nhiên', 'Đệm mút đàn hồi'],
@@ -107,6 +113,7 @@ describe('product media', () => {
     await screen.findByText('Đã chọn dùng cho sản phẩm')
     await waitFor(() => expect((screen.getByRole('button', { name: 'Lưu sản phẩm' }) as HTMLButtonElement).disabled).toBe(false))
     fireEvent.click(screen.getByRole('button', { name: 'Lưu sản phẩm' }))
+    await waitFor(() => expect(getAdminProducts()[0]).toBeDefined())
     const saved = getAdminProducts()[0]
     expect(saved.images.map((image) => image.imageUrl)).toEqual(['/front.png', '/right.png', '/back.png', '/detail.png'])
     expect(saved.models3D[0].modelUrl).toBe('/models/generated/abc123.glb')
