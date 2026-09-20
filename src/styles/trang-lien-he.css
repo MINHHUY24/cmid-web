@@ -226,7 +226,27 @@
   width: 15px;
   min-height: 15px;
   margin: 1px 0 0;
-  accent-color: var(--cmid-gold-dark);
+  border: 1px solid #bda886;
+  border-radius: 3px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #fffefc;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 11px 11px;
+  cursor: pointer;
+}
+
+.contact-form-panel__consent input:checked {
+  border-color: var(--cmid-gold-dark);
+  background-color: var(--cmid-gold-dark);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 8 3 3 7-7' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.contact-form-panel__consent input:focus-visible {
+  outline: 2px solid var(--cmid-gold-dark);
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 .contact-form-panel button {

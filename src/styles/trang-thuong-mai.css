@@ -549,6 +549,20 @@
   min-width: 0;
 }
 
+.checkout-location-dropdown--loading {
+  display: grid;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--site-line, #cdc3b7);
+  border-radius: 5px;
+  cursor: progress;
+}
+
+.checkout-location-dropdown__skeleton {
+  width: 68%;
+  height: 100%;
+}
+
 .checkout-location-dropdown__trigger {
   display: flex;
   width: 100%;

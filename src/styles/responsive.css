@@ -43,7 +43,7 @@
   }
 }
 
-@media (max-width: 930px) {
+@media (max-width: 1024px) {
   .topbar__nav a:nth-child(-n + 2) {
     display: none;
   }
@@ -128,7 +128,7 @@
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   html {
     -webkit-text-size-adjust: 100%;
   }

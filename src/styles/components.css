@@ -2,7 +2,7 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(11, minmax(0, 1fr));
+  grid-template-columns: repeat(10, minmax(0, 1fr));
   gap: 3px;
   margin-top: -42px;
   padding: 16px 14px;
@@ -892,4 +892,38 @@ html[data-theme='light'] .language-welcome__options button.is-selected .language
 
 .status-panel--error h2 {
   color: #913d2e;
+}
+/* Shared loading surface. Visible copy stays out of the layout; assistive tech receives it through .sr-only. */
+.cmid-skeleton {
+  position: relative;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #ede8de;
+}
+
+.cmid-skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(100deg, transparent 24%, rgb(255 255 255 / 68%) 50%, transparent 76%);
+  transform: translateX(-100%);
+  animation: cmid-skeleton-shimmer 1.55s ease-in-out infinite;
+}
+
+@keyframes cmid-skeleton-shimmer {
+  to { transform: translateX(100%); }
+}
+
+html[data-theme='dark'] .cmid-skeleton {
+  background: #34312c;
+}
+
+html[data-theme='dark'] .cmid-skeleton::after {
+  background: linear-gradient(100deg, transparent 24%, rgb(255 255 255 / 10%) 50%, transparent 76%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmid-skeleton::after { animation: none; }
 }

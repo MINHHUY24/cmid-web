@@ -1,5 +1,6 @@
 import { ImageSquare, Trash, UploadSimple } from '@phosphor-icons/react'
 import { useRef, useState, type ChangeEvent, type DragEvent } from 'react'
+import { KhungXuong } from '../../components/common/KhungXuong'
 import { getAdminDataMode, uploadAdminImage } from '../../services/admin.service'
 
 interface AdminImageUploadProps {
@@ -123,12 +124,17 @@ export function AdminImageUpload({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {value ? (
+        {isUploading ? (
+          <>
+            <span className="sr-only" role="status">Đang tải ảnh</span>
+            <KhungXuong className="admin-upload-dropzone__skeleton" />
+          </>
+        ) : value ? (
           <img src={value} alt={`Ảnh xem trước: ${label}`} />
         ) : (
           <>
             <span><ImageSquare size={30} weight="thin" /></span>
-            <strong>{isUploading ? 'Đang tải ảnh...' : isDragging ? 'Thả ảnh vào đây' : 'Chọn ảnh từ thiết bị'}</strong>
+            <strong>{isDragging ? 'Thả ảnh vào đây' : 'Chọn ảnh từ thiết bị'}</strong>
             <small>{isDragging ? 'Thả để tải ảnh lên' : 'Bấm hoặc kéo thả ảnh để tải lên'}</small>
           </>
         )}

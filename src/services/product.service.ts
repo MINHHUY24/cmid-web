@@ -1,4 +1,4 @@
-import { apiFetch } from './api'
+import { ApiError, apiFetch } from './api'
 import type { Product } from '../types/product'
 
 export function getProducts(): Promise<Product[]> {
@@ -18,6 +18,28 @@ export function saveProduct(product: Product, useDemoAccess = false): Promise<Pr
     },
     body: JSON.stringify(toProductPayload(product)),
   })
+}
+
+export async function deleteProduct(productId: number, useDemoAccess = false): Promise<void> {
+  // Older browser-only products used Date.now() as their ID. They have no
+  // matching PostgreSQL row and exceed the database's signed Int range.
+  if (!isDatabaseProductId(productId)) return
+
+  try {
+    await apiFetch<void>(useDemoAccess ? `/products/demo/${productId}` : `/products/${productId}`, {
+      method: 'DELETE',
+      headers: useDemoAccess ? { 'X-CMID-Demo-Admin': 'true' } : undefined,
+    })
+  } catch (error) {
+    // DELETE is idempotent: a stale browser cache should still be removable
+    // when its server-side record has already disappeared.
+    if (error instanceof ApiError && error.status === 404) return
+    throw error
+  }
+}
+
+function isDatabaseProductId(productId: number) {
+  return Number.isInteger(productId) && productId > 0 && productId <= 2_147_483_647
 }
 
 function toProductPayload(product: Product) {
@@ -43,8 +65,11 @@ function toProductPayload(product: Product) {
     isFeatured: product.isFeatured ?? false,
     materialIds: product.materialIds ?? [],
     supplierId: product.supplierId ?? null,
-    categoryId: product.category?.id ?? null,
-    brandId: product.brand?.id ?? null,
+    // The admin catalogue uses stable slugs while PostgreSQL owns the numeric
+    // relation IDs. Sending a locally generated numeric ID (for example
+    // `cat-8` -> `8`) can point at a different record or no record at all.
+    categorySlug: product.category?.slug ?? null,
+    brandSlug: product.brand?.slug ?? null,
     images: product.images.map((image) => ({
       imageUrl: image.imageUrl,
       altText: image.altText,

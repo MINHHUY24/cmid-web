@@ -14,6 +14,12 @@
   --site-line-soft: rgb(198 151 75 / 25%);
   --site-gold: #cf9d4c;
   --site-gold-strong: #dda954;
+  --site-quote-action: #cf9d4c;
+  --site-quote-action-hover: #dda954;
+  --site-quote-action-ink: #dda954;
+  --site-quote-action-hover-ink: #17110d;
+  --site-quote-action-surface: #17110d;
+  --site-quote-action-ring: rgb(207 157 76 / 34%);
   --site-header: rgb(17 12 9 / 88%);
   --site-topbar: rgb(10 8 6 / 90%);
   --site-shadow: 0 16px 38px rgb(4 3 2 / 18%);
@@ -45,6 +51,12 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) {
   --site-line-soft: rgb(179 124 44 / 22%);
   --site-gold: #bc812f;
   --site-gold-strong: #9d681e;
+  --site-quote-action: #b98032;
+  --site-quote-action-hover: #98611f;
+  --site-quote-action-ink: #9d681e;
+  --site-quote-action-hover-ink: #fffdf9;
+  --site-quote-action-surface: #fffdf9;
+  --site-quote-action-ring: rgb(185 128 50 / 24%);
   --site-header: rgb(239 232 222 / 88%);
   --site-topbar: rgb(230 221 210 / 94%);
   --site-shadow: 0 14px 34px rgb(78 54 26 / 8%);
@@ -433,7 +445,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(.contact-for
   .catalog-filter__range-inputs input,
   .catalog-filters__reset,
   .catalog-pagination button,
-  .product-gallery__expand,
   .product-detail-actions__secondary,
   .quantity-control,
   .quantity-control button,
@@ -1446,7 +1457,7 @@ html[data-theme='light'] .app-shell--site.app-shell--home .site-footer .brand--f
   }
 }
 
-@media (max-width: 930px) {
+@media (max-width: 1024px) {
   .app-shell--site:not(.app-shell--home) .site-header__main {
     position: relative;
     grid-template-columns: 1fr auto;
@@ -1474,7 +1485,7 @@ html[data-theme='light'] .app-shell--site.app-shell--home .site-footer .brand--f
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .app-shell--site:not(.app-shell--home) .site-main::before {
     background-attachment: scroll;
   }
@@ -1702,11 +1713,11 @@ html[data-theme='light'] .app-shell--site .color-theme-switch__thumb {
 
 html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-header__main,
 html[data-theme='light'] .app-shell--site.app-shell--home .site-header__main {
-  border-color: rgb(196 150 74 / 25%);
-  background: rgb(255 253 249 / 72%);
-  box-shadow: 0 8px 30px rgb(60 45 30 / 6%);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  border-color: rgb(174 122 49 / 38%);
+  background: rgb(255 253 249 / 90%);
+  box-shadow: 0 12px 32px rgb(60 45 30 / 11%);
+  backdrop-filter: blur(20px) saturate(0.9);
+  -webkit-backdrop-filter: blur(20px) saturate(0.9);
 }
 
 html[data-theme='light'] .app-shell--site :is(.brand strong, .site-nav__link, .menu-toggle) {
@@ -1903,6 +1914,14 @@ html[data-theme='light'] .app-shell--site.app-shell--home :is(
   border-color: #e4d9ca;
   background: rgb(255 253 249 / 88%);
   box-shadow: 0 8px 30px rgb(60 45 30 / 6%);
+}
+
+html[data-theme='light'] .app-shell--site.app-shell--home .category-bar {
+  border-color: rgb(174 122 49 / 34%);
+  background: rgb(255 253 249 / 95%);
+  box-shadow: 0 14px 34px rgb(60 45 30 / 10%);
+  backdrop-filter: blur(20px) saturate(0.9);
+  -webkit-backdrop-filter: blur(20px) saturate(0.9);
 }
 
 html[data-theme='light'] .app-shell--site.app-shell--home :is(
@@ -2166,7 +2185,7 @@ html[data-theme='light'] .app-shell--site.app-shell--hero .site-header__main {
   align-content: center;
 }
 
-@media (max-width: 930px) {
+@media (max-width: 1024px) {
   .app-shell--site {
     --cmid-hero-block-size: 650px;
     --cmid-hero-panel-block-size: 390px;
@@ -2191,7 +2210,7 @@ html[data-theme='light'] .app-shell--site.app-shell--hero .site-header__main {
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .app-shell--site {
     --cmid-hero-block-size: 610px;
   }
@@ -2240,8 +2259,8 @@ html[data-theme='light'] .app-shell--site.app-shell--hero .topbar {
 }
 
 html[data-theme='light'] .app-shell--site.app-shell--hero .site-header__main {
-  border-color: rgb(196 150 74 / 25%);
-  background: rgb(255 253 249 / 72%);
+  border-color: rgb(174 122 49 / 38%);
+  background: rgb(255 253 249 / 90%);
 }
 
 html[data-theme='light'] .maintenance-page {
@@ -2297,7 +2316,7 @@ html[data-theme='light'] .maintenance-page__notice {
   letter-spacing: -0.035em;
 }
 
-@media (min-width: 721px) {
+@media (min-width: 1025px) {
   .app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang h1 {
     max-width: none;
   }
@@ -2307,7 +2326,7 @@ html[data-theme='light'] .maintenance-page__notice {
   }
 }
 
-@media (max-width: 930px) {
+@media (max-width: 1024px) {
   .app-shell--site.app-shell--hero :is(
     .catalog-hero__content > .catalog-hero__glass,
     .tin-tuc__hero-content > .tin-tuc__hero-glass
@@ -2320,7 +2339,7 @@ html[data-theme='light'] .maintenance-page__notice {
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .app-shell--site.app-shell--hero :is(
     .catalog-hero__content > .catalog-hero__glass,
     .tin-tuc__hero-content > .tin-tuc__hero-glass,
@@ -2391,7 +2410,7 @@ html[data-theme='light'] .app-shell--site .trang-ve-cmid .about-reach {
   gap: clamp(32px, 4vw, 50px);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   html[data-theme='light'] .app-shell--site .trang-ve-cmid .about-reach {
     padding: 24px 20px;
     border-radius: var(--cmid-surface-radius);
@@ -2656,7 +2675,7 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main:has(.
   line-height: 1.08;
 }
 
-@media (max-width: 930px) {
+@media (max-width: 1024px) {
   .app-shell--site {
     --cmid-hero-block-size: 590px;
     --cmid-hero-panel-block-size: 340px;
@@ -2671,7 +2690,7 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main:has(.
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .app-shell--site {
     --cmid-hero-block-size: 540px;
     --cmid-hero-panel-block-size: auto;
@@ -2704,7 +2723,7 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main:has(.
   }
 }
 
-@media (max-width: 930px) {
+@media (max-width: 1024px) {
   .app-shell--site.app-shell--hero .trang-san-pham {
     --cmid-product-catalog-width: min(1240px, calc(100% - 48px));
     --cmid-hero-block-size: 500px;
@@ -2722,7 +2741,7 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main:has(.
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .app-shell--site.app-shell--hero .trang-san-pham {
     --cmid-product-catalog-width: min(1240px, calc(100% - 32px));
     --cmid-hero-block-size: 470px;
@@ -2771,14 +2790,14 @@ html[data-theme='light'] .app-shell--site.app-shell--hero :is(
   -webkit-backdrop-filter: blur(16px) saturate(0.84);
 }
 
-@media (max-width: 930px) {
+@media (max-width: 1024px) {
   .app-shell--site {
     --cmid-hero-title-card-gap-top: 104px;
     --cmid-hero-title-card-gap-bottom: 64px;
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .app-shell--site {
     --cmid-hero-title-card-gap-top: 90px;
     --cmid-hero-title-card-gap-bottom: 44px;
@@ -2976,7 +2995,7 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home)
 
 /* The product hero card should be sized by its title and description, not by
    the full catalog column. Mobile keeps the full-width reading surface. */
-@media (min-width: 721px) {
+@media (min-width: 1025px) {
   .app-shell--site.app-shell--hero .trang-san-pham .catalog-hero__glass {
     inline-size: max-content;
     width: max-content;
@@ -3565,6 +3584,17 @@ html[data-theme='light'] .app-shell--site {
     box-shadow 180ms ease;
 }
 
+/* Quote-only products use the outlined consultation treatment. */
+.app-shell--site:not(.app-shell--home)
+  .product-card--catalog
+  .product-card__action--quote {
+  border-color: var(--site-quote-action) !important;
+  color: var(--site-quote-action-ink) !important;
+  background-color: var(--site-quote-action-surface) !important;
+  background-image: none;
+  box-shadow: inset 0 0 0 1px var(--site-quote-action-ring);
+}
+
 @media (hover: hover) {
   .app-shell--site :is(
     .button:not(.button--gold):not(.product-card__action),
@@ -3618,6 +3648,17 @@ html[data-theme='light'] .app-shell--site {
     background-color: #b77d2d !important;
     box-shadow: inset 14px 0 26px rgb(255 238 202 / 10%);
   }
+
+  .app-shell--site:not(.app-shell--home)
+    .product-card--catalog
+    .product-card__action--quote:hover {
+    border-color: var(--site-quote-action-hover) !important;
+    color: var(--site-quote-action-hover-ink) !important;
+    background-color: var(--site-quote-action-hover) !important;
+    box-shadow:
+      inset 14px 0 26px rgb(255 255 255 / 10%),
+      0 0 0 1px var(--site-quote-action-ring);
+  }
 }
 
 .app-shell--site :is(
@@ -3632,6 +3673,13 @@ html[data-theme='light'] .app-shell--site {
   outline: none;
   border-color: var(--cmid-control-hover-border) !important;
   box-shadow: 0 0 0 3px var(--cmid-control-hover-tint);
+}
+
+.app-shell--site:not(.app-shell--home)
+  .product-card--catalog
+  .product-card__action--quote:focus-visible {
+  border-color: var(--site-quote-action-hover) !important;
+  box-shadow: 0 0 0 3px var(--site-quote-action-ring);
 }
 
 /* Sign out stays visibly destructive, but now follows the same bordered,
@@ -3780,6 +3828,65 @@ html[data-theme='light'] .app-shell--site.app-shell--home .product-card--showcas
   font-size: 16px;
 }
 
+/* One warm palette for featured, catalog, and related product cards. */
+html[data-theme='light'] .app-shell--site {
+  --product-card-canvas: #f4ece2;
+  --product-card-surface: #fdfaf6;
+  --product-card-title: #42372d;
+  --product-card-price: #c58a3a;
+  --product-card-muted: #8f8175;
+  --product-card-border: #e7d9c9;
+}
+
+html[data-theme='light'] .app-shell--site .site-main .related-products {
+  background: var(--product-card-canvas);
+}
+
+html[data-theme='light'] .app-shell--site .site-main article.product-card {
+  border-color: var(--product-card-border);
+  color: var(--product-card-title);
+  background: var(--product-card-surface);
+  box-shadow: none;
+}
+
+html[data-theme='light'] .app-shell--site .site-main article.product-card:hover {
+  border-color: var(--product-card-border);
+  box-shadow: none;
+}
+
+html[data-theme='light'] .app-shell--site .site-main article.product-card :is(
+  .product-card__media,
+  .product-card__body
+) {
+  background: var(--product-card-surface);
+}
+
+html[data-theme='light'] .app-shell--site .site-main article.product-card h2 {
+  color: var(--product-card-title);
+}
+
+html[data-theme='light'] .app-shell--site .site-main article.product-card .product-card__price-row strong,
+html[data-theme='light'] .app-shell--site .site-main article.product-card .product-card__quote-label {
+  color: var(--product-card-price);
+}
+
+html[data-theme='light'] .app-shell--site .site-main article.product-card :is(
+  .product-card__meta,
+  .product-card__sku,
+  .product-card__placeholder,
+  .product-card__price-row > span:not(.product-card__availability)
+) {
+  color: var(--product-card-muted);
+}
+
+html[data-theme='light'] .app-shell--site .site-main article.product-card :is(
+  .product-card__footer,
+  .product-card__price-row,
+  .product-card__sku span + span
+) {
+  border-color: var(--product-card-border);
+}
+
 /* Keep the featured carousel's responsive density and controls aligned with
    the related-products carousel. */
 @media (max-width: 960px) {
@@ -3822,7 +3929,7 @@ html[data-theme='light'] .app-shell--site.app-shell--home .product-card--showcas
 /* Let the long about-page heading define the panel width, leaving the same
    breathing room on both sides.  The small offset also balances the hero's
    open space above and below the card. */
-@media (min-width: 721px) {
+@media (min-width: 1025px) {
   .app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang__noi-dung {
     box-sizing: content-box;
     max-inline-size: none;
@@ -3852,7 +3959,7 @@ html[data-theme='light'] .mobile-navigation {
   --mobile-navigation-gold: #b47624;
 }
 
-@media (max-width: 930px) {
+@media (max-width: 1024px) {
   .mobile-navigation {
     display: block;
   }
@@ -3988,23 +4095,23 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 6 5 5 5-5' stroke='%23483e34' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
-/* On phones the home header occupies space instead of covering the hero card. */
-@media (max-width: 720px) {
+/* Compact screens use the same mobile menu bar across every public route. */
+@media (max-width: 1024px) {
   .app-shell--site .topbar__inner,
   .app-shell--site .topbar__actions {
     min-height: 50px;
   }
 
+  .app-shell.app-shell--site .site-header__main {
+    width: min(calc(100% - 24px), 1360px);
+    min-height: 64px;
+    padding-inline: 16px;
+    border-radius: 13px;
+  }
+
   .app-shell--site .topbar__account-link {
     display: inline-flex;
     align-items: center;
-  }
-
-  .app-shell--site.app-shell--home .site-header {
-    position: sticky;
-    inset: auto;
-    top: 0;
-    z-index: 30;
   }
 
   .app-shell--site.app-shell--home .trang-chu__hero,
@@ -4013,10 +4120,21 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
     min-height: 610px;
     min-height: max(610px, calc(100svh - 130px));
   }
+}
 
-  .app-shell--site.app-shell--home .trang-chu__hero-content {
-    align-items: flex-start;
-    padding: 36px 0 72px;
+/* From iPad Mini upward, pin both topbar groups to the outer edges. */
+@media (min-width: 768px) {
+  .app-shell.app-shell--site .topbar__inner {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    padding-inline: 22px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .app-shell--site .topbar__contact a:last-child {
+    display: inline-flex;
   }
 }
 
@@ -4024,4 +4142,19 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
   .app-shell--site .topbar__account-link span {
     display: none;
   }
+}
+
+/* Hero titles sit directly on their image instead of a frosted glass panel. */
+html[data-theme] .app-shell--site :is(
+  .trang-chu__hero-panel,
+  .khung-dau-trang__noi-dung,
+  .catalog-hero__glass,
+  .tin-tuc__hero-glass,
+  .tin-tuc__hero-editorial
+) {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }

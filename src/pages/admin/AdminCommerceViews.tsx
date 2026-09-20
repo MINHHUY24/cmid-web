@@ -12,14 +12,15 @@ import {
   PencilSimple,
   Plus,
   ShoppingCartSimple,
+  Trash,
   TrendUp,
   UsersThree,
   X,
 } from '@phosphor-icons/react'
-import { useMemo, useState, type CSSProperties } from 'react'
+import { useMemo, useState, type CSSProperties, type FormEvent } from 'react'
 import type { Product, ProductStatus, SaleType } from '../../types/product'
 import { formatCurrency } from '../../utils/formatCurrency'
-import { AdminPageHeading, AdminPanel, AdminSelect, AdminStatus } from './AdminPrimitives'
+import { AdminBangKhungXuong, AdminChiSoKhungXuong, AdminPageHeading, AdminPanel, AdminSelect, AdminStatus } from './AdminPrimitives'
 import type { AdminDatabase, AdminOrder } from './admin-database'
 import type { AdminView } from './admin-navigation'
 
@@ -31,18 +32,46 @@ type ReportPeriod = '30' | '90' | '365' | 'ALL'
 type RevenueChartGrouping = 'day' | 'month' | 'year'
 
 const orderStatuses: AdminOrder['status'][] = [
+  'Chờ thanh toán',
+  'Thanh toán thất bại',
   'Chờ xác nhận',
   'Đang xử lý',
+  'Chờ lấy hàng',
+  'Chờ giao hàng',
   'Đang giao',
   'Hoàn thành',
   'Đã hủy',
+  'Đã trả hàng',
 ]
 
 const paymentStatuses: AdminOrder['paymentStatus'][] = [
   'Chưa thanh toán',
+  'Thanh toán thất bại',
   'Đã thanh toán',
+  'Hoàn tiền một phần',
   'Đã hoàn tiền',
 ]
+
+const allowedOrderTransitions: Record<AdminOrder['status'], AdminOrder['status'][]> = {
+  'Chờ thanh toán': ['Đã hủy'],
+  'Thanh toán thất bại': ['Đã hủy'],
+  'Chờ xác nhận': ['Đang xử lý', 'Đã hủy'],
+  'Đang xử lý': ['Chờ lấy hàng', 'Đã hủy'],
+  'Chờ lấy hàng': ['Chờ giao hàng', 'Đã hủy'],
+  'Chờ giao hàng': ['Đang giao', 'Đã hủy'],
+  'Đang giao': ['Hoàn thành', 'Đã trả hàng'],
+  'Hoàn thành': ['Đã trả hàng'],
+  'Đã hủy': [],
+  'Đã trả hàng': [],
+}
+
+const allowedRefundTransitions: Record<AdminOrder['refunds'][number]['status'], AdminOrder['refunds'][number]['status'][]> = {
+  'Chờ duyệt': ['Đã duyệt', 'Từ chối'],
+  'Đã duyệt': ['Đang hoàn tiền', 'Từ chối'],
+  'Đang hoàn tiền': ['Hoàn tất', 'Từ chối'],
+  'Hoàn tất': [],
+  'Từ chối': [],
+}
 
 const productStatusLabels: Record<ProductStatus, string> = {
   ACTIVE: 'Đang bán',
@@ -58,6 +87,7 @@ const saleTypeLabels: Record<SaleType, string> = {
 export interface AdminDashboardViewProps {
   products: Product[]
   database: AdminDatabase
+  isLoading: boolean
   onNavigate: (view: AdminView) => void
 }
 
@@ -68,28 +98,40 @@ export interface AdminProductsListViewProps {
   onRetry: () => void
   onCreate: () => void
   onEdit: (product: Product) => void
+  onDelete: (product: Product) => Promise<void>
 }
 
 export interface AdminOrdersViewProps {
   database: AdminDatabase
-  onStatusChange: (orderId: string, status: AdminOrder['status']) => void
+  isLoading: boolean
+  errorMessage: string | null
+  onRetry: () => void
+  onStatusChange: (orderId: string, status: AdminOrder['status']) => Promise<AdminOrder>
+  onMarkPaid: (orderId: string) => Promise<AdminOrder>
+  onCreateRefund: (orderId: string, amount: number, reason: string) => Promise<AdminOrder>
+  onRefundStatusChange: (refundId: string, status: AdminOrder['refunds'][number]['status']) => Promise<AdminOrder>
 }
 
 export interface AdminReportsViewProps {
   products: Product[]
   database: AdminDatabase
+  isLoading: boolean
 }
 
 export function AdminDashboardView({
   products,
   database,
+  isLoading,
   onNavigate,
 }: AdminDashboardViewProps) {
   const [dashboardRevenuePeriod, setDashboardRevenuePeriod] = useState<6 | 12>(6)
-  const paidOrders = database.orders.filter(
-    (order) => order.paymentStatus === 'Đã thanh toán' && order.status !== 'Đã hủy',
-  )
-  const recordedRevenue = sum(paidOrders.map((order) => order.total))
+
+  if (isLoading) {
+    return <AdminTongQuanKhungXuong onNavigate={onNavigate} />
+  }
+
+  const paidOrders = database.orders.filter((order) => getRecognizedOrderRevenue(order) > 0)
+  const recordedRevenue = sum(paidOrders.map(getRecognizedOrderRevenue))
   const activeProducts = products.filter((product) => product.status === 'ACTIVE').length
   const pendingOrders = database.orders.filter((order) => order.status === 'Chờ xác nhận').length
   const monthlyRevenue = getMonthlyRevenue(database.orders, dashboardRevenuePeriod)
@@ -229,11 +271,41 @@ export function AdminProductsListView({
   onRetry,
   onCreate,
   onEdit,
+  onDelete,
 }: AdminProductsListViewProps) {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('ALL')
   const [status, setStatus] = useState<ProductStatusFilter>('ALL')
   const [saleType, setSaleType] = useState<ProductSaleFilter>('ALL')
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  function requestDelete(product: Product) {
+    setDeletingProduct(product)
+    setDeleteError(null)
+  }
+
+  function closeDeleteDialog() {
+    if (isDeleting) return
+    setDeletingProduct(null)
+    setDeleteError(null)
+  }
+
+  async function confirmDelete() {
+    if (!deletingProduct || isDeleting) return
+
+    setIsDeleting(true)
+    setDeleteError(null)
+    try {
+      await onDelete(deletingProduct)
+      setDeletingProduct(null)
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Không thể xóa sản phẩm.')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   const categories = useMemo(() => {
     const options = new Map<string, string>()
@@ -272,35 +344,38 @@ export function AdminProductsListView({
         )}
       />
 
-      <div className="admin-kpi-grid">
-        <MetricCard label="Tổng sản phẩm" value={String(products.length)} helper="Toàn bộ catalogue" icon={<Package size={19} />} />
-        <MetricCard label="Đang bán" value={String(products.filter((item) => item.status === 'ACTIVE').length)} helper="Hiển thị trên website" icon={<CheckCircle size={19} />} />
-        <MetricCard label="Mua trực tiếp" value={String(products.filter((item) => item.saleType === 'DIRECT_ORDER').length)} helper="Có thể thêm vào giỏ" icon={<ShoppingCartSimple size={19} />} />
-        <MetricCard label="Cần báo giá" value={String(products.filter((item) => item.saleType === 'REQUEST_QUOTE').length)} helper="Chuyển sang liên hệ" icon={<ChartBar size={19} />} />
-      </div>
+      {isLoading ? <AdminChiSoKhungXuong label="Đang tải số liệu sản phẩm" /> : (
+        <div className="admin-kpi-grid">
+          <MetricCard label="Tổng sản phẩm" value={String(products.length)} helper="Toàn bộ catalogue" icon={<Package size={19} />} />
+          <MetricCard label="Đang bán" value={String(products.filter((item) => item.status === 'ACTIVE').length)} helper="Hiển thị trên website" icon={<CheckCircle size={19} />} />
+          <MetricCard label="Mua trực tiếp" value={String(products.filter((item) => item.saleType === 'DIRECT_ORDER').length)} helper="Có thể thêm vào giỏ" icon={<ShoppingCartSimple size={19} />} />
+          <MetricCard label="Cần báo giá" value={String(products.filter((item) => item.saleType === 'REQUEST_QUOTE').length)} helper="Chuyển sang liên hệ" icon={<ChartBar size={19} />} />
+        </div>
+      )}
 
       <AdminPanel className="admin-toolbar admin-commerce-toolbar">
         <label>
           <MagnifyingGlass size={17} />
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm theo tên, mã SKU, thương hiệu..." />
         </label>
-        <AdminSelect className="admin-inline-select" value={category} onChange={setCategory} aria-label="Lọc danh mục" options={[
-          { value: 'ALL', label: 'Tất cả danh mục' },
-          ...categories.map(([slug, name]) => ({ value: slug, label: name })),
-        ]} />
-        <AdminSelect className="admin-inline-select" value={status} onChange={(value) => setStatus(value as ProductStatusFilter)} aria-label="Lọc trạng thái" options={[
-          { value: 'ALL', label: 'Tất cả trạng thái' },
-          ...Object.entries(productStatusLabels).map(([value, label]) => ({ value, label })),
-        ]} />
-        <AdminSelect className="admin-inline-select" value={saleType} onChange={(value) => setSaleType(value as ProductSaleFilter)} aria-label="Lọc loại bán" options={[
-          { value: 'ALL', label: 'Tất cả loại bán' },
-          ...Object.entries(saleTypeLabels).map(([value, label]) => ({ value, label })),
-        ]} />
-        <span>{filteredProducts.length} sản phẩm</span>
+        <div className="admin-commerce-toolbar__filters">
+          <AdminSelect className="admin-inline-select" value={category} onChange={setCategory} aria-label="Lọc danh mục" options={[
+            { value: 'ALL', label: 'Tất cả danh mục' },
+            ...categories.map(([slug, name]) => ({ value: slug, label: name })),
+          ]} />
+          <AdminSelect className="admin-inline-select admin-commerce-toolbar__status-filter" value={status} onChange={(value) => setStatus(value as ProductStatusFilter)} aria-label="Lọc trạng thái" options={[
+            { value: 'ALL', label: 'Tất cả trạng thái' },
+            ...Object.entries(productStatusLabels).map(([value, label]) => ({ value, label })),
+          ]} />
+          <AdminSelect className="admin-inline-select" value={saleType} onChange={(value) => setSaleType(value as ProductSaleFilter)} aria-label="Lọc loại bán" options={[
+            { value: 'ALL', label: 'Tất cả loại bán' },
+            ...Object.entries(saleTypeLabels).map(([value, label]) => ({ value, label })),
+          ]} />
+        </div>
       </AdminPanel>
 
       {isLoading ? (
-        <AdminPanel><div className="admin-loading"><Package size={30} /><p>Đang tải sản phẩm...</p></div></AdminPanel>
+        <AdminPanel className="admin-table-panel"><AdminBangKhungXuong columns={8} label="Đang tải danh sách sản phẩm" /></AdminPanel>
       ) : errorMessage ? (
         <AdminPanel>
           <div className="admin-empty">
@@ -333,7 +408,12 @@ export function AdminProductsListView({
                       <td>{saleTypeLabels[product.saleType]}</td>
                       <td>{typeof product.stock === 'number' ? `${product.stock} ${product.unit ?? ''}`.trim() : 'Chưa cập nhật'}</td>
                       <td className="admin-table__cell--center"><AdminStatus>{productStatusLabels[product.status]}</AdminStatus></td>
-                      <td className="admin-table__cell--actions"><button className="admin-row-action" type="button" onClick={() => onEdit(product)} aria-label={`Chỉnh sửa ${product.name}`}><PencilSimple size={17} /></button></td>
+                      <td className="admin-table__cell--actions">
+                        <div className="admin-row-actions">
+                          <button type="button" onClick={() => onEdit(product)} aria-label={`Chỉnh sửa ${product.name}`}><PencilSimple size={17} /></button>
+                          <button className="is-danger" type="button" onClick={() => requestDelete(product)} aria-label={`Xóa ${product.name}`}><Trash size={17} /></button>
+                        </div>
+                      </td>
                     </tr>
                   )
                 })}
@@ -343,15 +423,54 @@ export function AdminProductsListView({
           {filteredProducts.length === 0 ? <div className="admin-empty"><Package size={29} /><p>Không có sản phẩm phù hợp bộ lọc.</p></div> : null}
         </AdminPanel>
       )}
+
+      {deletingProduct ? (
+        <div className="admin-dialog-backdrop" role="presentation" onMouseDown={closeDeleteDialog}>
+          <section
+            className="admin-dialog admin-dialog--confirm"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="admin-delete-product-title"
+            aria-describedby="admin-delete-product-description"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <header>
+              <div>
+                <h2 id="admin-delete-product-title">Xóa sản phẩm?</h2>
+                <p id="admin-delete-product-description">
+                  Bạn có chắc muốn xóa “{deletingProduct.name}” ({deletingProduct.sku})? Thao tác này không thể hoàn tác.
+                </p>
+              </div>
+            </header>
+            {deleteError ? <div className="admin-dialog__body"><p className="admin-form-error" role="alert">{deleteError}</p></div> : null}
+            <footer>
+              <button className="admin-button" type="button" disabled={isDeleting} onClick={closeDeleteDialog}>Hủy</button>
+              <button className="admin-button admin-button--danger" type="button" disabled={isDeleting} onClick={() => void confirmDelete()}>
+                {isDeleting ? 'Đang xóa...' : 'Xóa sản phẩm'}
+              </button>
+            </footer>
+          </section>
+        </div>
+      ) : null}
     </>
   )
 }
 
-export function AdminOrdersView({ database, onStatusChange }: AdminOrdersViewProps) {
+export function AdminOrdersView({
+  database,
+  isLoading,
+  errorMessage,
+  onRetry,
+  onStatusChange,
+  onMarkPaid,
+  onCreateRefund,
+  onRefundStatusChange,
+}: AdminOrdersViewProps) {
   const [activeTab, setActiveTab] = useState<OrderFilter>('ALL')
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>('ALL')
   const [search, setSearch] = useState('')
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const filteredOrders = useMemo(() => {
     const query = normalize(search)
@@ -369,9 +488,53 @@ export function AdminOrdersView({ database, onStatusChange }: AdminOrdersViewPro
     })
   }, [activeTab, database.orders, paymentFilter, search])
 
-  function updateStatus(orderId: string, status: AdminOrder['status']) {
-    onStatusChange(orderId, status)
-    setSelectedOrder((current) => current?.id === orderId ? { ...current, status } : current)
+  async function updateStatus(orderId: string, status: AdminOrder['status']) {
+    setActionError(null)
+    try {
+      const updatedOrder = await onStatusChange(orderId, status)
+      setSelectedOrder((current) => current?.id === orderId ? updatedOrder : current)
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái đơn hàng.')
+    }
+  }
+
+  async function markPaid(orderId: string) {
+    setActionError(null)
+    try {
+      const updatedOrder = await onMarkPaid(orderId)
+      setSelectedOrder((current) => current?.id === orderId ? updatedOrder : current)
+      return updatedOrder
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Không thể xác nhận thanh toán.'
+      setActionError(message)
+      throw error
+    }
+  }
+
+  async function createRefund(orderId: string, amount: number, reason: string) {
+    setActionError(null)
+    try {
+      const updatedOrder = await onCreateRefund(orderId, amount, reason)
+      setSelectedOrder((current) => current?.id === orderId ? updatedOrder : current)
+      return updatedOrder
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Không thể tạo yêu cầu hoàn tiền.'
+      setActionError(message)
+      throw error
+    }
+  }
+
+  async function updateRefundStatus(refundId: string, status: AdminOrder['refunds'][number]['status']) {
+    setActionError(null)
+    try {
+      const updatedOrder = await onRefundStatusChange(refundId, status)
+      setSelectedOrder((current) => current?.id === updatedOrder.id ? updatedOrder : current)
+      return updatedOrder
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Không thể cập nhật hoàn tiền.'
+      setActionError(message)
+      throw error
+    }
   }
 
   return (
@@ -402,37 +565,45 @@ export function AdminOrdersView({ database, onStatusChange }: AdminOrdersViewPro
           <MagnifyingGlass size={17} />
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm mã đơn, khách hàng, sản phẩm..." />
         </label>
-        <AdminSelect className="admin-inline-select" value={paymentFilter} onChange={(value) => setPaymentFilter(value as PaymentFilter)} aria-label="Lọc thanh toán" options={[
+        <AdminSelect className="admin-inline-select admin-orders-toolbar__payment-filter" value={paymentFilter} onChange={(value) => setPaymentFilter(value as PaymentFilter)} aria-label="Lọc thanh toán" options={[
           { value: 'ALL', label: 'Tất cả thanh toán' },
           ...paymentStatuses.map((status) => ({ value: status, label: status })),
         ]} />
-        <span>{filteredOrders.length} đơn hàng</span>
       </AdminPanel>
 
       <AdminPanel className="admin-table-panel">
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr><th>Mã đơn</th><th>Khách hàng</th><th>Sản phẩm</th><th>Tổng giá trị</th><th className="admin-table__cell--center">Thanh toán</th><th className="admin-table__cell--center">Trạng thái</th><th className="admin-table__cell--actions">Chi tiết</th></tr>
-            </thead>
-            <tbody>
-              {filteredOrders.map((order) => (
-                <tr key={order.id}>
-                  <td><strong>{order.id}</strong><small>{formatDate(order.createdAt)}</small></td>
-                  <td>{order.customer}<small>{order.phone || order.email || 'Chưa có liên hệ'}</small></td>
-                  <td>{summarizeOrderItems(order)}</td>
-                  <td className="admin-table__price">{formatCurrency(order.total)}</td>
-                  <td className="admin-table__cell--center"><AdminStatus>{order.paymentStatus}</AdminStatus></td>
-                  <td className="admin-table__cell--center">
-                    <AdminSelect className="admin-inline-select" value={order.status} onChange={(value) => updateStatus(order.id, value as AdminOrder['status'])} aria-label={`Trạng thái đơn ${order.id}`} options={orderStatuses.map((status) => ({ value: status, label: status }))} />
-                  </td>
-                  <td className="admin-table__cell--actions"><button className="admin-row-action" type="button" onClick={() => setSelectedOrder(order)} aria-label={`Xem đơn ${order.id}`}><Eye size={18} /></button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {filteredOrders.length === 0 ? <div className="admin-empty"><ShoppingCartSimple size={29} /><p>Không có đơn hàng phù hợp bộ lọc.</p></div> : null}
+        {errorMessage ? (
+          <div className="admin-load-error" role="alert">
+            <p>{errorMessage}</p>
+            <button className="admin-button" type="button" onClick={onRetry}>Thử lại</button>
+          </div>
+        ) : null}
+        {actionError ? <p className="admin-form-error admin-orders-error" role="alert">{actionError}</p> : null}
+        {isLoading ? <AdminBangKhungXuong columns={7} label="Đang tải danh sách đơn hàng" /> : (
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr><th>Mã đơn</th><th>Khách hàng</th><th>Sản phẩm</th><th>Tổng giá trị</th><th className="admin-table__cell--center">Thanh toán</th><th className="admin-table__cell--center">Trạng thái</th><th className="admin-table__cell--actions">Chi tiết</th></tr>
+              </thead>
+              <tbody>
+                {filteredOrders.map((order) => (
+                  <tr key={order.id}>
+                    <td><strong>{order.id}</strong><small>{formatDate(order.createdAt)}</small></td>
+                    <td>{order.customer}<small>{order.phone || order.email || 'Chưa có liên hệ'}</small></td>
+                    <td>{summarizeOrderItems(order)}</td>
+                    <td className="admin-table__price">{formatCurrency(order.total)}</td>
+                    <td className="admin-table__cell--center"><AdminStatus>{order.paymentStatus}</AdminStatus></td>
+                    <td className="admin-table__cell--center">
+                      <AdminSelect className="admin-inline-select" value={order.status} onChange={(value) => void updateStatus(order.id, value as AdminOrder['status'])} aria-label={`Trạng thái đơn ${order.id}`} options={getOrderStatusOptions(order.status)} />
+                    </td>
+                    <td className="admin-table__cell--actions"><button className="admin-row-action" type="button" onClick={() => setSelectedOrder(order)} aria-label={`Xem đơn ${order.id}`}><Eye size={18} /></button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {!isLoading && !errorMessage && filteredOrders.length === 0 ? <div className="admin-empty"><ShoppingCartSimple size={29} /><p>Không có đơn hàng phù hợp bộ lọc.</p></div> : null}
       </AdminPanel>
 
       {selectedOrder ? (
@@ -440,13 +611,16 @@ export function AdminOrdersView({ database, onStatusChange }: AdminOrdersViewPro
           order={selectedOrder}
           onClose={() => setSelectedOrder(null)}
           onStatusChange={(status) => updateStatus(selectedOrder.id, status)}
+          onMarkPaid={() => markPaid(selectedOrder.id)}
+          onCreateRefund={(amount, reason) => createRefund(selectedOrder.id, amount, reason)}
+          onRefundStatusChange={updateRefundStatus}
         />
       ) : null}
     </>
   )
 }
 
-export function AdminReportsView({ products, database }: AdminReportsViewProps) {
+export function AdminReportsView({ products, database, isLoading }: AdminReportsViewProps) {
   const [period, setPeriod] = useState<ReportPeriod>('365')
   const [revenueChartGrouping, setRevenueChartGrouping] = useState<RevenueChartGrouping>('month')
   const [revenueChartPage, setRevenueChartPage] = useState(0)
@@ -456,8 +630,8 @@ export function AdminReportsView({ products, database }: AdminReportsViewProps) 
     [database.orders, period, reportingAnchor],
   )
   const validOrders = orders.filter((order) => order.status !== 'Đã hủy')
-  const paidOrders = validOrders.filter((order) => order.paymentStatus === 'Đã thanh toán')
-  const revenue = sum(paidOrders.map((order) => order.total))
+  const paidOrders = validOrders.filter((order) => getRecognizedOrderRevenue(order) > 0)
+  const revenue = sum(paidOrders.map(getRecognizedOrderRevenue))
   const averageOrder = validOrders.length > 0 ? Math.round(sum(validOrders.map((order) => order.total)) / validOrders.length) : 0
   const completionRate = validOrders.length > 0
     ? Math.round((validOrders.filter((order) => order.status === 'Hoàn thành').length / validOrders.length) * 100)
@@ -467,6 +641,10 @@ export function AdminReportsView({ products, database }: AdminReportsViewProps) 
   const maxRevenue = Math.max(1, ...revenueChart.map((item) => item.value))
   const topProducts = aggregateProducts(validOrders)
   const maxStatusCount = Math.max(1, ...orderStatuses.map((status) => orders.filter((order) => order.status === status).length))
+
+  if (isLoading) {
+    return <AdminBaoCaoKhungXuong />
+  }
 
   return (
     <>
@@ -588,6 +766,46 @@ export function AdminReportsView({ products, database }: AdminReportsViewProps) 
   )
 }
 
+function AdminTongQuanKhungXuong({ onNavigate }: { onNavigate: (view: AdminView) => void }) {
+  return (
+    <>
+      <AdminPageHeading
+        title="Xin chào, Admin"
+        description="Tổng hợp nhanh hoạt động thương mại và nội dung đang vận hành trên website CMID."
+        action={(
+          <button className="admin-button admin-button--primary" type="button" onClick={() => onNavigate('reports')}>
+            <ChartBar size={17} /> Xem báo cáo
+          </button>
+        )}
+      />
+      <AdminChiSoKhungXuong label="Đang tải số liệu tổng quan" />
+      <div className="admin-dashboard-grid">
+        <AdminPanel title="Doanh thu gần đây" className="admin-table-panel"><AdminBangKhungXuong columns={5} rows={3} label="Đang tải biểu đồ doanh thu" /></AdminPanel>
+        <AdminPanel title="Việc cần xử lý" className="admin-table-panel"><AdminBangKhungXuong columns={2} rows={4} label="Đang tải việc cần xử lý" /></AdminPanel>
+      </div>
+      <div className="admin-dashboard-grid">
+        <AdminPanel title="Đơn hàng gần đây" className="admin-table-panel"><AdminBangKhungXuong columns={4} rows={4} label="Đang tải đơn hàng gần đây" /></AdminPanel>
+        <AdminPanel title="Sản phẩm cập nhật gần đây" className="admin-table-panel"><AdminBangKhungXuong columns={3} rows={4} label="Đang tải sản phẩm cập nhật" /></AdminPanel>
+      </div>
+      <AdminPanel title="Nhật ký hoạt động" className="admin-table-panel"><AdminBangKhungXuong columns={3} rows={4} label="Đang tải nhật ký hoạt động" /></AdminPanel>
+    </>
+  )
+}
+
+function AdminBaoCaoKhungXuong() {
+  return (
+    <>
+      <AdminPageHeading title="Báo cáo & thống kê" description="Theo dõi doanh thu, hiệu quả xử lý đơn và nhóm sản phẩm được quan tâm." />
+      <AdminChiSoKhungXuong label="Đang tải số liệu báo cáo" />
+      <AdminPanel title="Doanh thu theo kỳ" className="admin-table-panel"><AdminBangKhungXuong columns={6} rows={4} label="Đang tải biểu đồ doanh thu" /></AdminPanel>
+      <div className="admin-dashboard-grid admin-commerce-report-grid">
+        <AdminPanel title="Sản phẩm trong đơn hàng" className="admin-table-panel"><AdminBangKhungXuong columns={3} rows={5} label="Đang tải dữ liệu sản phẩm" /></AdminPanel>
+        <AdminPanel title="Phân bổ trạng thái đơn" className="admin-table-panel"><AdminBangKhungXuong columns={2} rows={5} label="Đang tải phân bổ trạng thái" /></AdminPanel>
+      </div>
+    </>
+  )
+}
+
 function MetricCard({
   label,
   value,
@@ -672,11 +890,87 @@ function OrderDetailDialog({
   order,
   onClose,
   onStatusChange,
+  onMarkPaid,
+  onCreateRefund,
+  onRefundStatusChange,
 }: {
   order: AdminOrder
   onClose: () => void
-  onStatusChange: (status: AdminOrder['status']) => void
+  onStatusChange: (status: AdminOrder['status']) => Promise<void>
+  onMarkPaid: () => Promise<AdminOrder>
+  onCreateRefund: (amount: number, reason: string) => Promise<AdminOrder>
+  onRefundStatusChange: (refundId: string, status: AdminOrder['refunds'][number]['status']) => Promise<AdminOrder>
 }) {
+  const reservedRefundAmount = order.refunds
+    .filter((refund) => refund.status !== 'Từ chối')
+    .reduce((sum, refund) => sum + refund.amount, 0)
+  const remainingRefund = Math.max(0, order.total - reservedRefundAmount)
+  const [refundAmount, setRefundAmount] = useState(String(remainingRefund))
+  const [refundReason, setRefundReason] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [dialogError, setDialogError] = useState<string | null>(null)
+  const canMarkPaid = (
+    order.paymentMethodCode === 'BANK_TRANSFER' || order.paymentMethodCode === 'COD'
+  ) && (
+    order.paymentStatus === 'Chưa thanh toán' || order.paymentStatus === 'Thanh toán thất bại'
+  ) && order.status !== 'Đã hủy' && order.status !== 'Đã trả hàng'
+  const canRefund = (
+    order.paymentStatus === 'Đã thanh toán' || order.paymentStatus === 'Hoàn tiền một phần'
+  ) && remainingRefund >= 1_000
+
+  async function markPaid() {
+    setDialogError(null)
+    setIsSaving(true)
+    try {
+      await onMarkPaid()
+    } catch (error) {
+      setDialogError(error instanceof Error ? error.message : 'Không thể xác nhận thanh toán.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  async function submitRefund(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const amount = Math.round(Number(refundAmount))
+    const reason = refundReason.trim()
+    if (!Number.isSafeInteger(amount) || amount < 1_000 || amount > remainingRefund) {
+      setDialogError(`Số tiền hoàn phải từ 1.000đ đến ${formatCurrency(remainingRefund)}.`)
+      return
+    }
+    if (!reason) {
+      setDialogError('Vui lòng nhập lý do hoàn tiền.')
+      return
+    }
+
+    setDialogError(null)
+    setIsSaving(true)
+    try {
+      const updatedOrder = await onCreateRefund(amount, reason)
+      setRefundReason('')
+      const nextReserved = updatedOrder.refunds
+        .filter((refund) => refund.status !== 'Từ chối')
+        .reduce((sum, refund) => sum + refund.amount, 0)
+      setRefundAmount(String(Math.max(0, updatedOrder.total - nextReserved)))
+    } catch (error) {
+      setDialogError(error instanceof Error ? error.message : 'Không thể tạo yêu cầu hoàn tiền.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  async function changeRefundStatus(refundId: string, status: AdminOrder['refunds'][number]['status']) {
+    setDialogError(null)
+    setIsSaving(true)
+    try {
+      await onRefundStatusChange(refundId, status)
+    } catch (error) {
+      setDialogError(error instanceof Error ? error.message : 'Không thể cập nhật hoàn tiền.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="admin-dialog-backdrop" role="presentation" onMouseDown={onClose}>
       <section className="admin-dialog admin-order-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-order-detail-title" onMouseDown={(event) => event.stopPropagation()}>
@@ -712,18 +1006,89 @@ function OrderDetailDialog({
           <dl className="admin-order-detail__totals">
             <div><dt>Tạm tính</dt><dd>{formatCurrency(order.subtotal)}</dd></div>
             <div><dt>VAT</dt><dd>{formatCurrency(order.vat)}</dd></div>
+            {order.refundedAmount > 0 ? <div><dt>Đã hoàn</dt><dd>-{formatCurrency(order.refundedAmount)}</dd></div> : null}
             <div><dt>Tổng cộng</dt><dd>{formatCurrency(order.total)}</dd></div>
           </dl>
           {order.note ? <div className="admin-note-block"><p><strong>Ghi chú:</strong> {order.note}</p></div> : null}
+
+          {dialogError ? <p className="admin-form-error" role="alert">{dialogError}</p> : null}
+
+          {order.refunds.length > 0 ? (
+            <section className="admin-order-refunds">
+              <h3>Lịch sử hoàn tiền</h3>
+              {order.refunds.map((refund) => {
+                const statusOptions = [refund.status, ...allowedRefundTransitions[refund.status]]
+                  .map((status) => ({ value: status, label: status }))
+                const isManualMutable = refund.provider === 'MANUAL' && allowedRefundTransitions[refund.status].length > 0
+                return (
+                  <article key={refund.id}>
+                    <div>
+                      <strong>{formatCurrency(refund.amount)}</strong>
+                      <span>{refund.reason}</span>
+                      <small>{refund.provider === 'MOMO' ? 'MoMo' : 'Xử lý thủ công'} · {formatDateTime(refund.createdAt)}</small>
+                      {refund.processedBy ? <small>Xử lý bởi {refund.processedBy}{refund.processedAt ? ` · ${formatDateTime(refund.processedAt)}` : ''}</small> : null}
+                    </div>
+                    <AdminSelect
+                      className="admin-inline-select admin-order-refunds__status"
+                      value={refund.status}
+                      disabled={!isManualMutable || isSaving}
+                      onChange={(value) => void changeRefundStatus(refund.id, value as typeof refund.status)}
+                      aria-label={`Trạng thái hoàn tiền ${refund.id}`}
+                      options={statusOptions}
+                    />
+                  </article>
+                )
+              })}
+            </section>
+          ) : null}
+
+          {order.statusHistory.length > 0 ? (
+            <section className="admin-order-history">
+              <h3>Lịch sử trạng thái</h3>
+              {order.statusHistory.map((entry) => (
+                <article key={entry.id}>
+                  <span>{entry.fromStatus ? `${entry.fromStatus} → ` : ''}<strong>{entry.toStatus}</strong></span>
+                  <small>{entry.actor} · {formatDateTime(entry.createdAt)}</small>
+                  {entry.note ? <p>{entry.note}</p> : null}
+                </article>
+              ))}
+            </section>
+          ) : null}
+
+          {canRefund ? (
+            <form className="admin-order-refund-form" onSubmit={submitRefund}>
+              <h3>Tạo yêu cầu hoàn tiền</h3>
+              <div className="admin-form-grid admin-form-grid--two">
+                <label className="admin-field">
+                  <span>Số tiền hoàn (VNĐ)</span>
+                  <input type="number" min="1000" max={remainingRefund} step="1000" value={refundAmount} onChange={(event) => setRefundAmount(event.target.value)} required />
+                  <small>Còn có thể hoàn: {formatCurrency(remainingRefund)}</small>
+                </label>
+                <label className="admin-field">
+                  <span>Lý do hoàn tiền</span>
+                  <input value={refundReason} maxLength={500} onChange={(event) => setRefundReason(event.target.value)} required />
+                  <small>MoMo được gửi tự động; COD/chuyển khoản cần xác nhận thủ công.</small>
+                </label>
+              </div>
+              <button className="admin-button admin-button--danger" type="submit" disabled={isSaving}>
+                {isSaving ? 'Đang xử lý...' : 'Tạo yêu cầu hoàn tiền'}
+              </button>
+            </form>
+          ) : null}
         </div>
 
         <footer>
+          {canMarkPaid ? <button className="admin-button admin-button--primary" type="button" disabled={isSaving} onClick={() => void markPaid()}>Xác nhận đã thanh toán</button> : null}
           <button className="admin-button" type="button" onClick={onClose}>Đóng</button>
-          <AdminSelect className="admin-inline-select" value={order.status} onChange={(value) => onStatusChange(value as AdminOrder['status'])} aria-label="Cập nhật trạng thái đơn hàng" options={orderStatuses.map((status) => ({ value: status, label: status }))} />
+          <AdminSelect className="admin-inline-select admin-order-detail__status-select" value={order.status} disabled={isSaving || allowedOrderTransitions[order.status].length === 0} onChange={(value) => void onStatusChange(value as AdminOrder['status'])} aria-label="Cập nhật trạng thái đơn hàng" options={getOrderStatusOptions(order.status)} />
         </footer>
       </section>
     </div>
   )
+}
+
+function getOrderStatusOptions(status: AdminOrder['status']) {
+  return [status, ...allowedOrderTransitions[status]].map((value) => ({ value, label: value }))
 }
 
 function getProductImage(product: Product) {
@@ -740,6 +1105,12 @@ function normalize(value: string) {
 
 function sum(values: number[]) {
   return values.reduce((total, value) => total + value, 0)
+}
+
+function getRecognizedOrderRevenue(order: AdminOrder) {
+  if (order.status === 'Đã hủy' || order.paymentStatus === 'Đã hoàn tiền') return 0
+  if (order.paymentStatus !== 'Đã thanh toán' && order.paymentStatus !== 'Hoàn tiền một phần') return 0
+  return Math.max(0, order.total - order.refundedAmount)
 }
 
 function formatDate(value: string) {
@@ -810,12 +1181,13 @@ function getMonthlyRevenue(orders: AdminOrder[], length: number, anchor = getRep
   const byKey = new Map(months.map((month) => [month.key, month]))
 
   orders.forEach((order) => {
-    if (order.paymentStatus !== 'Đã thanh toán' || order.status === 'Đã hủy') return
+    const revenue = getRecognizedOrderRevenue(order)
+    if (revenue <= 0) return
     const date = new Date(order.createdAt)
     if (Number.isNaN(date.getTime())) return
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
     const month = byKey.get(key)
-    if (month) month.value += order.total
+    if (month) month.value += revenue
   })
 
   return months
@@ -849,11 +1221,12 @@ function getDailyRevenue(orders: AdminOrder[], length: number, anchor: Date) {
   const byKey = new Map(days.map((day) => [day.key, day]))
 
   orders.forEach((order) => {
-    if (order.paymentStatus !== 'Đã thanh toán' || order.status === 'Đã hủy') return
+    const revenue = getRecognizedOrderRevenue(order)
+    if (revenue <= 0) return
     const date = new Date(order.createdAt)
     if (Number.isNaN(date.getTime())) return
     const day = byKey.get(formatDateKey(date))
-    if (day) day.value += order.total
+    if (day) day.value += revenue
   })
 
   return days
@@ -867,11 +1240,12 @@ function getYearlyRevenue(orders: AdminOrder[], length: number, anchor: Date) {
   const byKey = new Map(years.map((year) => [year.key, year]))
 
   orders.forEach((order) => {
-    if (order.paymentStatus !== 'Đã thanh toán' || order.status === 'Đã hủy') return
+    const revenue = getRecognizedOrderRevenue(order)
+    if (revenue <= 0) return
     const date = new Date(order.createdAt)
     if (Number.isNaN(date.getTime())) return
     const year = byKey.get(String(date.getFullYear()))
-    if (year) year.value += order.total
+    if (year) year.value += revenue
   })
 
   return years
@@ -899,7 +1273,7 @@ function aggregateProducts(orders: AdminOrder[]) {
 function exportOrdersCsv(orders: AdminOrder[]) {
   downloadCsv(
     `cmid-don-hang-${new Date().toISOString().slice(0, 10)}.csv`,
-    ['Mã đơn', 'Ngày đặt', 'Khách hàng', 'Email', 'Điện thoại', 'Sản phẩm', 'Tổng giá trị', 'Thanh toán', 'Trạng thái'],
+    ['Mã đơn', 'Ngày đặt', 'Khách hàng', 'Email', 'Điện thoại', 'Sản phẩm', 'Tổng giá trị', 'Đã hoàn', 'Doanh thu thuần', 'Thanh toán', 'Trạng thái'],
     orders.map((order) => [
       order.id,
       formatDate(order.createdAt),
@@ -908,6 +1282,8 @@ function exportOrdersCsv(orders: AdminOrder[]) {
       order.phone,
       order.items.map((item) => `${item.name} x${item.quantity}`).join('; '),
       order.total,
+      order.refundedAmount,
+      getRecognizedOrderRevenue(order),
       order.paymentStatus,
       order.status,
     ]),
@@ -917,7 +1293,7 @@ function exportOrdersCsv(orders: AdminOrder[]) {
 function exportReportCsv(orders: AdminOrder[]) {
   downloadCsv(
     `cmid-bao-cao-${new Date().toISOString().slice(0, 10)}.csv`,
-    ['Mã đơn', 'Ngày', 'Khách hàng', 'Tạm tính', 'VAT', 'Tổng cộng', 'Thanh toán', 'Trạng thái'],
+    ['Mã đơn', 'Ngày', 'Khách hàng', 'Tạm tính', 'VAT', 'Tổng cộng', 'Đã hoàn', 'Doanh thu thuần', 'Thanh toán', 'Trạng thái'],
     orders.map((order) => [
       order.id,
       formatDate(order.createdAt),
@@ -925,6 +1301,8 @@ function exportReportCsv(orders: AdminOrder[]) {
       order.subtotal,
       order.vat,
       order.total,
+      order.refundedAmount,
+      getRecognizedOrderRevenue(order),
       order.paymentStatus,
       order.status,
     ]),

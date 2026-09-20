@@ -5,7 +5,6 @@ import type { Product } from '../../types/product'
 const ADMIN_PRODUCTS_KEY = 'cmid-admin-products'
 const ADMIN_NEWS_KEY = 'cmid-admin-news'
 const ADMIN_NEWS_HIDDEN_KEY = 'cmid-admin-news-hidden'
-const ADMIN_PROJECTS_KEY = 'cmid-admin-projects'
 export const ADMIN_PRODUCTS_UPDATED_EVENT = 'cmid-admin-products-updated'
 export const ADMIN_CONTENT_UPDATED_EVENT = 'cmid-admin-content-updated'
 
@@ -28,31 +27,6 @@ export interface AdminNewsInput {
 }
 
 type StoredAdminNews = Record<AppLanguage, AdminNewsArticle[]>
-
-export interface AdminProject {
-  id: string
-  slug: string
-  title: string
-  location: string
-  image: string
-  description: string
-  status: AdminPublishStatus
-  featured: boolean
-}
-
-export interface AdminProjectInput {
-  id?: string
-  slug?: string
-  status?: AdminProject['status']
-  featured?: boolean
-  image: string
-  vi: Pick<AdminProject, 'title' | 'location'> & Partial<Pick<AdminProject, 'description'>>
-  en: Pick<AdminProject, 'title' | 'location'> & Partial<Pick<AdminProject, 'description'>>
-}
-
-export type AdminProjectCard = Pick<AdminProject, 'title' | 'location' | 'image'>
-
-type StoredAdminProjects = Record<AppLanguage, AdminProject[]>
 
 function readStorage<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback
@@ -173,88 +147,10 @@ export function deleteAdminNewsArticle(slug: string) {
   window.dispatchEvent(new Event(ADMIN_CONTENT_UPDATED_EVENT))
 }
 
-export function getAdminProjects(
-  language: AppLanguage,
-  includeDrafts: true,
-): AdminProject[]
-export function getAdminProjects(
-  language: AppLanguage,
-  includeDrafts?: false,
-): AdminProjectCard[]
-export function getAdminProjects(
-  language: AppLanguage,
-  includeDrafts = false,
-): AdminProject[] | AdminProjectCard[] {
-  const projects = readStorage<StoredAdminProjects>(ADMIN_PROJECTS_KEY, { vi: [], en: [] })[
-    language
-  ].map(normalizeAdminProject)
-
-  return includeDrafts
-    ? projects
-    : projects.filter((project) => project.status === 'PUBLISHED')
-}
-
-export function saveAdminProject(input: AdminProjectInput) {
-  const storedProjects = readStorage<StoredAdminProjects>(ADMIN_PROJECTS_KEY, {
-    vi: [],
-    en: [],
-  })
-  const projects: StoredAdminProjects = {
-    vi: storedProjects.vi.map(normalizeAdminProject),
-    en: storedProjects.en.map(normalizeAdminProject),
-  }
-
-  const id = input.id ?? `project-${Date.now()}`
-  const slug = input.slug || toSlug(input.vi.title) || id
-  const shared = {
-    id,
-    slug,
-    image: input.image,
-    status: input.status ?? 'PUBLISHED' as const,
-    featured: input.featured ?? false,
-  }
-  writeStorage(ADMIN_PROJECTS_KEY, {
-    vi: [
-      { ...shared, ...input.vi, description: input.vi.description ?? '' },
-      ...projects.vi.filter((project) => project.id !== id),
-    ],
-    en: [
-      { ...shared, ...input.en, description: input.en.description ?? '' },
-      ...projects.en.filter((project) => project.id !== id),
-    ],
-  })
-  window.dispatchEvent(new Event(ADMIN_CONTENT_UPDATED_EVENT))
-}
-
-export function deleteAdminProject(id: string) {
-  const storedProjects = readStorage<StoredAdminProjects>(ADMIN_PROJECTS_KEY, { vi: [], en: [] })
-  const projects: StoredAdminProjects = {
-    vi: storedProjects.vi.map(normalizeAdminProject),
-    en: storedProjects.en.map(normalizeAdminProject),
-  }
-  writeStorage(ADMIN_PROJECTS_KEY, {
-    vi: projects.vi.filter((project) => project.id !== id),
-    en: projects.en.filter((project) => project.id !== id),
-  })
-  window.dispatchEvent(new Event(ADMIN_CONTENT_UPDATED_EVENT))
-}
-
 function normalizeAdminNewsArticle(article: AdminNewsArticle): AdminNewsArticle {
   return {
     ...article,
     status: article.status ?? 'PUBLISHED',
-  }
-}
-
-function normalizeAdminProject(project: AdminProject): AdminProject {
-  const slug = project.slug || toSlug(project.title) || `du-an-${Date.now()}`
-  return {
-    ...project,
-    id: project.id || slug,
-    slug,
-    description: project.description ?? '',
-    status: project.status ?? 'PUBLISHED',
-    featured: project.featured ?? false,
   }
 }
 

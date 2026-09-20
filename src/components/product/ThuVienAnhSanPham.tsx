@@ -1,4 +1,4 @@
-import { ArrowsOutSimple, Cube, ImageSquare } from '@phosphor-icons/react'
+import { Cube, ImageSquare } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { ProductImage, ProductModel3D } from '../../types/product'
@@ -63,7 +63,13 @@ export function ThuVienAnhSanPham({
 
   return (
     <section className="product-gallery" aria-label={`${productName} gallery`}>
-      <div className="product-gallery__main">
+      <div
+        className={
+          selectedImage && !hasImageError
+            ? 'product-gallery__main product-gallery__main--image'
+            : 'product-gallery__main product-gallery__main--empty'
+        }
+      >
         {selectedImage && !hasImageError ? (
           <img
             src={selectedImage.imageUrl}
@@ -77,9 +83,6 @@ export function ThuVienAnhSanPham({
             <span>{content.product.noImage}</span>
           </div>
         )}
-        <span className="product-gallery__expand" aria-label={content.product.noImage}>
-          <ArrowsOutSimple size={20} aria-hidden="true" />
-        </span>
       </div>
 
       {galleryImages.length > 0 ? (

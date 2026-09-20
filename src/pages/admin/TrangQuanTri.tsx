@@ -1,8 +1,18 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { KhungXuong } from '../../components/common/KhungXuong'
 import { useProducts } from '../../hooks/useProducts'
 import { useUser, type AuthenticatedUser } from '../../contexts/NguoiDungContext'
 import { getCurrentAdmin } from '../../services/auth.service'
+import { deleteProduct } from '../../services/product.service'
+import {
+  createAdminRefund,
+  getAdminOrders,
+  getRefundsFromOrders,
+  updateAdminOrderStatus,
+  updateAdminPaymentStatus,
+  updateAdminRefundStatus,
+} from '../../services/order.service'
 import type { Product } from '../../types/product'
 import {
   AdminDashboardView,
@@ -32,12 +42,13 @@ import {
 import {
   ADMIN_DATABASE_UPDATED_EVENT,
   getAdminDatabase,
-  mutateAdminDatabase,
+  type AdminDatabase,
   type AdminOrder,
 } from './admin-database'
 import {
   ADMIN_CONTENT_UPDATED_EVENT,
   ADMIN_PRODUCTS_UPDATED_EVENT,
+  deleteAdminProduct,
 } from './admin-local-store'
 import { isAdminView, type AdminView } from './admin-navigation'
 
@@ -82,7 +93,7 @@ export function TrangQuanTriPage() {
   }
 
   if (isAuthLoading) {
-    return <AdminAccessState message="Đang xác minh quyền truy cập quản trị..." />
+    return <AdminAccessState message="Đang xác minh quyền truy cập quản trị..." isLoading />
   }
 
   if (!user) {
@@ -141,7 +152,7 @@ function AdminAuthorizationGate({
   }, [])
 
   if (accessState === 'checking') {
-    return <AdminAccessState message="Đang xác minh quyền truy cập quản trị..." />
+    return <AdminAccessState message="Đang xác minh quyền truy cập quản trị..." isLoading />
   }
 
   if (accessState === 'denied') {
@@ -165,7 +176,12 @@ function AuthenticatedAdmin({
 }) {
   const { products, isLoading, errorMessage, retry } = useProducts()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [database, setDatabase] = useState(() => getAdminDatabase())
+  const [database, setDatabase] = useState<AdminDatabase>(() => {
+    const localDatabase = getAdminDatabase()
+    return { ...localDatabase, orders: [], returns: [] }
+  })
+  const [ordersLoading, setOrdersLoading] = useState(true)
+  const [ordersError, setOrdersError] = useState<string | null>(null)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>()
   const [toast, setToast] = useState<string | null>(null)
   const [contentVersion, setContentVersion] = useState(0)
@@ -174,6 +190,18 @@ function AuthenticatedAdmin({
     const requestedView = searchParams.get('view')
     return isAdminView(requestedView) ? requestedView : 'dashboard'
   }, [searchParams])
+  const requestedProductId = useMemo(
+    () => parseProductId(searchParams.get('product')),
+    [searchParams],
+  )
+  const editorProduct = useMemo(
+    () => requestedProductId === null
+      ? undefined
+      : editingProduct?.id === requestedProductId
+        ? editingProduct
+        : products.find((product) => product.id === requestedProductId),
+    [editingProduct, products, requestedProductId],
+  )
   const searchedProducts = useMemo(() => {
     const query = (searchParams.get('q') ?? '').trim().toLocaleLowerCase('vi')
     if (!query) return products
@@ -186,9 +214,50 @@ function AuthenticatedAdmin({
     ].filter(Boolean).join(' ').toLocaleLowerCase('vi').includes(query))
   }, [products, searchParams])
 
+  const replaceServerOrders = useCallback((orders: AdminOrder[]) => {
+    setDatabase((current) => ({
+      ...current,
+      orders,
+      returns: getRefundsFromOrders(orders),
+    }))
+  }, [])
+
+  const refreshOrders = useCallback(async () => {
+    setOrdersLoading(true)
+    setOrdersError(null)
+    try {
+      replaceServerOrders(await getAdminOrders(isAdminDemoEnabled))
+    } catch (error) {
+      setOrdersError(error instanceof Error ? error.message : 'Không thể tải đơn hàng từ máy chủ.')
+    } finally {
+      setOrdersLoading(false)
+    }
+  }, [replaceServerOrders])
+
+  useEffect(() => {
+    let isCurrent = true
+    void getAdminOrders(isAdminDemoEnabled)
+      .then((orders) => {
+        if (isCurrent) replaceServerOrders(orders)
+      })
+      .catch((error: unknown) => {
+        if (isCurrent) setOrdersError(error instanceof Error ? error.message : 'Không thể tải đơn hàng từ máy chủ.')
+      })
+      .finally(() => {
+        if (isCurrent) setOrdersLoading(false)
+      })
+    return () => {
+      isCurrent = false
+    }
+  }, [replaceServerOrders])
+
   useEffect(() => {
     function syncDatabase() {
-      setDatabase(getAdminDatabase())
+      setDatabase((current) => ({
+        ...getAdminDatabase(),
+        orders: current.orders,
+        returns: current.returns,
+      }))
     }
     function syncContent() {
       setContentVersion((current) => current + 1)
@@ -219,22 +288,59 @@ function AuthenticatedAdmin({
     onSignOut()
   }
 
-  function changeOrderStatus(orderId: string, status: AdminOrder['status']) {
-    mutateAdminDatabase(
-      (current) => ({
-        ...current,
-        orders: current.orders.map((order) => order.id === orderId ? { ...order, status } : order),
-      }),
-      `Cập nhật đơn hàng ${orderId} sang trạng thái ${status}`,
-      'Đơn hàng',
-    )
+  function applyServerOrder(updatedOrder: AdminOrder) {
+    setDatabase((current) => {
+      const orders = [
+        updatedOrder,
+        ...current.orders.filter((order) => order.id !== updatedOrder.id),
+      ].sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt))
+      return { ...current, orders, returns: getRefundsFromOrders(orders) }
+    })
+  }
+
+  async function changeOrderStatus(orderId: string, status: AdminOrder['status']) {
+    const updatedOrder = await updateAdminOrderStatus(orderId, status, isAdminDemoEnabled)
+    applyServerOrder(updatedOrder)
     setToast(`Đã cập nhật trạng thái đơn ${orderId}.`)
+    return updatedOrder
+  }
+
+  async function markOrderPaid(orderId: string) {
+    const updatedOrder = await updateAdminPaymentStatus(orderId, 'PAID', isAdminDemoEnabled)
+    applyServerOrder(updatedOrder)
+    setToast(`Đã xác nhận thanh toán đơn ${orderId}.`)
+    return updatedOrder
+  }
+
+  async function refundOrder(orderId: string, amount: number, reason: string) {
+    const updatedOrder = await createAdminRefund(orderId, { amount, reason }, isAdminDemoEnabled)
+    applyServerOrder(updatedOrder)
+    setToast(updatedOrder.paymentMethodCode?.startsWith('MOMO')
+      ? `Đã gửi yêu cầu hoàn tiền MoMo cho đơn ${orderId}.`
+      : `Đã tạo yêu cầu hoàn tiền cho đơn ${orderId}.`)
+    return updatedOrder
+  }
+
+  async function changeRefundStatus(refundId: string, status: AdminOrder['refunds'][number]['status']) {
+    const updatedOrder = await updateAdminRefundStatus(refundId, status, isAdminDemoEnabled)
+    applyServerOrder(updatedOrder)
+    setToast(`Đã cập nhật yêu cầu hoàn tiền ${refundId}.`)
+    return updatedOrder
   }
 
   function openProductEditor(product?: Product) {
     setEditingProduct(product)
-    setSearchParams({ view: 'product-editor' })
+    setSearchParams(product
+      ? { view: 'product-editor', product: String(product.id) }
+      : { view: 'product-editor' })
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  async function removeProduct(product: Product) {
+    await deleteProduct(product.id, isAdminDemoEnabled)
+    deleteAdminProduct(product.id)
+    retry()
+    setToast(`Đã xóa sản phẩm “${product.name}”.`)
   }
 
   return (
@@ -253,7 +359,7 @@ function AuthenticatedAdmin({
         }}
       >
         {activeView === 'dashboard' ? (
-          <AdminDashboardView products={products} database={database} onNavigate={navigate} />
+          <AdminDashboardView products={products} database={database} isLoading={isLoading || ordersLoading} onNavigate={navigate} />
         ) : null}
 
         {activeView === 'products' ? (
@@ -264,30 +370,48 @@ function AuthenticatedAdmin({
             onRetry={retry}
             onCreate={() => openProductEditor()}
             onEdit={openProductEditor}
+            onDelete={removeProduct}
           />
         ) : null}
 
         {activeView === 'product-editor' ? (
-          <AdminProductEditor
-            key={editingProduct?.id ?? 'new-product'}
-            product={editingProduct}
-            categories={database.categories}
-            brands={database.brands}
-            onCancel={() => navigate('products')}
-            onSaved={(product) => {
-              setEditingProduct(product)
-              setToast(editingProduct ? 'Đã cập nhật sản phẩm.' : 'Đã thêm sản phẩm mới.')
-              navigate('products')
-            }}
-          />
+          requestedProductId !== null && !editorProduct ? (
+            isLoading ? (
+              <AdminEditorLoading />
+            ) : (
+              <AdminEditorUnavailable onBack={() => navigate('products')} />
+            )
+          ) : (
+            <AdminProductEditor
+              key={editorProduct?.id ?? 'new-product'}
+              product={editorProduct}
+              categories={database.categories}
+              brands={database.brands}
+              onCancel={() => navigate('products')}
+              onSaved={(product) => {
+                setEditingProduct(product)
+                setToast(editorProduct ? 'Đã cập nhật sản phẩm.' : 'Đã thêm sản phẩm mới.')
+                navigate('products')
+              }}
+            />
+          )
         ) : null}
 
         {activeView === 'orders' ? (
-          <AdminOrdersView database={database} onStatusChange={changeOrderStatus} />
+          <AdminOrdersView
+            database={database}
+            isLoading={ordersLoading}
+            errorMessage={ordersError}
+            onRetry={() => void refreshOrders()}
+            onStatusChange={changeOrderStatus}
+            onMarkPaid={markOrderPaid}
+            onCreateRefund={refundOrder}
+            onRefundStatusChange={changeRefundStatus}
+          />
         ) : null}
 
         {activeView === 'reports' ? (
-          <AdminReportsView products={products} database={database} />
+          <AdminReportsView products={products} database={database} isLoading={isLoading || ordersLoading} />
         ) : null}
 
         {activeView === 'news' ? (
@@ -308,12 +432,42 @@ function AuthenticatedAdmin({
   )
 }
 
+function AdminEditorLoading() {
+  return (
+    <section className="admin-panel" aria-busy="true" aria-label="Đang tải sản phẩm">
+      <KhungXuong className="admin-login-form__loading-title" />
+      <KhungXuong className="admin-login-form__loading-copy" />
+      <KhungXuong className="admin-login-form__loading-copy admin-login-form__loading-copy--short" />
+    </section>
+  )
+}
+
+function AdminEditorUnavailable({ onBack }: { onBack: () => void }) {
+  return (
+    <section className="admin-panel" role="alert">
+      <h2>Không tìm thấy sản phẩm</h2>
+      <p>Sản phẩm trong liên kết này đã bị xóa hoặc hiện không còn khả dụng.</p>
+      <button className="admin-button admin-button--primary" type="button" onClick={onBack}>
+        Quay lại danh sách sản phẩm
+      </button>
+    </section>
+  )
+}
+
+function parseProductId(value: string | null) {
+  if (!value || !/^\d+$/.test(value)) return null
+  const id = Number(value)
+  return Number.isSafeInteger(id) && id > 0 ? id : null
+}
+
 function AdminAccessState({
   message,
   onSignOut,
+  isLoading = false,
 }: {
   message: string
   onSignOut?: () => void
+  isLoading?: boolean
 }) {
   return (
     <main className="admin-login-page">
@@ -322,11 +476,20 @@ function AdminAccessState({
           <strong>CMID</strong>
           <span>ADMIN CONSOLE</span>
         </div>
-        <div className="admin-login-form">
-          <div className="admin-login-form__heading">
-            <h1>Quyền truy cập quản trị</h1>
-            <p>{message}</p>
-          </div>
+        <div className="admin-login-form" aria-busy={isLoading || undefined}>
+          {isLoading ? (
+            <div className="admin-login-form__loading" role="status" aria-live="polite">
+              <span className="sr-only">{message}</span>
+              <KhungXuong className="admin-login-form__loading-title" />
+              <KhungXuong className="admin-login-form__loading-copy" />
+              <KhungXuong className="admin-login-form__loading-copy admin-login-form__loading-copy--short" />
+            </div>
+          ) : (
+            <div className="admin-login-form__heading">
+              <h1>Quyền truy cập quản trị</h1>
+              <p>{message}</p>
+            </div>
+          )}
           {onSignOut ? (
             <button className="admin-login-form__submit" type="button" onClick={onSignOut}>
               Đăng xuất

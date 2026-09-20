@@ -832,6 +832,20 @@
   min-width: 0;
 }
 
+.account-profile__dropdown--loading {
+  display: grid;
+  height: 34px;
+  padding: 5px 10px;
+  border: 1px solid rgb(179 124 44 / 22%);
+  border-radius: 6px;
+  cursor: progress;
+}
+
+.account-profile__dropdown-skeleton {
+  width: 72%;
+  height: 100%;
+}
+
 .account-profile__dropdown-trigger {
   display: flex;
   width: 100%;

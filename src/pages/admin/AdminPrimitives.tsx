@@ -11,6 +11,7 @@ import {
 } from '@phosphor-icons/react'
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { KhungXuong } from '../../components/common/KhungXuong'
 import { AdminImageUpload } from './AdminImageUpload'
 import { createAdminId } from './admin-database'
 import { useAdminCopy } from './admin-language-context'
@@ -51,6 +52,58 @@ export function AdminPanel({
   )
 }
 
+export function AdminChiSoKhungXuong({ count = 4, label = 'Đang tải số liệu' }: { count?: number; label?: string }) {
+  return (
+    <div className="admin-kpi-grid admin-kpi-grid--skeleton" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">{label}</span>
+      {Array.from({ length: count }, (_, index) => (
+        <article className="admin-metric admin-metric--skeleton" key={index} aria-hidden="true">
+          <KhungXuong className="admin-metric__skeleton-icon" />
+          <KhungXuong className="admin-metric__skeleton-label" />
+          <KhungXuong className="admin-metric__skeleton-value" />
+          <KhungXuong className="admin-metric__skeleton-helper" />
+        </article>
+      ))}
+    </div>
+  )
+}
+
+export function AdminBangKhungXuong({
+  columns = 6,
+  rows = 5,
+  label = 'Đang tải dữ liệu',
+}: {
+  columns?: number
+  rows?: number
+  label?: string
+}) {
+  const rowStyle = {
+    gridTemplateColumns: `repeat(${columns}, minmax(86px, 1fr))`,
+  }
+  const minWidth = `${Math.max(720, columns * 126)}px`
+
+  return (
+    <div className="admin-table-skeleton" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">{label}</span>
+      <div className="admin-table-skeleton__inner" aria-hidden="true" style={{ minWidth }}>
+        <div className="admin-table-skeleton__row admin-table-skeleton__row--heading" style={rowStyle}>
+          {Array.from({ length: columns }, (_, index) => <KhungXuong key={index} />)}
+        </div>
+        {Array.from({ length: rows }, (_, rowIndex) => (
+          <div className="admin-table-skeleton__row" key={rowIndex} style={rowStyle}>
+            {Array.from({ length: columns }, (_, columnIndex) => (
+              <KhungXuong
+                className={columnIndex === 0 ? 'admin-table-skeleton__primary' : columnIndex === columns - 1 ? 'admin-table-skeleton__action' : ''}
+                key={columnIndex}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function AdminStatus({ children }: { children: string }) {
   const { t } = useAdminCopy()
   const label = getAdminStatusLabel(children)
@@ -75,7 +128,7 @@ function getAdminStatusTone(value: string) {
   const normalized = value.toLocaleLowerCase('vi')
   if (['đang xử lý', 'đang tư vấn', 'đang phản hồi', 'đang hoàn tiền'].some((key) => normalized.includes(key))) return 'is-processing'
   if (normalized.includes('đang giao')) return 'is-shipping'
-  if (['chờ xác nhận', 'chờ duyệt', 'chưa thanh toán', 'mới'].some((key) => normalized.includes(key))) return 'is-pending'
+  if (normalized.startsWith('chờ ') || ['chưa thanh toán', 'mới'].some((key) => normalized.includes(key))) return 'is-pending'
   if (normalized.includes('đã thanh toán')) return 'is-paid'
   if (normalized.includes('đã hoàn tiền')) return 'is-refunded'
   if (['inactive', 'không hoạt động', 'tạm ẩn', 'đã hủy', 'từ chối', 'locked', 'đã khóa', 'ngưng bán'].some((key) => normalized.includes(key))) return 'is-danger'
@@ -155,7 +208,7 @@ export function AdminSelect({
 
   useEffect(() => {
     if (!isOpen) return undefined
-    const closeOnOutsideClick = (event: MouseEvent) => {
+    const closeOnOutsideClick = (event: PointerEvent) => {
       const target = event.target as Node
       if (!rootRef.current?.contains(target) && !menuRef.current?.contains(target)) setIsOpen(false)
     }
@@ -164,12 +217,12 @@ export function AdminSelect({
       setIsOpen(false)
       triggerRef.current?.focus()
     }
-    document.addEventListener('mousedown', closeOnOutsideClick)
+    document.addEventListener('pointerdown', closeOnOutsideClick, true)
     document.addEventListener('keydown', closeOnEscape)
     window.addEventListener('resize', updateMenuPosition)
     window.addEventListener('scroll', updateMenuPosition, true)
     return () => {
-      document.removeEventListener('mousedown', closeOnOutsideClick)
+      document.removeEventListener('pointerdown', closeOnOutsideClick, true)
       document.removeEventListener('keydown', closeOnEscape)
       window.removeEventListener('resize', updateMenuPosition)
       window.removeEventListener('scroll', updateMenuPosition, true)

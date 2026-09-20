@@ -8,6 +8,7 @@
 @import './styles/trang-noi-dung.css';
 @import './styles/trang-giai-phap.css';
 @import './styles/trang-du-an.css';
+@import './styles/trang-chi-tiet-du-an.css';
 @import './styles/trang-dich-vu.css';
 @import './styles/trang-ve-cmid.css';
 @import './styles/trang-lien-he.css';
@@ -18,3 +19,5 @@
 @import './styles/admin-styles/trang-quan-tri.css';
 @import './styles/responsive.css';
 @import './styles/site-theme.css';
+@import './styles/news-editorial.css';
+@import './styles/mobile-catalog.css';

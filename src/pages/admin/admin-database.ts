@@ -1,6 +1,4 @@
-import type { Product } from '../../types/product'
 import type { AppLanguage } from '../../content/site-content'
-import { getProductPrice } from '../../utils/order'
 
 const ADMIN_DATABASE_KEY = 'cmid-admin-database-v2'
 export const ADMIN_DATABASE_UPDATED_EVENT = 'cmid-admin-database-updated'
@@ -71,8 +69,12 @@ export interface AdminOrder {
   vat: number
   total: number
   paymentMethod: string
-  paymentStatus: 'Chưa thanh toán' | 'Đã thanh toán' | 'Đã hoàn tiền'
-  status: 'Chờ xác nhận' | 'Đang xử lý' | 'Đang giao' | 'Hoàn thành' | 'Đã hủy'
+  paymentMethodCode?: 'BANK_TRANSFER' | 'COD' | 'MOMO_WALLET' | 'MOMO_CARD'
+  paymentStatus: 'Chưa thanh toán' | 'Thanh toán thất bại' | 'Đã thanh toán' | 'Hoàn tiền một phần' | 'Đã hoàn tiền'
+  status: 'Chờ thanh toán' | 'Thanh toán thất bại' | 'Chờ xác nhận' | 'Đang xử lý' | 'Chờ lấy hàng' | 'Chờ giao hàng' | 'Đang giao' | 'Hoàn thành' | 'Đã hủy' | 'Đã trả hàng'
+  refundedAmount: number
+  refunds: AdminReturn[]
+  statusHistory: AdminOrderStatusHistory[]
   note: string
   createdAt: string
 }
@@ -84,6 +86,20 @@ export interface AdminReturn {
   reason: string
   amount: number
   status: 'Chờ duyệt' | 'Đã duyệt' | 'Đang hoàn tiền' | 'Hoàn tất' | 'Từ chối'
+  provider?: 'MOMO' | 'MANUAL'
+  providerRefundId?: string | null
+  requestedBy?: string
+  processedBy?: string | null
+  processedAt?: string | null
+  createdAt: string
+}
+
+export interface AdminOrderStatusHistory {
+  id: number
+  fromStatus: AdminOrder['status'] | null
+  toStatus: AdminOrder['status']
+  actor: string
+  note: string
   createdAt: string
 }
 
@@ -268,6 +284,8 @@ const seedDatabase: AdminDatabase = {
   orders: [
     order('CMID-1024', 'KTS. Nguyễn Hải Anh', 'Gạch porcelain Stone Grey', 24500000, 'Chờ xác nhận', 'Đã thanh toán', '2026-08-18T09:25:00.000Z'),
     order('CMID-1023', 'Công ty TNHH An Phúc', 'Bồn cầu TOTO MS887RW12', 11700000, 'Đang xử lý', 'Đã thanh toán', '2026-08-17T11:10:00.000Z'),
+    order('CMID-1019', 'Lê Anh Khoa', 'Sofa da cao cấp Italia', 28900000, 'Chờ lấy hàng', 'Đã thanh toán', '2026-08-12T10:15:00.000Z'),
+    order('CMID-1018', 'Phạm Ngọc Mai', 'Gạch porcelain Stone Grey', 5880000, 'Chờ giao hàng', 'Chưa thanh toán', '2026-08-11T15:30:00.000Z'),
     order('CMID-1022', 'Trần Ngọc Bích', 'Sơn Dulux Inspire Ngoại thất', 6900000, 'Chờ xác nhận', 'Chưa thanh toán', '2026-08-16T14:05:00.000Z'),
     order('CMID-1021', 'KTS. Phạm Gia Khánh', 'Bộ bàn ăn gỗ sồi 6 ghế', 19500000, 'Đang giao', 'Đã thanh toán', '2026-08-14T08:40:00.000Z'),
     order('CMID-1020', 'Nguyễn Minh Thư', 'Lavabo đặt bàn TOTO LTS548', 3250000, 'Hoàn thành', 'Đã thanh toán', '2026-08-13T16:20:00.000Z'),
@@ -389,8 +407,12 @@ function order(
     vat: 0,
     total,
     paymentMethod: 'Chuyển khoản ngân hàng',
+    paymentMethodCode: 'BANK_TRANSFER',
     paymentStatus,
     status,
+    refundedAmount: 0,
+    refunds: [],
+    statusHistory: [],
     note: '',
     createdAt,
   }
@@ -474,53 +496,4 @@ export function mutateAdminDatabase(
   }
   saveAdminDatabase(next)
   return next
-}
-
-export function createAdminOrderFromCheckout(input: {
-  customer: string
-  email: string
-  phone: string
-  address: string
-  paymentMethod: string
-  paymentStatus?: AdminOrder['paymentStatus']
-  note: string
-  items: Array<{ product: Product; quantity: number }>
-}) {
-  const database = getAdminDatabase()
-  const subtotal = input.items.reduce(
-    (sum, item) => sum + getProductPrice(item.product.price) * item.quantity,
-    0,
-  )
-  const vat = Math.round(subtotal * (database.settings.defaultVatPercent / 100))
-  const id = `CMID-${Date.now().toString().slice(-6)}`
-  const orderRecord: AdminOrder = {
-    id,
-    customer: input.customer,
-    email: input.email,
-    phone: input.phone,
-    address: input.address,
-    items: input.items.map(({ product, quantity }) => ({
-      productId: product.id,
-      name: product.name,
-      sku: product.sku,
-      quantity,
-      price: getProductPrice(product.price),
-      image: product.images.find((image) => image.isPrimary)?.imageUrl ?? product.images[0]?.imageUrl ?? '',
-    })),
-    subtotal,
-    vat,
-    total: subtotal + vat,
-    paymentMethod: input.paymentMethod,
-    paymentStatus: input.paymentStatus ?? 'Chưa thanh toán',
-    status: 'Chờ xác nhận',
-    note: input.note,
-    createdAt: new Date().toISOString(),
-  }
-
-  mutateAdminDatabase(
-    (current) => ({ ...current, orders: [orderRecord, ...current.orders] }),
-    `Tiếp nhận đơn hàng ${id} từ website`,
-    'Đơn hàng',
-  )
-  return orderRecord
 }

@@ -24,6 +24,7 @@ import {
 } from '@phosphor-icons/react'
 import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { KhungXuong } from '../components/common/KhungXuong'
 import { useLanguage } from '../contexts/NgonNguContext'
 import { type CustomerProfile, useUser } from '../contexts/NguoiDungContext'
 
@@ -425,7 +426,8 @@ export function TrangTaiKhoanPage() {
                             placeholder={content.auth.provinceCity}
                             searchPlaceholder={content.auth.searchOptions}
                             emptyMessage={content.auth.noOptionsFound}
-                            statusLabel={isAdministrativeDataLoading ? content.auth.loadingOptions : content.auth.noOptionsFound}
+                            statusLabel={content.auth.noOptionsFound}
+                            loadingLabel={isAdministrativeDataLoading ? content.auth.loadingOptions : undefined}
                             disabled={!administrativeData}
                             options={provinceOptions}
                             onChange={handleProvinceChange}
@@ -438,7 +440,8 @@ export function TrangTaiKhoanPage() {
                             placeholder={content.auth.district}
                             searchPlaceholder={content.auth.searchOptions}
                             emptyMessage={selectedProvince ? content.auth.noOptionsFound : content.auth.selectProvinceFirst}
-                            statusLabel={isAdministrativeDataLoading ? content.auth.loadingOptions : content.auth.selectProvinceFirst}
+                            statusLabel={content.auth.selectProvinceFirst}
+                            loadingLabel={isAdministrativeDataLoading ? content.auth.loadingOptions : undefined}
                             disabled={!administrativeData || !selectedProvince}
                             options={districtOptions}
                             placement="top"
@@ -452,7 +455,8 @@ export function TrangTaiKhoanPage() {
                             placeholder={content.auth.ward}
                             searchPlaceholder={content.auth.searchOptions}
                             emptyMessage={selectedDistrict ? content.auth.noOptionsFound : content.auth.selectDistrictFirst}
-                            statusLabel={isAdministrativeDataLoading ? content.auth.loadingOptions : content.auth.selectDistrictFirst}
+                            statusLabel={content.auth.selectDistrictFirst}
+                            loadingLabel={isAdministrativeDataLoading ? content.auth.loadingOptions : undefined}
                             disabled={!administrativeData || !selectedDistrict}
                             options={wardOptions}
                             placement="top"
@@ -576,6 +580,7 @@ function AccountProfileDropdown({
   searchPlaceholder,
   emptyMessage,
   statusLabel,
+  loadingLabel,
   disabled = false,
   onChange,
 }: {
@@ -588,6 +593,7 @@ function AccountProfileDropdown({
   searchPlaceholder: string
   emptyMessage: string
   statusLabel?: string
+  loadingLabel?: string
   disabled?: boolean
   onChange: (value: string) => void
 }) {
@@ -671,6 +677,15 @@ function AccountProfileDropdown({
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [isOpen, searchable])
+
+  if (loadingLabel) {
+    return (
+      <div className="account-profile__dropdown account-profile__dropdown--loading" role="status" aria-live="polite" aria-busy="true">
+        <span className="sr-only">{loadingLabel}</span>
+        <KhungXuong className="account-profile__dropdown-skeleton" />
+      </div>
+    )
+  }
 
   return (
     <div

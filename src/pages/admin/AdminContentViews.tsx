@@ -9,6 +9,7 @@ import {
   X,
 } from '@phosphor-icons/react'
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -16,23 +17,28 @@ import {
   type ReactNode,
 } from 'react'
 import {
-  newsArticles,
   newsCategoryKeys,
   type ArticleCategoryKey,
 } from '../../content/news-articles'
 import { AdminImageUpload } from './AdminImageUpload'
-import { AdminPageHeading, AdminPanel, AdminSelect, AdminStatus } from './AdminPrimitives'
+import { AdminBangKhungXuong, AdminPageHeading, AdminPanel, AdminSelect, AdminStatus } from './AdminPrimitives'
+import { isAdminDemoEnabled } from './admin-demo-auth'
+import {
+  deleteProject,
+  getAdminProjects as getAdminProjectsFromApi,
+  resolveProjectImage,
+  saveProject,
+  type Project,
+} from '../../services/project.service'
+import {
+  deleteNewsArticle,
+  getAdminNewsArticles as getAdminNewsArticlesFromApi,
+  resolveNewsImage,
+  saveNewsArticle,
+  type NewsArticleRecord,
+} from '../../services/news.service'
 import {
   ADMIN_CONTENT_UPDATED_EVENT,
-  deleteAdminNewsArticle,
-  deleteAdminProject,
-  getAdminNewsArticles,
-  getHiddenAdminNewsSlugs,
-  getAdminProjects,
-  saveAdminNewsArticle,
-  saveAdminProject,
-  type AdminNewsArticle,
-  type AdminProject,
   type AdminPublishStatus,
 } from './admin-local-store'
 
@@ -66,6 +72,8 @@ interface ProjectFormState {
   locationEn: string
   description: string
   descriptionEn: string
+  content: string
+  contentEn: string
   image: string
   status: AdminPublishStatus
   featured: boolean
@@ -111,6 +119,8 @@ const emptyProjectForm: ProjectFormState = {
   locationEn: '',
   description: '',
   descriptionEn: '',
+  content: '',
+  contentEn: '',
   image: '',
   status: 'DRAFT',
   featured: false,
@@ -119,25 +129,42 @@ const emptyProjectForm: ProjectFormState = {
 export function AdminNewsView({ onToast }: AdminContentViewProps) {
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingSlug, setEditingSlug] = useState<string | null>(null)
-  const [deletingArticle, setDeletingArticle] = useState<AdminNewsArticle | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [deletingArticle, setDeletingArticle] = useState<NewsArticleRecord | null>(null)
   const [form, setForm] = useState<NewsFormState>(createEmptyNewsForm)
-  const [, setRevision] = useState(0)
+  const [articles, setArticles] = useState<NewsArticleRecord[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const refresh = () => setRevision((revision) => revision + 1)
-    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, refresh)
-    return () => window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, refresh)
+  const loadNews = useCallback(async () => {
+    setIsLoading(true)
+    setLoadError(null)
+
+    try {
+      setArticles(await getAdminNewsArticlesFromApi(isAdminDemoEnabled))
+    } catch (error: unknown) {
+      setLoadError(error instanceof Error ? error.message : 'Không thể tải danh sách bài viết.')
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
-  const articles = mergeManagedNews('vi')
-  const englishArticles = mergeManagedNews('en')
+  useEffect(() => {
+    const initialLoad = window.setTimeout(() => { void loadNews() }, 0)
+    const refresh = () => { void loadNews() }
+    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, refresh)
+    return () => {
+      window.clearTimeout(initialLoad)
+      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, refresh)
+    }
+  }, [loadNews])
+
   const filteredArticles = useMemo(() => {
     const query = normalizeSearch(search)
     if (!query) return articles
 
     return articles.filter((article) =>
-      [article.title, article.summary, article.slug, categoryLabels[article.category]]
+      [article.title, article.summary, article.slug, getAdminCategoryLabel(article.category)]
         .some((value) => normalizeSearch(value).includes(query)),
     )
   }, [articles, search])
@@ -147,76 +174,84 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
   }
 
   function openCreateDialog() {
-    setEditingSlug(null)
+    setEditingId(null)
     setForm(createEmptyNewsForm())
     setDialogOpen(true)
   }
 
-  function openEditDialog(article: AdminNewsArticle) {
-    const englishArticle = englishArticles.find((item) => item.slug === article.slug)
-    setEditingSlug(article.slug)
+  function openEditDialog(article: NewsArticleRecord) {
+    setEditingId(article.id)
     setForm({
       title: article.title,
-      titleEn: englishArticle?.title ?? '',
+      titleEn: article.titleEn ?? '',
       summary: article.summary,
-      summaryEn: englishArticle?.summary ?? '',
-      body: joinLines(article.body),
-      bodyEn: joinLines(englishArticle?.body ?? []),
-      highlights: joinLines(article.highlights),
-      highlightsEn: joinLines(englishArticle?.highlights ?? []),
-      tags: article.tags.join(', '),
-      tagsEn: (englishArticle?.tags ?? []).join(', '),
-      category: article.category,
-      image: article.image,
+      summaryEn: article.summaryEn ?? '',
+      body: joinLines(toStringArray(article.body)),
+      bodyEn: joinLines(toStringArray(article.bodyEn)),
+      highlights: joinLines(toStringArray(article.highlights)),
+      highlightsEn: joinLines(toStringArray(article.highlightsEn)),
+      tags: toStringArray(article.tags).join(', '),
+      tagsEn: toStringArray(article.tagsEn).join(', '),
+      category: toArticleCategory(article.category),
+      image: article.imageUrl,
       status: article.status,
-      featured: Boolean(article.featured),
-      publishedAt: article.publishedAt,
+      featured: article.isFeatured,
+      publishedAt: article.publishedAt.slice(0, 10),
       readingMinutes: article.readingMinutes,
     })
     setDialogOpen(true)
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!form.image) {
       onToast('Vui lòng tải ảnh bìa cho bài viết.')
       return
     }
 
-    saveAdminNewsArticle({
-      slug: editingSlug ?? undefined,
-      category: form.category,
-      image: form.image,
-      featured: form.featured,
-      status: form.status,
-      publishedAt: form.publishedAt,
-      readingMinutes: form.readingMinutes,
-      vi: {
-        title: form.title.trim(),
-        summary: form.summary.trim(),
-        body: splitLines(form.body),
-        highlights: splitLines(form.highlights),
-        tags: splitTags(form.tags),
-      },
-      en: {
-        title: form.titleEn.trim() || form.title.trim(),
-        summary: form.summaryEn.trim() || form.summary.trim(),
-        body: splitLines(form.bodyEn || form.body),
-        highlights: splitLines(form.highlightsEn || form.highlights),
-        tags: splitTags(form.tagsEn || form.tags),
-      },
-    })
+    const existingArticle = articles.find((article) => article.id === editingId)
 
-    setDialogOpen(false)
-    setEditingSlug(null)
-    onToast(editingSlug ? 'Đã cập nhật bài viết.' : 'Đã thêm bài viết mới.')
+    try {
+      await saveNewsArticle({
+        id: editingId ?? undefined,
+        slug: existingArticle?.slug ?? createNewsSlug(form.title),
+        title: form.title.trim(),
+        titleEn: form.titleEn.trim() || form.title.trim(),
+        summary: form.summary.trim(),
+        summaryEn: form.summaryEn.trim() || form.summary.trim(),
+        body: splitLines(form.body),
+        bodyEn: splitLines(form.bodyEn || form.body),
+        highlights: splitLines(form.highlights),
+        highlightsEn: splitLines(form.highlightsEn || form.highlights),
+        tags: splitTags(form.tags),
+        tagsEn: splitTags(form.tagsEn || form.tags),
+        category: form.category,
+        imageUrl: form.image,
+        readingMinutes: form.readingMinutes,
+        isFeatured: form.featured,
+        status: form.status,
+        publishedAt: new Date(`${form.publishedAt}T00:00:00.000Z`).toISOString(),
+      }, isAdminDemoEnabled)
+
+      await loadNews()
+      setDialogOpen(false)
+      setEditingId(null)
+      onToast(editingId ? 'Đã cập nhật bài viết.' : 'Đã thêm bài viết mới.')
+    } catch (error: unknown) {
+      onToast(error instanceof Error ? error.message : 'Không thể lưu bài viết.')
+    }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deletingArticle) return
-    deleteAdminNewsArticle(deletingArticle.slug)
-    setDeletingArticle(null)
-    onToast('Đã xóa bài viết khỏi dữ liệu quản trị.')
+    try {
+      await deleteNewsArticle(deletingArticle.id, isAdminDemoEnabled)
+      await loadNews()
+      setDeletingArticle(null)
+      onToast('Đã xóa bài viết khỏi dữ liệu quản trị.')
+    } catch (error: unknown) {
+      onToast(error instanceof Error ? error.message : 'Không thể xóa bài viết.')
+    }
   }
 
   return (
@@ -235,12 +270,13 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
         value={search}
         onChange={setSearch}
         placeholder="Tìm theo tiêu đề, nội dung hoặc chuyên mục..."
-        count={filteredArticles.length}
+        count={isLoading ? undefined : filteredArticles.length}
         unit="bài viết"
       />
 
       <AdminPanel className="admin-table-panel">
-        <div className="admin-table-wrap">
+        {isLoading ? <AdminBangKhungXuong columns={7} label="Đang tải danh sách bài viết" /> : (
+          <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
               <tr>
@@ -256,15 +292,15 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
             <tbody>
               {filteredArticles.map((article) => (
                 <tr key={article.slug}>
-                  <td><ContentThumbnail src={article.image} alt={article.title} /></td>
+                  <td><ContentThumbnail src={resolveNewsImage(article.imageUrl)} alt={article.title} /></td>
                   <td>
                     <strong>{article.title}</strong>
                     <small>{article.summary}</small>
                   </td>
-                  <td>{categoryLabels[article.category]}</td>
-                  <td>{article.date}</td>
+                  <td>{getAdminCategoryLabel(article.category)}</td>
+                  <td>{formatAdminDate(article.publishedAt)}</td>
                   <td className="admin-table__cell--center"><AdminStatus>{publishStatusLabel(article.status)}</AdminStatus></td>
-                  <td className="admin-table__cell--center"><AdminStatus>{article.featured ? 'Nổi bật' : 'Thông thường'}</AdminStatus></td>
+                  <td className="admin-table__cell--center"><AdminStatus>{article.isFeatured ? 'Nổi bật' : 'Thông thường'}</AdminStatus></td>
                   <td className="admin-table__cell--actions">
                     <RowActions
                       label={article.title}
@@ -277,14 +313,15 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
             </tbody>
           </table>
           {filteredArticles.length === 0 ? (
-            <ContentEmpty icon={<Newspaper size={31} />} text="Chưa có bài viết quản trị phù hợp." />
+            <ContentEmpty icon={<Newspaper size={31} />} text={loadError ?? 'Chưa có bài viết quản trị phù hợp.'} />
           ) : null}
-        </div>
+          </div>
+        )}
       </AdminPanel>
 
       {dialogOpen ? (
         <ContentDialog
-          title={editingSlug ? 'Cập nhật bài viết' : 'Thêm bài viết mới'}
+          title={editingId ? 'Cập nhật bài viết' : 'Thêm bài viết mới'}
           description="Các trường tiếng Anh để trống sẽ tự dùng nội dung tiếng Việt."
           onClose={() => setDialogOpen(false)}
         >
@@ -341,7 +378,7 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
                 <AdminImageUpload
                   id="admin-news-cover"
                   label="Ảnh bìa bài viết"
-                  value={form.image}
+                  value={resolveNewsImage(form.image)}
                   onChange={(value) => update('image', value)}
                   helper="Ảnh này hiển thị tại danh sách, bài nổi bật và trang chi tiết tin tức."
                   required
@@ -369,18 +406,35 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [deletingProject, setDeletingProject] = useState<AdminProject | null>(null)
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null)
   const [form, setForm] = useState<ProjectFormState>(emptyProjectForm)
-  const [, setRevision] = useState(0)
+  const [projects, setProjects] = useState<Project[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const refresh = () => setRevision((revision) => revision + 1)
-    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, refresh)
-    return () => window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, refresh)
+  const loadProjects = useCallback(async () => {
+    setIsLoading(true)
+    setLoadError(null)
+
+    try {
+      setProjects(await getAdminProjectsFromApi(isAdminDemoEnabled))
+    } catch (error: unknown) {
+      setLoadError(error instanceof Error ? error.message : 'Không thể tải danh sách dự án.')
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
-  const projects = getAdminProjects('vi', true)
-  const englishProjects = getAdminProjects('en', true)
+  useEffect(() => {
+    const initialLoad = window.setTimeout(() => { void loadProjects() }, 0)
+    const refresh = () => { void loadProjects() }
+    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, refresh)
+    return () => {
+      window.clearTimeout(initialLoad)
+      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, refresh)
+    }
+  }, [loadProjects])
+
   const filteredProjects = useMemo(() => {
     const query = normalizeSearch(search)
     if (!query) return projects
@@ -401,57 +455,67 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
     setDialogOpen(true)
   }
 
-  function openEditDialog(project: AdminProject) {
-    const englishProject = englishProjects.find((item) => item.id === project.id)
+  function openEditDialog(project: Project) {
     setEditingId(project.id)
     setForm({
       title: project.title,
-      titleEn: englishProject?.title ?? '',
+      titleEn: project.titleEn ?? '',
       location: project.location,
-      locationEn: englishProject?.location ?? '',
+      locationEn: project.locationEn ?? '',
       description: project.description,
-      descriptionEn: englishProject?.description ?? '',
-      image: project.image,
+      descriptionEn: project.descriptionEn ?? '',
+      content: project.content,
+      contentEn: project.contentEn ?? '',
+      image: project.imageUrl,
       status: project.status,
-      featured: project.featured,
+      featured: project.isFeatured,
     })
     setDialogOpen(true)
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!form.image) {
       onToast('Vui lòng tải ảnh đại diện cho dự án.')
       return
     }
 
-    saveAdminProject({
-      id: editingId ?? undefined,
-      image: form.image,
-      status: form.status,
-      featured: form.featured,
-      vi: {
+    try {
+      await saveProject({
+        id: editingId ?? undefined,
+        slug: createProjectSlug(form.title),
         title: form.title.trim(),
+        titleEn: form.titleEn.trim() || form.title.trim(),
         location: form.location.trim(),
+        locationEn: form.locationEn.trim() || form.location.trim(),
         description: form.description.trim(),
-      },
-      en: {
-        title: form.titleEn.trim() || form.title.trim(),
-        location: form.locationEn.trim() || form.location.trim(),
-        description: form.descriptionEn.trim() || form.description.trim(),
-      },
-    })
+        descriptionEn: form.descriptionEn.trim() || form.description.trim(),
+        content: form.content.trim(),
+        contentEn: form.contentEn.trim() || form.content.trim(),
+        imageUrl: form.image,
+        status: form.status,
+        isFeatured: form.featured,
+      }, isAdminDemoEnabled)
 
-    setDialogOpen(false)
-    setEditingId(null)
-    onToast(editingId ? 'Đã cập nhật dự án.' : 'Đã thêm dự án mới.')
+      await loadProjects()
+      setDialogOpen(false)
+      setEditingId(null)
+      onToast(editingId ? 'Đã cập nhật dự án.' : 'Đã thêm dự án mới.')
+    } catch (error: unknown) {
+      onToast(error instanceof Error ? error.message : 'Không thể lưu dự án.')
+    }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deletingProject) return
-    deleteAdminProject(deletingProject.id)
-    setDeletingProject(null)
-    onToast('Đã xóa dự án khỏi dữ liệu quản trị.')
+    try {
+      await deleteProject(deletingProject.id, isAdminDemoEnabled)
+      await loadProjects()
+      setDeletingProject(null)
+      onToast('Đã xóa dự án khỏi dữ liệu quản trị.')
+    } catch (error: unknown) {
+      onToast(error instanceof Error ? error.message : 'Không thể xóa dự án.')
+    }
   }
 
   return (
@@ -470,49 +534,52 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
         value={search}
         onChange={setSearch}
         placeholder="Tìm theo tên, địa điểm hoặc mô tả dự án..."
-        count={filteredProjects.length}
-        unit="dự án"
       />
 
       <AdminPanel className="admin-table-panel">
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Hình ảnh</th>
-                <th>Tên dự án</th>
-                <th>Địa điểm</th>
-                <th className="admin-table__cell--center">Trạng thái</th>
-                <th className="admin-table__cell--center">Hiển thị</th>
-                <th className="admin-table__cell--actions">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProjects.map((project) => (
-                <tr key={project.id}>
-                  <td><ContentThumbnail src={project.image} alt={project.title} /></td>
-                  <td>
-                    <strong>{project.title}</strong>
-                    <small>{project.description || 'Chưa có mô tả dự án.'}</small>
-                  </td>
-                  <td>{project.location || 'Chưa cập nhật'}</td>
-                  <td className="admin-table__cell--center"><AdminStatus>{publishStatusLabel(project.status)}</AdminStatus></td>
-                  <td className="admin-table__cell--center"><AdminStatus>{project.featured ? 'Nổi bật' : 'Thông thường'}</AdminStatus></td>
-                  <td className="admin-table__cell--actions">
-                    <RowActions
-                      label={project.title}
-                      onEdit={() => openEditDialog(project)}
-                      onDelete={() => setDeletingProject(project)}
-                    />
-                  </td>
+        {isLoading ? <AdminBangKhungXuong columns={6} label="Đang tải danh sách dự án" /> : (
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Hình ảnh</th>
+                  <th>Tên dự án</th>
+                  <th>Địa điểm</th>
+                  <th className="admin-table__cell--center">Trạng thái</th>
+                  <th className="admin-table__cell--center">Hiển thị</th>
+                  <th className="admin-table__cell--actions">Thao tác</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          {filteredProjects.length === 0 ? (
-            <ContentEmpty icon={<Buildings size={31} />} text="Chưa có dự án quản trị phù hợp." />
-          ) : null}
-        </div>
+              </thead>
+              <tbody>
+                {filteredProjects.map((project) => (
+                  <tr key={project.id}>
+                    <td><ContentThumbnail src={resolveProjectImage(project.imageUrl)} alt={project.title} /></td>
+                    <td>
+                      <strong>{project.title}</strong>
+                      <small>{project.description || 'Chưa có mô tả dự án.'}</small>
+                    </td>
+                    <td>{project.location || 'Chưa cập nhật'}</td>
+                    <td className="admin-table__cell--center"><AdminStatus>{publishStatusLabel(project.status)}</AdminStatus></td>
+                    <td className="admin-table__cell--center"><AdminStatus>{project.isFeatured ? 'Nổi bật' : 'Thông thường'}</AdminStatus></td>
+                    <td className="admin-table__cell--actions">
+                      <RowActions
+                        label={project.title}
+                        onEdit={() => openEditDialog(project)}
+                        onDelete={() => setDeletingProject(project)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {filteredProjects.length === 0 ? (
+              <ContentEmpty
+                icon={<Buildings size={31} />}
+                text={loadError ?? 'Chưa có dự án quản trị phù hợp.'}
+              />
+            ) : null}
+          </div>
+        )}
       </AdminPanel>
 
       {dialogOpen ? (
@@ -534,6 +601,10 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
               <div className="admin-form-grid admin-form-grid--two">
                 <TextAreaField label="Mô tả dự án (VI)" value={form.description} onChange={(value) => update('description', value)} required />
                 <TextAreaField label="Project description (EN)" value={form.descriptionEn} onChange={(value) => update('descriptionEn', value)} />
+              </div>
+              <div className="admin-form-grid admin-form-grid--two">
+                <TextAreaField label="Nội dung chi tiết (VI)" value={form.content} onChange={(value) => update('content', value)} helper="Tách các đoạn bằng một dòng trống." required />
+                <TextAreaField label="Project details (EN)" value={form.contentEn} onChange={(value) => update('contentEn', value)} helper="Separate paragraphs with a blank line." />
               </div>
               <div className="admin-form-grid admin-form-grid--two">
                 <SelectField
@@ -591,8 +662,8 @@ function ContentToolbar({
   value: string
   onChange: (value: string) => void
   placeholder: string
-  count: number
-  unit: string
+  count?: number
+  unit?: string
 }) {
   return (
     <AdminPanel className="admin-toolbar">
@@ -600,7 +671,7 @@ function ContentToolbar({
         <MagnifyingGlass size={17} />
         <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} />
       </label>
-      <span>{count} {unit}</span>
+      {typeof count === 'number' && unit ? <span>{count} {unit}</span> : null}
     </AdminPanel>
   )
 }
@@ -783,6 +854,21 @@ function normalizeSearch(value: string) {
   return value.trim().toLocaleLowerCase('vi')
 }
 
+function createProjectSlug(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('vi')
+    .trim()
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+function createNewsSlug(value: string) {
+  return createProjectSlug(value) || `bai-viet-${Date.now()}`
+}
+
 function splitLines(value: string) {
   return value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean)
 }
@@ -795,12 +881,24 @@ function joinLines(values: string[]) {
   return values.join('\n')
 }
 
-function mergeManagedNews(language: 'vi' | 'en'): AdminNewsArticle[] {
-  const customArticles = getAdminNewsArticles(language, true)
-  const customSlugs = new Set(customArticles.map((article) => article.slug))
-  const hiddenSlugs = new Set(getHiddenAdminNewsSlugs())
-  const builtInArticles = newsArticles[language]
-    .filter((article) => !customSlugs.has(article.slug) && !hiddenSlugs.has(article.slug))
-    .map((article) => ({ ...article, status: 'PUBLISHED' as const }))
-  return [...customArticles, ...builtInArticles]
+function toStringArray(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : []
+}
+
+function toArticleCategory(value: string): ArticleCategoryKey {
+  return articleCategories.includes(value as ArticleCategoryKey)
+    ? value as ArticleCategoryKey
+    : 'cmid-news'
+}
+
+function getAdminCategoryLabel(value: string) {
+  return categoryLabels[toArticleCategory(value)]
+}
+
+function formatAdminDate(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeZone: 'UTC' }).format(date)
 }

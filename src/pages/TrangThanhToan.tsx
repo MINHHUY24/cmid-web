@@ -2,17 +2,18 @@ import { Bank, CaretDown, Check, CheckCircle, CreditCard, MagnifyingGlass, Truck
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { DonHangTomTat } from '../components/cart/DonHangTomTat'
+import { KhungXuong } from '../components/common/KhungXuong'
 import { PaymentQrDialog } from '../components/payment/PaymentQrDialog'
 import momoQrAsset from '../components/payment/momo-qr.png'
 import { useCart, type CartItem } from '../contexts/GioHangContext'
 import { useLanguage } from '../contexts/NgonNguContext'
 import { useUser } from '../contexts/NguoiDungContext'
 import { createMomoPayment, getMomoPaymentStatus, type MomoPaymentStatus } from '../services/payment.service'
+import { createCheckoutOrder, createDemoCheckoutOrder, updateAdminPaymentStatus } from '../services/order.service'
 import { formatCurrency } from '../utils/formatCurrency'
 import { getOrderCosts, getProductPrice } from '../utils/order'
 import {
   ADMIN_DATABASE_UPDATED_EVENT,
-  createAdminOrderFromCheckout,
   getPaymentQrTimeoutSeconds,
 } from './admin/admin-database'
 import { getPaymentErrorMessage } from './TrangThanhToan.helpers'
@@ -30,6 +31,7 @@ type PendingPayment = {
   items: CartItem[]
   amount: number
   orderCode: string
+  serverBacked: boolean
 }
 
 const isMockPaymentMode = import.meta.env.DEV && import.meta.env.VITE_PAYMENT_MODE === 'mock'
@@ -113,16 +115,6 @@ function hasValidCardData(formData: FormData) {
   const cvc = String(formData.get('card-cvc') ?? '').trim()
 
   return /^\d{16,19}$/u.test(number) && Boolean(holder) && /^\d{2}\/\d{2}$/u.test(expiry) && /^\d{3,4}$/u.test(cvc)
-}
-
-function createPaymentOrderCode() {
-  const now = new Date()
-  const date = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
-    .map((value) => String(value).padStart(2, '0'))
-    .join('')
-  const serial = String(Math.floor(Math.random() * 900) + 100)
-
-  return `CMID-${date}-${serial}`
 }
 
 function createVietQrQuickLink(amount: number, orderCode: string) {
@@ -260,7 +252,7 @@ export function TrangThanhToanPage() {
     return () => window.clearTimeout(noticeTimer)
   }, [paymentNotice])
 
-  const completePendingPayment = useCallback((isSuccessful: boolean) => {
+  const completePendingPayment = useCallback(async (isSuccessful: boolean) => {
     if (!pendingPayment) return
 
     setPendingPayment(null)
@@ -271,18 +263,14 @@ export function TrangThanhToanPage() {
       return
     }
 
-    createAdminOrderFromCheckout({
-      customer: pendingPayment.customer,
-      email: pendingPayment.email,
-      phone: pendingPayment.phone,
-      address: pendingPayment.address,
-      paymentMethod: pendingPayment.paymentMethodLabel,
-      note: pendingPayment.note,
-      items: pendingPayment.items,
-      paymentStatus: 'Đã thanh toán',
-    })
-    setIsSubmitted(true)
-    clearCart()
+    try {
+      if (!pendingPayment.serverBacked) throw new Error('Đơn thử nghiệm chưa được lưu trên máy chủ.')
+      await updateAdminPaymentStatus(pendingPayment.orderCode, 'PAID', true)
+      setIsSubmitted(true)
+      clearCart()
+    } catch (error) {
+      setPaymentError(getPaymentErrorMessage(error))
+    }
   }, [checkout.paymentCancelled, clearCart, pendingPayment])
 
   useEffect(() => {
@@ -291,7 +279,7 @@ export function TrangThanhToanPage() {
     }
 
     const paymentConfirmationTimer = window.setTimeout(
-      () => completePendingPayment(true),
+      () => void completePendingPayment(true),
       paymentTimeoutSeconds * 1_000,
     )
 
@@ -439,12 +427,34 @@ export function TrangThanhToanPage() {
         : {}),
     }
 
-    if (submittedPaymentMethod === 'bank' || submittedPaymentMethod === 'momo' || submittedPaymentMethod === 'card') {
-      const hasQrPayment = submittedPaymentMethod === 'bank'
-        ? Boolean(vnpayAccountNumber)
-        : submittedPaymentMethod === 'momo'
+    const checkoutOrderInput = {
+      customerName: fullName,
+      customerEmail: getFieldValue('email'),
+      customerPhone: phone,
+      address: submittedAddress,
+      note: getFieldValue('note') || undefined,
+      items: items.map((item) => ({ productId: item.product.id, quantity: item.quantity })),
+    }
 
-      if (isMockPaymentMode || hasQrPayment) {
+    if (submittedPaymentMethod === 'cod') {
+      setIsPaymentStarting(true)
+      try {
+        await createCheckoutOrder({ ...checkoutOrderInput, paymentMethod: 'COD' })
+        updateProfile(nextProfile)
+        setIsSubmitted(true)
+        clearCart()
+      } catch (error) {
+        setPaymentError(getPaymentErrorMessage(error))
+      } finally {
+        setIsPaymentStarting(false)
+      }
+      return
+    }
+
+    if (submittedPaymentMethod === 'bank') {
+      setIsPaymentStarting(true)
+      try {
+        const order = await createCheckoutOrder({ ...checkoutOrderInput, paymentMethod: 'BANK_TRANSFER' })
         updateProfile(nextProfile)
         setPaymentCountdown(paymentTimeoutSeconds)
         setPendingPayment({
@@ -457,13 +467,45 @@ export function TrangThanhToanPage() {
           note: getFieldValue('note'),
           items,
           amount: checkoutTotal,
-          orderCode: createPaymentOrderCode(),
+          orderCode: order.id,
+          serverBacked: true,
         })
-        return
+      } catch (error) {
+        setPaymentError(getPaymentErrorMessage(error))
+      } finally {
+        setIsPaymentStarting(false)
       }
+      return
+    }
 
-      if (submittedPaymentMethod !== 'momo') {
-        setPaymentError(checkout.vnpayNotConfigured)
+    if (submittedPaymentMethod === 'momo' || submittedPaymentMethod === 'card') {
+      if (isMockPaymentMode) {
+        setIsPaymentStarting(true)
+        try {
+          const order = await createDemoCheckoutOrder({
+            ...checkoutOrderInput,
+            paymentMethod: submittedPaymentMethod === 'momo' ? 'MOMO_WALLET' : 'MOMO_CARD',
+          })
+          updateProfile(nextProfile)
+          setPaymentCountdown(paymentTimeoutSeconds)
+          setPendingPayment({
+            customer: fullName,
+            email: getFieldValue('email'),
+            phone,
+            address: submittedAddress,
+            paymentMethod: submittedPaymentMethod,
+            paymentMethodLabel: paymentMethodLabels[submittedPaymentMethod],
+            note: getFieldValue('note'),
+            items,
+            amount: checkoutTotal,
+            orderCode: order.id,
+            serverBacked: true,
+          })
+        } catch (error) {
+          setPaymentError(getPaymentErrorMessage(error))
+        } finally {
+          setIsPaymentStarting(false)
+        }
         return
       }
 
@@ -492,22 +534,7 @@ export function TrangThanhToanPage() {
       }
     }
 
-    createAdminOrderFromCheckout({
-      customer: fullName,
-      email: getFieldValue('email'),
-      phone,
-      address: submittedAddress,
-      paymentMethod:
-        paymentMethodLabels[submittedPaymentMethod] ??
-        paymentMethodLabels[paymentMethod],
-      note: getFieldValue('note'),
-      items,
-    })
-
-    updateProfile(nextProfile)
-
-    setIsSubmitted(true)
-    clearCart()
+    setPaymentError('Phương thức thanh toán không được hỗ trợ.')
   }
 
   return (
@@ -566,7 +593,8 @@ export function TrangThanhToanPage() {
                       options={provinceOptions}
                       searchPlaceholder={content.auth.searchOptions}
                       emptyMessage={content.auth.noOptionsFound}
-                      statusLabel={isAdministrativeDataLoading ? content.auth.loadingOptions : isAdministrativeDataUnavailable ? content.auth.noOptionsFound : undefined}
+                      statusLabel={isAdministrativeDataUnavailable ? content.auth.noOptionsFound : undefined}
+                      loadingLabel={isAdministrativeDataLoading ? content.auth.loadingOptions : undefined}
                       disabled={!administrativeData}
                       invalid={Boolean(locationError)}
                       ariaLabelledBy="checkout-city-label"
@@ -584,7 +612,8 @@ export function TrangThanhToanPage() {
                       options={districtOptions}
                       searchPlaceholder={content.auth.searchOptions}
                       emptyMessage={selectedProvince ? content.auth.noOptionsFound : content.auth.selectProvinceFirst}
-                      statusLabel={isAdministrativeDataLoading ? content.auth.loadingOptions : content.auth.selectProvinceFirst}
+                      statusLabel={content.auth.selectProvinceFirst}
+                      loadingLabel={isAdministrativeDataLoading ? content.auth.loadingOptions : undefined}
                       disabled={!administrativeData || !selectedProvince}
                       invalid={Boolean(locationError)}
                       ariaLabelledBy="checkout-district-label"
@@ -602,7 +631,8 @@ export function TrangThanhToanPage() {
                       options={wardOptions}
                       searchPlaceholder={content.auth.searchOptions}
                       emptyMessage={selectedDistrict ? content.auth.noOptionsFound : content.auth.selectDistrictFirst}
-                      statusLabel={isAdministrativeDataLoading ? content.auth.loadingOptions : content.auth.selectDistrictFirst}
+                      statusLabel={content.auth.selectDistrictFirst}
+                      loadingLabel={isAdministrativeDataLoading ? content.auth.loadingOptions : undefined}
                       disabled={!administrativeData || !selectedDistrict}
                       invalid={Boolean(locationError)}
                       ariaLabelledBy="checkout-ward-label"
@@ -739,7 +769,7 @@ export function TrangThanhToanPage() {
           }}
           remainingSeconds={paymentCountdown}
           onCancel={() => completePendingPayment(false)}
-          onTestSuccess={import.meta.env.DEV ? () => completePendingPayment(true) : undefined}
+          onTestSuccess={isMockPaymentMode ? () => completePendingPayment(true) : undefined}
         />
       ) : pendingPayment ? (
         <div className="auth-dialog-backdrop" role="presentation" onMouseDown={() => completePendingPayment(false)}>
@@ -788,6 +818,7 @@ function CheckoutLocationDropdown({
   searchPlaceholder,
   emptyMessage,
   statusLabel,
+  loadingLabel,
   disabled = false,
   invalid = false,
   ariaLabelledBy,
@@ -801,6 +832,7 @@ function CheckoutLocationDropdown({
   searchPlaceholder: string
   emptyMessage: string
   statusLabel?: string
+  loadingLabel?: string
   disabled?: boolean
   invalid?: boolean
   ariaLabelledBy?: string
@@ -876,6 +908,15 @@ function CheckoutLocationDropdown({
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [isOpen])
+
+  if (loadingLabel) {
+    return (
+      <div className="checkout-location-dropdown checkout-location-dropdown--loading" role="status" aria-live="polite" aria-busy="true">
+        <span className="sr-only">{loadingLabel}</span>
+        <KhungXuong className="checkout-location-dropdown__skeleton" />
+      </div>
+    )
+  }
 
   return (
     <div

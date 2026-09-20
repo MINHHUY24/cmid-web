@@ -1,22 +1,42 @@
 import { ArrowLeft, ArrowRight, CalendarBlank, Clock } from '@phosphor-icons/react'
-import { useEffect } from 'react'
+import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { KhungXuong, TrangDangTaiKhungXuong } from '../components/common/KhungXuong'
+import { StatusPanel } from '../components/common/KhunTranThai'
 import { Seo } from '../components/common/Seo'
-import { getNewsArticles, newsCategoryKeys } from '../content/news-articles'
+import { newsCategoryKeys } from '../content/news-articles'
 import { useLanguage } from '../contexts/NgonNguContext'
+import { useNewsArticles } from '../hooks/useNewsArticles'
+import { localizeNewsArticle } from '../services/news.service'
 import { getAbsoluteUrl } from '../utils/seo'
 
 export function TrangChiTietTinTucPage() {
   const { slug } = useParams()
   const { content, language } = useLanguage()
   const { news, common } = content
-  const articles = getNewsArticles(language)
+  const { articles: articleRecords, isLoading, errorMessage, retry } = useNewsArticles()
+  const articles = useMemo(
+    () => articleRecords.map((item) => localizeNewsArticle(item, language)),
+    [articleRecords, language],
+  )
   const article = articles.find((item) => item.slug === slug)
   const requestedArticlePath = slug ? `/tin-tuc-su-kien/${slug}` : '/tin-tuc-su-kien'
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [slug])
+  if (isLoading) {
+    return <NewsDetailSkeleton label={language === 'vi' ? 'Đang tải bài viết' : 'Loading article'} />
+  }
+
+  if (errorMessage) {
+    return (
+      <main className="news-detail news-detail--not-found">
+        <div className="news-detail__shell">
+          <StatusPanel title={errorMessage} tone="error">
+            <button className="button button--gold" type="button" onClick={retry}>{common.retry}</button>
+          </StatusPanel>
+        </div>
+      </main>
+    )
+  }
 
   if (!article) {
     return (
@@ -111,10 +131,12 @@ export function TrangChiTietTinTucPage() {
             <div>
               {article.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             </div>
-            <aside className="news-article__highlights">
-              <h2>CMID NOTE</h2>
-              <ul>{article.highlights.map((highlight) => <li key={highlight}>{highlight}</li>)}</ul>
-            </aside>
+            {article.highlights.length > 0 ? (
+              <aside className="news-article__highlights">
+                <h2>CMID NOTE</h2>
+                <ul>{article.highlights.map((highlight) => <li key={highlight}>{highlight}</li>)}</ul>
+              </aside>
+            ) : null}
           </div>
 
           <footer className="news-article__footer">
@@ -135,7 +157,7 @@ export function TrangChiTietTinTucPage() {
                 return (
                   <article key={related.slug} className="news-related-card">
                     <Link to={`/tin-tuc-su-kien/${related.slug}`}>
-                      <img src={related.image} alt={related.title} />
+                      <img src={related.image} alt={related.title} loading="lazy" decoding="async" />
                       <div>
                         <p><time dateTime={related.publishedAt}>{related.date}</time>{news.categories[relatedCategoryIndex] ?? related.category}</p>
                         <h3>{related.title}</h3>
@@ -148,6 +170,32 @@ export function TrangChiTietTinTucPage() {
           </section>
         ) : null}
       </div>
+    </main>
+  )
+}
+
+function NewsDetailSkeleton({ label }: { label: string }) {
+  return (
+    <main className="news-detail">
+      <TrangDangTaiKhungXuong label={label} className="news-detail__shell news-detail-skeleton">
+        <KhungXuong className="news-detail-skeleton__breadcrumb" />
+        <article className="news-article">
+          <header className="news-article__header">
+            <KhungXuong className="news-detail-skeleton__eyebrow" />
+            <KhungXuong className="news-detail-skeleton__title" />
+            <KhungXuong className="news-detail-skeleton__title news-detail-skeleton__title--short" />
+            <KhungXuong className="news-detail-skeleton__summary" />
+            <KhungXuong className="news-detail-skeleton__meta" />
+          </header>
+          <KhungXuong className="news-detail-skeleton__image" />
+          <div className="news-article__body">
+            <div>
+              {Array.from({ length: 5 }, (_, index) => <KhungXuong className="news-detail-skeleton__paragraph" key={index} />)}
+            </div>
+            <KhungXuong className="news-detail-skeleton__note" />
+          </div>
+        </article>
+      </TrangDangTaiKhungXuong>
     </main>
   )
 }

@@ -1,5 +1,5 @@
-import { CaretLeft, CaretRight } from "@phosphor-icons/react";
-import { useMemo, useState } from "react";
+import { CaretLeft, CaretRight, SlidersHorizontal } from "@phosphor-icons/react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import productHeroImage from "../assets/images/hero-san-pham-cmid.png";
 import { StatusPanel } from "../components/common/KhunTranThai";
@@ -15,7 +15,7 @@ import { useLanguage } from "../contexts/NgonNguContext";
 
 type SortOrder = "newest" | "price-asc" | "price-desc";
 
-const PRODUCTS_PER_PAGE = 8;
+const PRODUCTS_PER_PAGE = 12;
 const CATALOG_SKELETON_CARD_COUNT = 8;
 
 function getProductPrice(product: Product): number {
@@ -139,6 +139,7 @@ export function TrangSanPhamPage() {
   });
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const categoryOptions = useMemo(
     () =>
@@ -295,6 +296,14 @@ export function TrangSanPhamPage() {
     (safeCurrentPage - 1) * PRODUCTS_PER_PAGE,
     safeCurrentPage * PRODUCTS_PER_PAGE,
   );
+  const activeFilterCount =
+    activeSelectedCategories.length +
+    selectedBrands.length +
+    selectedSaleTypes.length +
+    selectedStatuses.length +
+    Number(only3D) +
+    Number(priceFrom !== priceBounds.min || priceTo !== priceBounds.max);
+  const closeMobileFilters = useCallback(() => setIsFilterOpen(false), []);
 
   function resetFilters() {
     setSelectedCategories([]);
@@ -349,7 +358,6 @@ export function TrangSanPhamPage() {
           </nav>
           {!isLoading && !errorMessage ? (
             <div className="catalog-toolbar__controls">
-              <p>{content.product.totalProducts(sortedProducts.length)}</p>
               <CatalogSortDropdown
                 label={content.product.sortNewest}
                 value={sortOrder}
@@ -363,6 +371,17 @@ export function TrangSanPhamPage() {
                   setCurrentPage(1);
                 }}
               />
+              <button
+                className="catalog-filters__mobile-trigger"
+                type="button"
+                aria-controls="catalog-product-filters"
+                aria-expanded={isFilterOpen}
+                onClick={() => setIsFilterOpen(true)}
+              >
+                <SlidersHorizontal size={18} weight="bold" aria-hidden="true" />
+                <span>{content.product.filter.mobileLabel}</span>
+                {activeFilterCount > 0 ? <small>{activeFilterCount}</small> : null}
+              </button>
             </div>
           ) : null}
         </div>
@@ -385,6 +404,8 @@ export function TrangSanPhamPage() {
         {!isLoading && !errorMessage ? (
           <div className="catalog-layout">
             <ProductCatalogFilters
+              isMobileOpen={isFilterOpen}
+              onMobileClose={closeMobileFilters}
               categories={categoryOptions}
               brands={visibleBrandOptions}
               statuses={statusOptions}

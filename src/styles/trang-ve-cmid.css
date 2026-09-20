@@ -402,7 +402,7 @@
   min-width: 165px;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .about-categories {
     padding: 24px 20px;
   }

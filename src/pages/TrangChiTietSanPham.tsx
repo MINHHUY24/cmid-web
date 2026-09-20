@@ -9,7 +9,7 @@ import {
   Plus,
   ShoppingCartSimple,
 } from "@phosphor-icons/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { CamKetDichVu } from "../components/common/CamKetDichVu";
 import { StatusPanel } from "../components/common/KhunTranThai";
@@ -167,10 +167,6 @@ export function TrangChiTietSanPham() {
   const { content, language } = useLanguage();
   const { productDetail } = content;
   const requestedProductPath = id ? `/products/${id}` : "/products";
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [id]);
 
   const productId = Number(id);
   const product = products.find(

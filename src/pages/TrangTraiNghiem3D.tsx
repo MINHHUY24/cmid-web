@@ -1,8 +1,10 @@
 import { ArrowLeft, ArrowsOutSimple, Cube } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { KhungXuong } from '../components/common/KhungXuong'
 import { StatusPanel } from '../components/common/KhunTranThai'
 import { Seo } from '../components/common/Seo'
+import { PRODUCT_MODEL_CAMERA_LIMITS } from '../components/product/model-viewer-config'
 import { useLanguage } from '../contexts/NgonNguContext'
 import { useProducts } from '../hooks/useProducts'
 import { getProductName } from '../utils/localizeProduct'
@@ -10,6 +12,26 @@ import { getProductName } from '../utils/localizeProduct'
 type ModelViewerWithAR = HTMLElement & {
   canActivateAR?: boolean
   activateAR?: () => Promise<void>
+}
+
+function TraiNghiem3DKhungXuong() {
+  return (
+    <main className="product-3d-experience product-3d-experience--loading" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">Đang tải trải nghiệm 3D</span>
+      <header className="product-3d-experience__header" aria-hidden="true">
+        <KhungXuong className="product-3d-experience__skeleton-back" />
+        <div className="product-3d-experience__skeleton-title"><KhungXuong /><KhungXuong /></div>
+        <KhungXuong className="product-3d-experience__skeleton-mode" />
+      </header>
+      <section className="product-3d-experience__stage" aria-hidden="true">
+        <KhungXuong className="product-3d-experience__stage-skeleton" />
+      </section>
+      <footer className="product-3d-experience__controls" aria-hidden="true">
+        <KhungXuong className="product-3d-experience__skeleton-instruction" />
+        <KhungXuong className="product-3d-experience__skeleton-action" />
+      </footer>
+    </main>
+  )
 }
 
 export function TrangTraiNghiem3D() {
@@ -53,7 +75,7 @@ export function TrangTraiNghiem3D() {
   }
 
   if (isLoading) {
-    return <main className="product-3d-experience product-3d-experience--status"><p role="status">Đang tải trải nghiệm 3D…</p></main>
+    return <TraiNghiem3DKhungXuong />
   }
 
   if (errorMessage) {
@@ -107,6 +129,7 @@ export function TrangTraiNghiem3D() {
               alt={`Mô hình 3D ${productName}`}
               camera-controls=""
               touch-action="pan-y"
+              {...PRODUCT_MODEL_CAMERA_LIMITS}
               shadow-intensity="1"
               exposure="1"
               ar
@@ -117,7 +140,12 @@ export function TrangTraiNghiem3D() {
               reveal="auto"
               onError={() => setViewerError('Không mở được mô hình 3D. Hãy quay lại trang sản phẩm và thử lại.')}
             />
-          ) : <p className="product-3d-experience__loading" role="status">Đang tải mô hình 3D…</p>}
+          ) : (
+            <div className="product-3d-experience__stage-loading" role="status" aria-live="polite" aria-busy="true">
+              <span className="sr-only">Đang tải mô hình 3D</span>
+              <KhungXuong className="product-3d-experience__stage-skeleton" />
+            </div>
+          )}
         </section>
 
         <footer className="product-3d-experience__controls">

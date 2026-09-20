@@ -51,6 +51,7 @@ export function AdminProductEditor({
   onCancel,
   onSaved,
 }: AdminProductEditorProps) {
+  const [modelOwnerKey] = useState(() => createModelOwnerKey(product))
   const [form, setForm] = useState<ProductEditorState>(() =>
     createEditorState(product, categories, brands),
   )
@@ -308,7 +309,7 @@ export function AdminProductEditor({
             <AdminTrellisModel
               images={uploadingImages.size ? [] : form.images.slice(0, 4).map((slot) => slot.imageUrl)}
               productName={form.name}
-              productKey={String(product?.id ?? 'new')}
+              productKey={modelOwnerKey}
               modelUrl={form.modelUrl}
               onBusyChange={setModelBusy}
               onSaved={(model) => setForm((current) => ({ ...current, modelUrl: model.modelUrl, modelFileName: model.fileName, modelFileSize: model.fileSize }))}
@@ -375,7 +376,7 @@ export function AdminProductEditor({
             <TextField label="Số lượng tồn kho" value={form.stock} type="number" min="0" onChange={(value) => update('stock', value)} />
             <label className="admin-checkbox">
               <input type="checkbox" checked={form.isFeatured} onChange={(event) => update('isFeatured', event.target.checked)} />
-              Hiển thị trong khu vực sản phẩm nổi bật
+              <span>Hiển thị trong khu vực sản phẩm nổi bật</span>
             </label>
             <p className="admin-form-note">
               <Check size={16} weight="bold" />
@@ -386,6 +387,15 @@ export function AdminProductEditor({
       </div>
     </form>
   )
+}
+
+function createModelOwnerKey(product?: Product) {
+  if (product) return `product-${product.id}`
+
+  // Every new-product editor gets its own TRELLIS job namespace. Reusing a
+  // literal "new" key would leak the completed job from one draft into the
+  // next draft and allow two products to select the same generated model.
+  return `draft-${crypto.randomUUID()}`
 }
 
 function createEditorState(

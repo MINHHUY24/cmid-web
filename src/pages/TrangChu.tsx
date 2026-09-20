@@ -17,24 +17,23 @@ import {
   Toilet,
   Wall,
 } from "@phosphor-icons/react";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import aboutImage from "../assets/images/khong-gian-trung-bay-vat-lieu.jpg";
-import projectGreenImage from "../assets/images/du-an-khu-do-thi-xanh.jpg";
-import projectPlanningImage from "../assets/images/du-an-quy-hoach-do-thi.jpg";
-import projectTowerImage from "../assets/images/du-an-thap-do-thi.jpg";
-import projectRiversideImage from "../assets/images/du-an-ven-song.jpg";
 import heroImage from "../assets/images/noi-that-phong-khach-cao-cap.jpg";
 import modelImage from "../assets/images/mo-hinh-khong-gian-3d.jpg";
-import { getNewsArticles } from "../content/news-articles";
 import { CategoryShortcut } from "../components/common/DanhMucNhanh";
+import { KhungXuong, TrangDangTaiKhungXuong } from "../components/common/KhungXuong";
 import { ProjectCard } from "../components/common/TheDuAn";
 import { SectionHeading } from "../components/common/TieuDeMuc";
 import { StatusPanel } from "../components/common/KhunTranThai";
 import { ProductCard } from "../components/product/TheSanPham";
 import { useProducts } from "../hooks/useProducts";
+import { useProjects } from "../hooks/useProjects";
+import { useNewsArticles } from "../hooks/useNewsArticles";
 import { useLanguage } from "../contexts/NgonNguContext";
-import { getAdminProjects } from "./admin/admin-local-store";
+import { localizeNewsArticle } from "../services/news.service";
+import { localizeProject } from "../services/project.service";
 
 const danhMucNhanh = [
   {
@@ -77,25 +76,6 @@ const danhMucNhanh = [
     to: "/products?category=noi-that-van-phong",
     icon: <Storefront size={32} weight="thin" />,
   },
-  {
-    to: "/products",
-    icon: <GridFour size={32} weight="thin" />,
-  },
-];
-
-const duAnNoiBat = [
-  {
-    image: projectGreenImage,
-  },
-  {
-    image: projectTowerImage,
-  },
-  {
-    image: projectRiversideImage,
-  },
-  {
-    image: projectPlanningImage,
-  },
 ];
 
 const thuongHieu = [
@@ -110,17 +90,25 @@ const thuongHieu = [
 
 export function TrangChuPage() {
   const { products, isLoading, errorMessage, retry } = useProducts();
+  const { projects } = useProjects();
+  const {
+    articles: newsRecords,
+    isLoading: isNewsLoading,
+    errorMessage: newsErrorMessage,
+    retry: retryNews,
+  } = useNewsArticles();
   const { content, language } = useLanguage();
   const { home, common } = content;
   const productScrollerRef = useRef<HTMLDivElement>(null);
-  const recentArticles = getNewsArticles(language).slice(0, 3);
-  const featuredProjects = [
-    ...getAdminProjects(language),
-    ...home.projects.map((project, index) => ({
-      ...project,
-      image: duAnNoiBat[index]?.image ?? projectPlanningImage,
-    })),
-  ].slice(0, 4);
+  const recentArticles = useMemo(
+    () => newsRecords.map((article) => localizeNewsArticle(article, language)).slice(0, 3),
+    [language, newsRecords],
+  );
+  const featuredProjects = projects
+    .filter((project) => project.isFeatured)
+    .concat(projects.filter((project) => !project.isFeatured))
+    .slice(0, 4)
+    .map((project) => localizeProject(project, language));
 
   function scrollFeaturedProducts(direction: -1 | 1) {
     const productScroller = productScrollerRef.current;
@@ -381,7 +369,7 @@ export function TrangChuPage() {
           <div className="project-grid">
             {featuredProjects.map((project) => (
               <ProjectCard
-                key={`${project.title}-${project.location}`}
+                key={project.id}
                 {...project}
               />
             ))}
@@ -403,7 +391,30 @@ export function TrangChuPage() {
             </Link>
           </div>
           <div className="news-list">
-            {recentArticles.map((article) => (
+            {isNewsLoading ? (
+              <TrangDangTaiKhungXuong
+                className="home-news-skeleton"
+                label={language === "vi" ? "Đang tải tin tức" : "Loading news"}
+              >
+                {Array.from({ length: 3 }, (_, index) => (
+                  <div className="home-news-skeleton__item" key={index}>
+                    <KhungXuong className="home-news-skeleton__image" />
+                    <div>
+                      <KhungXuong className="home-news-skeleton__title" />
+                      <KhungXuong className="home-news-skeleton__date" />
+                    </div>
+                  </div>
+                ))}
+              </TrangDangTaiKhungXuong>
+            ) : null}
+            {!isNewsLoading && newsErrorMessage ? (
+              <StatusPanel title={newsErrorMessage} tone="error">
+                <button className="button button--small" type="button" onClick={retryNews}>
+                  {common.retry}
+                </button>
+              </StatusPanel>
+            ) : null}
+            {!isNewsLoading && !newsErrorMessage ? recentArticles.map((article) => (
               <article key={article.slug} className="news-item">
                 <Link to={`/tin-tuc-su-kien/${article.slug}`}>
                   <img src={article.image} alt={article.title} loading="lazy" decoding="async" />
@@ -413,7 +424,7 @@ export function TrangChuPage() {
                   </div>
                 </Link>
               </article>
-            ))}
+            )) : null}
           </div>
         </section>
       </div>

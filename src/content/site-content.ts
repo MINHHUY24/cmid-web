@@ -169,6 +169,9 @@ export interface SiteContent {
     viewDetail: (name: string) => string;
     filter: {
       title: string;
+      mobileLabel: string;
+      close: string;
+      showResults: string;
       category: string;
       brand: string;
       searchBrand: string;
@@ -607,6 +610,9 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       viewDetail: (name) => `Xem chi tiết ${name}`,
       filter: {
         title: "Bộ lọc sản phẩm",
+        mobileLabel: "Bộ lọc",
+        close: "Đóng bộ lọc",
+        showResults: "Xem sản phẩm",
         category: "Danh mục",
         brand: "Thương hiệu",
         searchBrand: "Tìm thương hiệu...",
@@ -638,7 +644,6 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
         "Nội thất phòng khách",
         "Nội thất phòng ăn",
         "Nội thất văn phòng",
-        "Xem tất cả",
       ],
       featuredTitle: "Sản phẩm nổi bật",
       loading: "Đang tải sản phẩm",
@@ -1287,6 +1292,9 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       viewDetail: (name) => `View details for ${name}`,
       filter: {
         title: "Product filters",
+        mobileLabel: "Filters",
+        close: "Close filters",
+        showResults: "Show products",
         category: "Category",
         brand: "Brand",
         searchBrand: "Search brands...",
@@ -1318,7 +1326,6 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
         "Living room furniture",
         "Dining furniture",
         "Office furniture",
-        "View all",
       ],
       featuredTitle: "Featured products",
       loading: "Loading products",

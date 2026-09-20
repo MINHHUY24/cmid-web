@@ -30,6 +30,7 @@
   height: 100dvh;
   flex-direction: column;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
   color: #d7d3ca;
   background: var(--admin-charcoal);
 }
@@ -446,6 +447,26 @@
   background: #fffdf8;
 }
 
+.admin-kpi-grid--skeleton {
+  cursor: progress;
+}
+
+.admin-metric--skeleton {
+  pointer-events: none;
+}
+
+.admin-metric__skeleton-icon {
+  position: absolute;
+  top: 19px;
+  right: 19px;
+  width: 37px;
+  height: 37px;
+}
+
+.admin-metric__skeleton-label { width: 47%; height: 12px; margin-top: 10px; }
+.admin-metric__skeleton-value { width: 62%; height: 31px; }
+.admin-metric__skeleton-helper { width: 72%; height: 13px; }
+
 .admin-dashboard-grid,
 .admin-category-layout,
 .admin-content-layout,
@@ -603,6 +624,43 @@
 .admin-table-wrap {
   overflow-x: auto;
 }
+
+.admin-table-skeleton {
+  overflow-x: auto;
+  cursor: progress;
+}
+
+.admin-table-skeleton__inner {
+  width: 100%;
+}
+
+.admin-table-skeleton__row {
+  display: grid;
+  gap: 24px;
+  align-items: center;
+  min-height: 64px;
+  padding: 11px 18px;
+  border-bottom: 1px solid #eee8de;
+}
+
+.admin-table-skeleton__row--heading {
+  min-height: 48px;
+  border-bottom-color: var(--admin-line);
+  background: #fbf9f5;
+}
+
+.admin-table-skeleton__row--heading .cmid-skeleton {
+  width: 58%;
+  height: 11px;
+}
+
+.admin-table-skeleton__row > .cmid-skeleton {
+  width: 74%;
+  height: 15px;
+}
+
+.admin-table-skeleton__row > .admin-table-skeleton__primary { width: 92%; }
+.admin-table-skeleton__row > .admin-table-skeleton__action { justify-self: center; width: 30px; height: 30px; }
 
 .admin-table {
   width: 100%;
@@ -793,6 +851,17 @@
   margin: 0;
 }
 
+.admin-login-form__loading {
+  display: grid;
+  gap: 12px;
+  min-height: 108px;
+  align-content: center;
+}
+
+.admin-login-form__loading-title { width: min(100%, 250px); height: 31px; }
+.admin-login-form__loading-copy { width: 94%; height: 14px; }
+.admin-login-form__loading-copy--short { width: 64%; }
+
 .admin-editor-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
@@ -889,6 +958,29 @@
   font-size: calc(0.65rem + 2px);
   font-weight: 400;
   line-height: 1.4;
+}
+
+.admin-editor-side .admin-checkbox {
+  display: flex;
+  min-height: 24px;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 23px 0;
+  color: #4d4841;
+  font-size: calc(0.72rem + 2px);
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.admin-editor-side .admin-checkbox input {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+}
+
+.admin-editor-side .admin-checkbox span {
+  min-width: 0;
 }
 
 .admin-image-preview {
@@ -2100,6 +2192,12 @@
   opacity: 0.65;
 }
 
+.admin-upload-dropzone__skeleton {
+  width: calc(100% - 34px);
+  height: calc(100% - 34px);
+  min-height: 156px;
+}
+
 .admin-upload-dropzone > span {
   display: grid;
   width: 52px;
@@ -2179,7 +2277,19 @@
 }
 
 .admin-commerce-toolbar {
-  grid-template-columns: minmax(250px, 1fr) auto auto auto auto;
+  grid-template-columns: minmax(250px, 1fr) auto;
+}
+
+.admin-commerce-toolbar__filters {
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.admin-commerce-toolbar__filters .admin-commerce-toolbar__status-filter.admin-select--status {
+  width: 160px;
 }
 
 .admin-revenue-line-chart-panel {
@@ -2489,6 +2599,92 @@
   font-weight: 800;
 }
 
+.admin-load-error,
+.admin-orders-error {
+  margin: 18px 18px 0;
+}
+
+.admin-load-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 15px;
+  border-left: 3px solid var(--admin-danger);
+  color: #a72d27;
+  background: #fff0ef;
+}
+
+.admin-load-error p {
+  margin: 0;
+}
+
+.admin-order-refunds,
+.admin-order-refund-form,
+.admin-order-history {
+  display: grid;
+  gap: 12px;
+  padding: 17px;
+  border: 1px solid var(--admin-line);
+  border-radius: 6px;
+  background: #faf8f3;
+}
+
+.admin-order-refunds h3,
+.admin-order-refund-form h3,
+.admin-order-history h3 {
+  margin: 0;
+  font-size: calc(0.86rem + 2px);
+}
+
+.admin-order-refunds article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--admin-line);
+}
+
+.admin-order-refunds article > div {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-order-refunds article span,
+.admin-order-refunds article small,
+.admin-order-refund-form small {
+  color: var(--admin-muted);
+}
+
+.admin-order-refunds__status.admin-select--status {
+  width: 150px;
+}
+
+.admin-order-refund-form .admin-button {
+  justify-self: end;
+}
+
+.admin-order-history article {
+  display: grid;
+  gap: 4px;
+  padding-top: 11px;
+  border-top: 1px solid var(--admin-line);
+}
+
+.admin-order-history article > span {
+  color: var(--admin-ink);
+  font-size: calc(0.73rem + 2px);
+}
+
+.admin-order-history article small,
+.admin-order-history article p {
+  margin: 0;
+  color: var(--admin-muted);
+  font-size: calc(0.66rem + 2px);
+  line-height: 1.45;
+}
+
 .admin-document-list {
   display: grid;
   padding: 10px 23px 23px;
@@ -2756,7 +2952,24 @@
   width: 17px;
   height: 17px;
   margin: 0;
-  accent-color: var(--admin-gold);
+  border: 2px solid #b88a43;
+  border-radius: 50%;
+  appearance: none;
+  -webkit-appearance: none;
+  background: #fff;
+  cursor: pointer;
+}
+
+.admin-language-option input:checked {
+  border-color: var(--admin-gold-dark);
+  background:
+    radial-gradient(circle, #fff 0 3px, transparent 3.5px),
+    var(--admin-gold);
+}
+
+.admin-language-option input:focus-visible {
+  outline: 2px solid var(--admin-gold-dark);
+  outline-offset: 2px;
 }
 
 .admin-language-option__code {
@@ -2839,8 +3052,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .admin-commerce-toolbar > span {
-    grid-column: 1 / -1;
+  .admin-commerce-toolbar__filters {
+    width: 100%;
   }
 
   .admin-commerce-chart--wide {
@@ -2915,6 +3128,24 @@
   .admin-commerce-toolbar,
   .admin-order-detail__summary {
     grid-template-columns: 1fr;
+  }
+
+  .admin-order-refunds article {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-order-refunds__status.admin-select--status {
+    width: 100%;
+  }
+
+  .admin-commerce-toolbar__filters {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin-left: 0;
+  }
+
+  .admin-commerce-toolbar__filters .admin-commerce-toolbar__status-filter.admin-select--status {
+    width: 100%;
   }
 
   .admin-commerce-chart {
@@ -3341,6 +3572,19 @@
   justify-content: space-between;
 }
 
+.admin-order-detail__status-select.admin-select--status {
+  width: 148px;
+}
+
+.admin-orders-toolbar__payment-filter.admin-select--status {
+  width: 170px;
+  margin-left: auto;
+}
+
+.admin-order-detail__status-select.admin-select--status .admin-select__trigger {
+  min-height: 40px;
+}
+
 .admin-select__menu {
   position: fixed;
   z-index: 1200;
@@ -3395,6 +3639,46 @@
 
 .admin-select__menu button svg {
   flex: 0 0 auto;
+}
+
+/* Brown admin checkboxes always use a high-contrast white checkmark. */
+:is(
+  .admin-checkbox,
+  .admin-check-field,
+  .admin-maintenance-toggle,
+  .admin-login-form__options
+) input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 0 0 auto;
+  border: 1px solid #c8b89f;
+  border-radius: 3px;
+  background-color: #fffefd;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 12px 12px;
+  cursor: pointer;
+}
+
+:is(
+  .admin-checkbox,
+  .admin-check-field,
+  .admin-maintenance-toggle,
+  .admin-login-form__options
+) input[type='checkbox']:checked {
+  border-color: var(--admin-gold);
+  background-color: var(--admin-gold);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 8 3 3 7-7' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+:is(
+  .admin-checkbox,
+  .admin-check-field,
+  .admin-maintenance-toggle,
+  .admin-login-form__options
+) input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--admin-gold-dark);
+  outline-offset: 2px;
 }
 
 /* Only the page scrollbar is visible; nested areas remain scrollable without a track. */
@@ -3602,11 +3886,10 @@
 }
 
 .admin-trellis__heading {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: flex-start;
-  justify-content: space-between;
   gap: 16px;
-  flex-wrap: wrap;
 }
 
 .admin-trellis__heading h3 {
@@ -3616,6 +3899,10 @@
   margin: 0 0 10px;
   color: #34332e;
   font-size: 1.12rem;
+}
+
+.admin-trellis__heading p {
+  grid-column: 1 / -1;
 }
 
 .admin-trellis__connection {
@@ -3630,13 +3917,6 @@
   white-space: nowrap;
 }
 
-.admin-trellis__connection::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-}
 .admin-trellis__connection.is-ready { color: #3f7051; background: #edf3ed; }
 .admin-trellis__connection.is-offline { color: #975b37; }
 .admin-trellis__controls,

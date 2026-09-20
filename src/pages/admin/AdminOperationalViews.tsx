@@ -217,7 +217,7 @@ export function AdminOperationalView({ view, database, onToast }: OperationalVie
     return (
       <AdminCollectionManager
         title="Trả hàng và hoàn tiền"
-        description="Theo dõi lý do, giá trị và tiến độ xử lý từng yêu cầu."
+        description="Theo dõi yêu cầu được tạo từ chi tiết đơn hàng. Trạng thái được cập nhật trong đơn để bảo đảm đồng bộ thanh toán."
         singularLabel="yêu cầu hoàn tiền"
         rows={editableRows(database.returns)}
         columns={[
@@ -234,8 +234,9 @@ export function AdminOperationalView({ view, database, onToast }: OperationalVie
           { key: 'amount', label: 'Số tiền hoàn', type: 'number', required: true },
           { key: 'status', label: 'Trạng thái', type: 'select', options: ['Chờ duyệt', 'Đã duyệt', 'Đang hoàn tiền', 'Hoàn tất', 'Từ chối'].map((value) => ({ value, label: value })) },
         ]}
-        onSave={(record) => { upsertRecord('returns', { ...record, createdAt: String(record.createdAt || new Date().toISOString()) }, 'Hoàn tiền'); complete('Đã cập nhật yêu cầu hoàn tiền.') }}
-        onDelete={(id) => { deleteRecord('returns', id, 'Hoàn tiền'); complete('Đã xóa yêu cầu hoàn tiền.') }}
+        onSave={() => undefined}
+        onDelete={() => undefined}
+        readOnly
       />
     )
   }

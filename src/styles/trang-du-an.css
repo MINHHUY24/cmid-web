@@ -33,6 +33,43 @@
   margin-top: 34px;
 }
 
+.du-an__luoi--skeleton {
+  cursor: progress;
+}
+
+.du-an__skeleton-card {
+  overflow: hidden;
+  border-bottom: 1px solid #ddc7a4;
+}
+
+.du-an__skeleton-image {
+  aspect-ratio: 1.32 / 0.9;
+  border-radius: 0;
+}
+
+.du-an__skeleton-body {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-height: 112px;
+  padding: 18px 20px 20px;
+}
+
+.du-an__skeleton-title {
+  width: 84%;
+  height: 20px;
+}
+
+.du-an__skeleton-title--short {
+  width: 55%;
+}
+
+.du-an__skeleton-location {
+  width: 66%;
+  height: 13px;
+  margin-top: auto;
+}
+
 .du-an__luoi .project-card {
   border: 0;
   border-radius: 0;
@@ -72,11 +109,15 @@
 
 .du-an__noi-bat {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(290px, 0.8fr);
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
   align-items: center;
-  gap: clamp(40px, 6vw, 90px);
+  gap: clamp(32px, 4.5vw, 72px);
   margin-top: 74px;
   padding-top: 1px;
+}
+
+.du-an__noi-bat > * {
+  min-width: 0;
 }
 
 .du-an__noi-bat > img {
@@ -89,6 +130,7 @@
 .du-an__noi-bat h2 {
   margin: 0 0 16px;
   font-size: clamp(1.9rem, 2.85vw, 2.8rem);
+  overflow-wrap: anywhere;
 }
 
 .du-an__noi-bat > div > p:not(.nhan-noi-dung):not(.du-an__dia-diem) {
@@ -96,6 +138,7 @@
   color: #71695f;
   font-size: calc(0.84rem + 2px);
   line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .du-an__dia-diem {

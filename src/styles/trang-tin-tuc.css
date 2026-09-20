@@ -724,7 +724,7 @@
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .tin-tuc__hero {
     min-height: 210px;
   }

@@ -2,16 +2,18 @@ import { ArrowLeft, ArrowRight, MagnifyingGlass } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import interiorImage from '../assets/images/hero-tin-tuc-cmid.png'
-import { CatalogSortDropdown } from '../components/product/CatalogSortDropdown'
+import { KhungXuong, TrangDangTaiKhungXuong } from '../components/common/KhungXuong'
+import { StatusPanel } from '../components/common/KhunTranThai'
 import {
-  getNewsArticles,
   newsCategoryKeys,
   type NewsArticle,
   type NewsCategoryKey,
 } from '../content/news-articles'
 import { useLanguage } from '../contexts/NgonNguContext'
+import { useNewsArticles } from '../hooks/useNewsArticles'
+import { localizeNewsArticle } from '../services/news.service'
 
-const PAGE_SIZE = 6
+const PAGE_SIZE = 5
 
 function getCategoryLabel(article: NewsArticle, categoryLabels: string[]) {
   const categoryIndex = newsCategoryKeys.indexOf(article.category)
@@ -21,35 +23,42 @@ function getCategoryLabel(article: NewsArticle, categoryLabels: string[]) {
 export function TrangTinTucSuKienPage() {
   const { content, language } = useLanguage()
   const { news, common } = content
+  const { articles: articleRecords, isLoading, errorMessage, retry } = useNewsArticles()
   const [activeCategory, setActiveCategory] = useState<NewsCategoryKey>('all')
   const [query, setQuery] = useState('')
-  const [sortBy, setSortBy] = useState<'newest' | 'popular'>('newest')
   const [currentPage, setCurrentPage] = useState(1)
-  const articles = getNewsArticles(language)
+  const articles = useMemo(
+    () => articleRecords.map((article) => localizeNewsArticle(article, language)),
+    [articleRecords, language],
+  )
 
   const filteredArticles = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase()
+    const locale = language === 'vi' ? 'vi' : 'en'
+    const normalizedQuery = query.trim().toLocaleLowerCase(locale)
 
-    return [...articles]
+    return articles
       .filter((article) => activeCategory === 'all' || article.category === activeCategory)
       .filter((article) => {
         if (!normalizedQuery) return true
         return [article.title, article.summary, ...article.tags]
           .join(' ')
-          .toLocaleLowerCase()
+          .toLocaleLowerCase(locale)
           .includes(normalizedQuery)
       })
-      .sort((first, second) => {
-        if (sortBy === 'popular') return second.readingMinutes - first.readingMinutes
-        return second.publishedAt.localeCompare(first.publishedAt)
-      })
-  }, [activeCategory, articles, query, sortBy])
+      .sort((first, second) => second.publishedAt.localeCompare(first.publishedAt))
+  }, [activeCategory, articles, language, query])
 
-  const featuredArticle = filteredArticles.find((article) => article.featured)
-  const regularArticles = filteredArticles.filter((article) => !article.featured)
+  const featuredArticle = filteredArticles.find((article) => article.featured) ?? filteredArticles[0]
+  const regularArticles = featuredArticle
+    ? filteredArticles.filter((article) => article.slug !== featuredArticle.slug)
+    : filteredArticles
   const totalPages = Math.ceil(regularArticles.length / PAGE_SIZE)
-  const visibleArticles = regularArticles.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
-  const showFeatured = currentPage === 1 && featuredArticle
+  const safeCurrentPage = Math.min(currentPage, Math.max(1, totalPages))
+  const visibleArticles = regularArticles.slice(
+    (safeCurrentPage - 1) * PAGE_SIZE,
+    safeCurrentPage * PAGE_SIZE,
+  )
+  const showFeatured = safeCurrentPage === 1 ? featuredArticle : undefined
 
   function changeCategory(category: NewsCategoryKey) {
     setActiveCategory(category)
@@ -61,120 +70,169 @@ export function TrangTinTucSuKienPage() {
     setCurrentPage(1)
   }
 
-  function changeSort(value: 'newest' | 'popular') {
-    setSortBy(value)
-    setCurrentPage(1)
-  }
+  const heroTitle = language === 'vi'
+    ? 'Cảm hứng kiến tạo không gian sống'
+    : 'Ideas shaping thoughtful living'
+  const heroEyebrow = language === 'vi' ? 'Tin tức & sự kiện' : 'News & events'
+  const exploreLabel = language === 'vi' ? 'Khám phá ngay' : 'Explore stories'
+  const featuredLabel = language === 'vi' ? 'Bài viết nổi bật' : 'Featured story'
 
   return (
     <main className="trang-tin-tuc">
       <section className="tin-tuc__hero" style={{ backgroundImage: `url(${interiorImage})` }}>
         <div className="tin-tuc__hero-overlay" />
         <div className="tin-tuc__hero-content">
-          <div className="tin-tuc__hero-glass">
-            <h1>{news.title}</h1>
+          <div className="tin-tuc__hero-editorial">
+            <span className="tin-tuc__hero-eyebrow">{heroEyebrow}</span>
+            <h1>{heroTitle}</h1>
             <p>{news.heroDescription}</p>
+            <a className="tin-tuc__hero-action" href="#danh-sach-bai-viet">
+              {exploreLabel}<ArrowRight size={17} weight="bold" aria-hidden="true" />
+            </a>
           </div>
         </div>
       </section>
 
-      <div className="tin-tuc__khung">
-        <aside className="tin-tuc__sidebar" aria-label="News search and categories">
+      <section className="tin-tuc__khung" id="danh-sach-bai-viet" aria-label={news.latest}>
+        <div className="tin-tuc__toolbar">
+          <nav className="tin-tuc__categories" aria-label={news.categoriesTitle}>
+            {newsCategoryKeys.map((category, index) => (
+              <button
+                key={category}
+                type="button"
+                className={activeCategory === category ? 'is-active' : ''}
+                aria-pressed={activeCategory === category}
+                onClick={() => changeCategory(category)}
+              >
+                {news.categories[index]}
+              </button>
+            ))}
+          </nav>
           <label className="tin-tuc__search">
             <span className="sr-only">{news.search}</span>
             <input value={query} onChange={(event) => changeQuery(event.target.value)} placeholder={news.search} />
-            <MagnifyingGlass size={17} aria-hidden="true" />
+            <MagnifyingGlass size={18} aria-hidden="true" />
           </label>
-          <section>
-            <h2>{news.categoriesTitle}</h2>
-            <nav aria-label={news.categoriesTitle}>
-              {newsCategoryKeys.map((category, index) => (
-                <button
-                  key={category}
-                  type="button"
-                  className={activeCategory === category ? 'is-active' : ''}
-                  aria-pressed={activeCategory === category}
-                  onClick={() => changeCategory(category)}
-                >
-                  {news.categories[index]}
-                </button>
-              ))}
-            </nav>
-          </section>
-          <section>
-            <h2>{news.tagsTitle}</h2>
-            <div className="tin-tuc__tags">
-              {news.tags.map((tag) => (
-                <button key={tag} type="button" onClick={() => changeQuery(tag)}>{tag}</button>
-              ))}
-            </div>
-          </section>
-        </aside>
+        </div>
 
-        <section className="tin-tuc__feed" id="danh-sach-bai-viet">
-          <div className="tin-tuc__feed-top">
-            <p>{news.latest}</p>
-            <div className="tin-tuc__feed-sort">
-              <span>{news.sort}</span>
-              <CatalogSortDropdown
-                label={news.sort}
-                value={sortBy}
-                options={[
-                  { value: 'newest', label: news.newest },
-                  { value: 'popular', label: news.popular },
-                ]}
-                onChange={(value) => changeSort(value as 'newest' | 'popular')}
-              />
-            </div>
-          </div>
+        {isLoading ? (
+          <NewsListingSkeleton label={language === 'vi' ? 'Đang tải bài viết' : 'Loading articles'} />
+        ) : null}
 
-          {showFeatured ? (
-            <article className="tin-tuc__featured">
+        {errorMessage ? (
+          <StatusPanel title={errorMessage} tone="error">
+            <button className="button button--gold" type="button" onClick={retry}>{common.retry}</button>
+          </StatusPanel>
+        ) : null}
+
+        {!isLoading && !errorMessage && showFeatured ? (
+          <article className="tin-tuc__featured">
+            <Link className="tin-tuc__featured-media" to={`/tin-tuc-su-kien/${showFeatured.slug}`}>
               <img src={showFeatured.image} alt={showFeatured.title} />
-              <div>
-                <p><time dateTime={showFeatured.publishedAt}>{showFeatured.date}</time>{getCategoryLabel(showFeatured, news.categories)}</p>
-                <h2>{showFeatured.title}</h2>
-                <p className="tin-tuc__featured-summary">{showFeatured.summary}</p>
-                <Link to={`/tin-tuc-su-kien/${showFeatured.slug}`}>{common.readMore} <ArrowRight size={16} weight="bold" aria-hidden="true" /></Link>
-              </div>
-            </article>
-          ) : null}
-
-          {visibleArticles.length > 0 ? (
-            <div className="tin-tuc__luoi">
-              {visibleArticles.map((article) => (
-                <NewsCard key={article.slug} article={article} categoryLabel={getCategoryLabel(article, news.categories)} readMore={common.readMore} />
-              ))}
+              <span>{featuredLabel}</span>
+            </Link>
+            <div className="tin-tuc__featured-copy">
+              <p className="tin-tuc__meta">
+                <time dateTime={showFeatured.publishedAt}>{showFeatured.date}</time>
+                <span aria-hidden="true" />
+                {getCategoryLabel(showFeatured, news.categories)}
+              </p>
+              <h2><Link to={`/tin-tuc-su-kien/${showFeatured.slug}`}>{showFeatured.title}</Link></h2>
+              <p className="tin-tuc__featured-summary">{showFeatured.summary}</p>
+              <Link className="tin-tuc__read-more" to={`/tin-tuc-su-kien/${showFeatured.slug}`}>
+                {common.readMore}<ArrowRight size={16} weight="bold" aria-hidden="true" />
+              </Link>
             </div>
-          ) : filteredArticles.length === 0 ? (
-            <p className="tin-tuc__no-results">{news.noResults}</p>
-          ) : null}
+          </article>
+        ) : null}
 
-          {totalPages > 1 ? (
-            <nav className="tin-tuc__pagination" aria-label="News pagination">
-              <button type="button" aria-label={news.previous} disabled={currentPage === 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}><ArrowLeft size={15} /></button>
-              {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-                <button key={page} className={currentPage === page ? 'is-active' : ''} type="button" aria-current={currentPage === page ? 'page' : undefined} onClick={() => setCurrentPage(page)}>{page}</button>
-              ))}
-              <button type="button" aria-label={news.next} disabled={currentPage === totalPages} onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}><ArrowRight size={15} /></button>
-            </nav>
-          ) : null}
-        </section>
-      </div>
+        {!isLoading && !errorMessage && visibleArticles.length > 0 ? (
+          <div className="tin-tuc__luoi">
+            {visibleArticles.map((article, index) => (
+              <NewsCard
+                key={article.slug}
+                article={article}
+                categoryLabel={getCategoryLabel(article, news.categories)}
+                readMore={common.readMore}
+                lead={index === 0}
+              />
+            ))}
+          </div>
+        ) : null}
+
+        {!isLoading && !errorMessage && filteredArticles.length === 0 ? (
+          <p className="tin-tuc__no-results">{news.noResults}</p>
+        ) : null}
+
+        {!isLoading && !errorMessage && totalPages > 1 ? (
+          <nav className="tin-tuc__pagination" aria-label="News pagination">
+            <button type="button" aria-label={news.previous} disabled={safeCurrentPage === 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}><ArrowLeft size={15} /></button>
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+              <button key={page} className={safeCurrentPage === page ? 'is-active' : ''} type="button" aria-current={safeCurrentPage === page ? 'page' : undefined} onClick={() => setCurrentPage(page)}>{page}</button>
+            ))}
+            <button type="button" aria-label={news.next} disabled={safeCurrentPage === totalPages} onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}><ArrowRight size={15} /></button>
+          </nav>
+        ) : null}
+      </section>
     </main>
   )
 }
 
-function NewsCard({ article, categoryLabel, readMore }: { article: NewsArticle; categoryLabel: string; readMore: string }) {
+function NewsCard({
+  article,
+  categoryLabel,
+  readMore,
+  lead,
+}: {
+  article: NewsArticle
+  categoryLabel: string
+  readMore: string
+  lead: boolean
+}) {
   return (
-    <article className="bai-viet">
-      <img src={article.image} alt={article.title} />
+    <article className={`bai-viet${lead ? ' bai-viet--lead' : ''}`}>
+      <Link className="bai-viet__media" to={`/tin-tuc-su-kien/${article.slug}`}>
+        <img src={article.image} alt={article.title} loading="lazy" decoding="async" />
+      </Link>
       <div>
-        <p><time dateTime={article.publishedAt}>{article.date}</time>{categoryLabel}</p>
-        <h2>{article.title}</h2>
+        <p className="tin-tuc__meta"><time dateTime={article.publishedAt}>{article.date}</time><span aria-hidden="true" />{categoryLabel}</p>
+        <h2><Link to={`/tin-tuc-su-kien/${article.slug}`}>{article.title}</Link></h2>
         <p className="bai-viet__tom-tat">{article.summary}</p>
-        <Link to={`/tin-tuc-su-kien/${article.slug}`}>{readMore} <ArrowRight size={14} weight="bold" aria-hidden="true" /></Link>
+        <Link className="tin-tuc__read-more" to={`/tin-tuc-su-kien/${article.slug}`}>
+          {readMore}<ArrowRight size={14} weight="bold" aria-hidden="true" />
+        </Link>
       </div>
     </article>
+  )
+}
+
+function NewsListingSkeleton({ label }: { label: string }) {
+  return (
+    <TrangDangTaiKhungXuong label={label} className="news-listing-skeleton">
+      <div className="news-featured-skeleton">
+        <KhungXuong className="news-featured-skeleton__image" />
+        <div>
+          <KhungXuong className="news-skeleton__meta" />
+          <KhungXuong className="news-skeleton__title" />
+          <KhungXuong className="news-skeleton__title news-skeleton__title--short" />
+          <KhungXuong className="news-skeleton__line" />
+          <KhungXuong className="news-skeleton__line news-skeleton__line--short" />
+          <KhungXuong className="news-skeleton__action" />
+        </div>
+      </div>
+      <div className="news-grid-skeleton">
+        {Array.from({ length: 5 }, (_, index) => (
+          <div className={`news-card-skeleton${index === 0 ? ' news-card-skeleton--lead' : ''}`} key={index}>
+            <KhungXuong className="news-card-skeleton__image" />
+            <div>
+              <KhungXuong className="news-skeleton__meta" />
+              <KhungXuong className="news-skeleton__title" />
+              <KhungXuong className="news-skeleton__line" />
+              <KhungXuong className="news-skeleton__action" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </TrangDangTaiKhungXuong>
   )
 }

@@ -21,7 +21,10 @@ function restoreJob(key: string): string | null {
 }
 
 function rememberJob(key: string, id: string) {
-  try { window.sessionStorage.setItem(key, id) } catch { /* The running page still tracks the job. */ }
+  try {
+    if (id) window.sessionStorage.setItem(key, id)
+    else window.sessionStorage.removeItem(key)
+  } catch { /* The running page still tracks the job. */ }
 }
 
 export function AdminTrellisModel({ images, productName, productKey, modelUrl, onSaved, onRemove, onBusyChange }: Props) {
@@ -130,10 +133,11 @@ export function AdminTrellisModel({ images, productName, productKey, modelUrl, o
   return (
     <section className="admin-trellis" aria-label="Tạo mô hình 3D">
       <div className="admin-trellis__heading">
-        <div><h3><Cube size={22} /> Mô hình 3D</h3><p>Tạo bằng TRELLIS từ ảnh sản phẩm, xoay xem trước rồi lưu khi ưng ý.</p></div>
+        <h3><Cube size={22} /> Mô hình 3D</h3>
         <span className={`admin-trellis__connection is-${connection}`} role="status">
           {connection === 'ready' ? 'TRELLIS đã kết nối' : connection === 'checking' ? 'Đang kết nối…' : 'TRELLIS chưa kết nối'}
         </span>
+        <p>Tạo bằng TRELLIS từ ảnh sản phẩm, xoay xem trước rồi lưu khi ưng ý.</p>
       </div>
       <p className="admin-trellis__hint">
         {viewCount ? `Đã có ${viewCount}/4 góc ảnh. ` : ''}
