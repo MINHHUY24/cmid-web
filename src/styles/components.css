@@ -105,7 +105,10 @@
 .product-card__image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  box-sizing: border-box;
+  padding: clamp(6px, 1vw, 12px);
+  object-fit: contain;
+  object-position: center;
 }
 
 .product-card__placeholder {
@@ -544,9 +547,9 @@ html[data-theme='light'] .app-shell--site .site-floating-actions {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgb(7 5 3 / 76%);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgb(7 5 3 / 84%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .language-welcome__dialog {
@@ -557,13 +560,13 @@ html[data-theme='light'] .app-shell--site .site-floating-actions {
   border-radius: 18px;
   color: #f2ece2;
   background:
-    linear-gradient(118deg, rgb(12 9 6 / 91%), rgb(16 11 7 / 80%)),
-    rgb(17 12 9 / 88%);
+    linear-gradient(118deg, rgb(26 19 14 / 98%), rgb(17 12 9 / 98%)),
+    #110c09;
   box-shadow:
-    inset 0 1px 0 rgb(255 244 222 / 8%),
-    0 24px 58px rgb(0 0 0 / 28%);
-  backdrop-filter: blur(16px) saturate(118%);
-  -webkit-backdrop-filter: blur(16px) saturate(118%);
+    inset 0 1px 0 rgb(255 244 222 / 12%),
+    0 24px 64px rgb(0 0 0 / 46%);
+  backdrop-filter: blur(18px) saturate(112%);
+  -webkit-backdrop-filter: blur(18px) saturate(112%);
   animation: language-welcome-enter 260ms ease-out both;
 }
 
@@ -740,16 +743,20 @@ html[data-theme='light'] .app-shell--site .site-floating-actions {
 }
 
 html[data-theme='light'] .language-welcome {
-  background: rgb(48 33 20 / 38%);
+  background: rgb(31 21 13 / 68%);
 }
 
 html[data-theme='light'] .language-welcome__dialog {
-  border-color: rgb(255 249 239 / 72%);
+  border-color: rgb(240 199 127 / 76%);
   color: #3b3027;
-  background: rgb(88 66 47 / 57%);
-  box-shadow: 0 24px 58px rgb(49 31 17 / 23%);
-  backdrop-filter: blur(16px) saturate(0.84);
-  -webkit-backdrop-filter: blur(16px) saturate(0.84);
+  background:
+    linear-gradient(145deg, rgb(91 66 47 / 98%), rgb(58 41 29 / 98%)),
+    #3a291d;
+  box-shadow:
+    inset 0 1px 0 rgb(255 244 222 / 16%),
+    0 28px 68px rgb(30 18 9 / 46%);
+  backdrop-filter: blur(18px) saturate(0.92);
+  -webkit-backdrop-filter: blur(18px) saturate(0.92);
 }
 
 html[data-theme='light'] .language-welcome__close {
@@ -775,28 +782,46 @@ html[data-theme='light'] .language-welcome__heading :is(h1, p) {
 }
 
 html[data-theme='light'] .language-welcome__options button {
-  border-color: rgb(255 249 239 / 30%);
+  border-color: rgb(255 249 239 / 42%);
   color: #fff8ed;
-  background: rgb(34 24 16 / 24%);
+  background: rgb(30 20 13 / 58%);
 }
 
 html[data-theme='light'] .language-welcome__options button:hover,
 html[data-theme='light'] .language-welcome__options button.is-selected {
   border-color: #f0c77f;
   color: #fffaf2;
-  background: rgb(83 52 23 / 48%);
+  background: rgb(103 66 31 / 88%);
 }
 
 html[data-theme='light'] .language-welcome__code {
-  border-color: rgb(255 249 239 / 24%);
+  border-color: rgb(255 249 239 / 34%);
   color: #fff7e8;
-  background: rgb(34 24 16 / 32%);
+  background: rgb(24 16 10 / 62%);
 }
 
 html[data-theme='light'] .language-welcome__options button.is-selected .language-welcome__code {
   border-color: #f5d39e;
   color: #55360f;
   background: #f0cd92;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .language-welcome {
+    background: rgb(7 5 3 / 94%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .language-welcome__dialog {
+    background: #110c09;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  html[data-theme='light'] .language-welcome__dialog {
+    background: #3a291d;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

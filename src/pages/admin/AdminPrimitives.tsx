@@ -131,7 +131,7 @@ function getAdminStatusTone(value: string) {
   if (normalized.startsWith('chờ ') || ['chưa thanh toán', 'mới'].some((key) => normalized.includes(key))) return 'is-pending'
   if (normalized.includes('đã thanh toán')) return 'is-paid'
   if (normalized.includes('đã hoàn tiền')) return 'is-refunded'
-  if (['inactive', 'không hoạt động', 'tạm ẩn', 'đã hủy', 'từ chối', 'locked', 'đã khóa', 'ngưng bán'].some((key) => normalized.includes(key))) return 'is-danger'
+  if (['inactive', 'không hoạt động', 'tạm ẩn', 'đã hủy', 'từ chối', 'locked', 'đã khóa', 'ngưng bán', 'hết hàng'].some((key) => normalized.includes(key))) return 'is-danger'
   if (['active', 'đang hoạt động', 'đang bán', 'đã xuất bản', 'hoàn thành', 'hoàn tất', 'đã duyệt'].some((key) => normalized.includes(key))) return 'is-success'
   return 'is-muted'
 }
@@ -228,6 +228,17 @@ export function AdminSelect({
       window.removeEventListener('scroll', updateMenuPosition, true)
     }
   }, [isOpen, updateMenuPosition])
+
+  useEffect(() => {
+    if (!isOpen || !menuPosition) return
+
+    const menu = menuRef.current
+    const selectedOption = menu?.querySelector<HTMLElement>('[aria-selected="true"]')
+    if (!menu || !selectedOption) return
+
+    const selectedCenter = selectedOption.offsetTop + selectedOption.offsetHeight / 2
+    menu.scrollTop = Math.max(0, selectedCenter - menu.clientHeight / 2)
+  }, [isOpen, menuPosition])
 
   return (
     <div className={`admin-select${hasStatusOptions ? ' admin-select--status' : ''} ${className}`} ref={rootRef}>

@@ -368,6 +368,7 @@ export function AdminProductEditor({
                 aria-label="Trạng thái catalogue"
                 options={[
                   { value: 'ACTIVE', label: 'Đang bán và hiển thị' },
+                  { value: 'OUT_OF_STOCK', label: 'Hết hàng, vẫn hiển thị' },
                   { value: 'INACTIVE', label: 'Ngưng bán' },
                   { value: 'DRAFT', label: 'Bản nháp' },
                 ]}
@@ -380,7 +381,7 @@ export function AdminProductEditor({
             </label>
             <p className="admin-form-note">
               <Check size={16} weight="bold" />
-              Sản phẩm đang bán sẽ xuất hiện trên catalogue. Chỉ loại mua trực tiếp mới có thể thêm vào giỏ hàng.
+              Sản phẩm đang bán hoặc hết hàng vẫn xuất hiện trên catalogue. Sản phẩm hết hàng không thể thêm vào giỏ.
             </p>
           </AdminPanel>
         </div>

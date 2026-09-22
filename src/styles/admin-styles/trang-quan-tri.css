@@ -714,6 +714,45 @@
   border-bottom: 0;
 }
 
+.admin-product-row--deleting {
+  background: #fffcf7;
+}
+
+.admin-product-row--deleting:hover {
+  background: #fffcf7 !important;
+}
+
+.admin-product-row--deleting .cmid-skeleton {
+  display: block;
+  height: 13px;
+  width: 74%;
+}
+
+.admin-product-row-skeleton__thumb.cmid-skeleton {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  border-radius: 5px;
+}
+
+.admin-product-row-skeleton__copy {
+  display: grid;
+  flex: 1;
+  gap: 8px;
+}
+
+.admin-product-row-skeleton__copy .cmid-skeleton:last-child {
+  width: 48%;
+}
+
+.admin-product-row--deleting .admin-product-row-skeleton__sku { width: 86px; }
+.admin-product-row--deleting .admin-product-row-skeleton__category { width: 94px; }
+.admin-product-row--deleting .admin-product-row-skeleton__price { width: 92px; }
+.admin-product-row--deleting .admin-product-row-skeleton__sale-type { width: 68px; }
+.admin-product-row--deleting .admin-product-row-skeleton__stock { width: 48px; }
+.admin-product-row--deleting .admin-product-row-skeleton__status { width: 112px; margin-inline: auto; height: 34px; border-radius: 5px; }
+.admin-product-row--deleting .admin-product-row-skeleton__actions { width: 70px; height: 34px; margin-inline: auto; border-radius: 5px; }
+
 .admin-table tbody tr:hover {
   background: #fffcf7;
 }
@@ -757,7 +796,11 @@
 .admin-product-thumb img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  box-sizing: border-box;
+  padding: 2px;
+  object-fit: contain;
+  object-position: center;
+  background: #fff;
 }
 
 .admin-table__price {
@@ -861,6 +904,103 @@
 .admin-login-form__loading-title { width: min(100%, 250px); height: 31px; }
 .admin-login-form__loading-copy { width: 94%; height: 14px; }
 .admin-login-form__loading-copy--short { width: 64%; }
+
+/* Product editor loading state mirrors the final two-column form so it never
+   leaves a large blank surface while product data is loading. */
+.admin-editor-loading {
+  display: grid;
+  gap: 26px;
+}
+
+.admin-editor-loading__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.admin-editor-loading__heading > div:first-child {
+  display: grid;
+  gap: 11px;
+  width: min(100%, 660px);
+}
+
+.admin-editor-loading__title {
+  width: min(100%, 330px);
+  height: 38px;
+}
+
+.admin-editor-loading__description {
+  width: min(100%, 590px);
+  height: 15px;
+}
+
+.admin-editor-loading__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 9px;
+}
+
+.admin-editor-loading__actions .cmid-skeleton {
+  width: 106px;
+  height: 40px;
+}
+
+.admin-editor-loading__actions .cmid-skeleton:last-child { width: 132px; }
+
+.admin-editor-loading__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+  align-items: start;
+  gap: 22px;
+}
+
+.admin-editor-loading__main,
+.admin-editor-loading__side {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+}
+
+.admin-editor-loading__panel {
+  display: grid;
+  gap: 18px;
+  padding: 23px;
+}
+
+.admin-editor-loading__panel-title {
+  width: min(46%, 220px);
+  height: 24px;
+}
+
+.admin-editor-loading__field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-editor-loading__field-grid .cmid-skeleton,
+.admin-editor-loading__field {
+  height: 45px;
+}
+
+.admin-editor-loading__field { width: 100%; }
+.admin-editor-loading__field--short { width: 62%; }
+.admin-editor-loading__textarea { width: 100%; height: 104px; }
+.admin-editor-loading__textarea--short { height: 72px; }
+.admin-editor-loading__panel--detail { min-height: 264px; }
+.admin-editor-loading__line { width: 92%; height: 14px; }
+.admin-editor-loading__line--short { width: 66%; }
+
+.admin-editor-loading__images {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-editor-loading__images .cmid-skeleton {
+  aspect-ratio: 1 / 0.74;
+}
 
 .admin-editor-grid {
   display: grid;
@@ -1423,7 +1563,8 @@
   .admin-category-layout,
   .admin-content-layout,
   .admin-settings-layout,
-  .admin-editor-grid {
+  .admin-editor-grid,
+  .admin-editor-loading__grid {
     grid-template-columns: 1fr;
   }
 }
@@ -1454,6 +1595,23 @@
   .admin-page-heading p {
     font-size: calc(0.76rem + 2px);
   }
+
+  .admin-editor-loading__heading {
+    display: grid;
+    gap: 16px;
+  }
+
+  .admin-editor-loading__actions {
+    width: 100%;
+  }
+
+  .admin-editor-loading__actions .cmid-skeleton,
+  .admin-editor-loading__actions .cmid-skeleton:last-child {
+    flex: 1;
+    width: auto;
+  }
+
+  .admin-editor-loading__panel { padding: 18px; }
 
   .admin-heading-actions,
   .admin-page-heading > .admin-button {
@@ -3572,6 +3730,11 @@
   justify-content: space-between;
 }
 
+.admin-inline-select.admin-order-status-select {
+  width: 148px;
+  min-width: 148px;
+}
+
 .admin-order-detail__status-select.admin-select--status {
   width: 148px;
 }
@@ -3589,6 +3752,7 @@
   position: fixed;
   z-index: 1200;
   display: grid;
+  gap: 4px;
   max-height: min(280px, calc(100dvh - 16px));
   overflow-y: auto;
   padding: 5px;
@@ -3922,8 +4086,21 @@
 .admin-trellis__controls,
 .admin-trellis__actions { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
 .admin-trellis__controls { margin-bottom: 20px; }
-.admin-trellis__controls .admin-field { margin: 0; padding: 0; min-width: 170px; flex: 1; }
-.admin-trellis__controls .admin-button { min-height: 43px; }
+.admin-trellis__quality { min-width: 170px; flex: 1; }
+.admin-trellis__quality .admin-field { margin: 0; padding: 0; }
+.admin-trellis__controls .admin-button { align-self: flex-start; min-height: 43px; margin-top: 24px; }
+.admin-trellis__preset-detail {
+  display: grid;
+  gap: 3px;
+  margin-top: 7px;
+  color: #968f84;
+  font-size: calc(0.65rem + 2px);
+  font-weight: 400;
+  line-height: 1.4;
+}
+.admin-trellis__preset-detail span {
+  color: #766143;
+}
 .admin-trellis__actions { margin-bottom: 16px; }
 .admin-trellis__empty {
   min-height: 240px;
@@ -3940,12 +4117,55 @@
   font-size: 0.85rem;
 }
 .admin-trellis__status {
+  margin-bottom: 20px;
   padding: 12px 16px;
   background: #f8f4ec;
   border-left: 3px solid #b38135;
   color: #655744;
   line-height: 1.6;
   font-size: 0.85rem;
+}
+.admin-trellis__status > p { margin: 0; }
+.admin-trellis__progress {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+.admin-trellis__progress-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  color: #756951;
+  font-size: 0.78rem;
+}
+.admin-trellis__progress-meta strong {
+  color: #8a6428;
+  font-size: 0.9rem;
+}
+.admin-trellis__progress progress {
+  width: 100%;
+  height: 9px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  color: #c7933f;
+  background: #e7ded0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.admin-trellis__progress progress::-webkit-progress-bar {
+  border-radius: inherit;
+  background: #e7ded0;
+}
+.admin-trellis__progress progress::-webkit-progress-value {
+  border-radius: inherit;
+  background: #c7933f;
+  transition: width 300ms ease;
+}
+.admin-trellis__progress progress::-moz-progress-bar {
+  border-radius: inherit;
+  background: #c7933f;
 }
 .admin-trellis .product-model-viewer { height: 400px; margin-bottom: 12px; }
 .admin-trellis button:disabled,
@@ -3962,5 +4182,6 @@
   .admin-product-images { grid-template-columns: minmax(0, 1fr); }
   .admin-trellis__controls > .admin-button,
   .admin-trellis__actions > .admin-button { width: 100%; justify-content: center; }
+  .admin-trellis__controls > .admin-button { margin-top: 0; }
   .admin-trellis .product-model-viewer { height: 340px; }
 }

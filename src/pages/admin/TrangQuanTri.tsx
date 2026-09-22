@@ -13,12 +13,15 @@ import {
   updateAdminPaymentStatus,
   updateAdminRefundStatus,
 } from '../../services/order.service'
-import type { Product } from '../../types/product'
+import type { Product, ProductStatus, SaleType } from '../../types/product'
 import {
   AdminDashboardView,
   AdminOrdersView,
   AdminProductsListView,
   AdminReportsView,
+  type AdminProductListFilters,
+  type ProductSaleFilter,
+  type ProductStatusFilter,
 } from './AdminCommerceViews'
 import { AdminNewsView, AdminProjectsView } from './AdminContentViews'
 import { AdminLayout } from './AdminLayout'
@@ -174,7 +177,7 @@ function AuthenticatedAdmin({
   session: AdminSession
   onSignOut: () => void
 }) {
-  const { products, isLoading, errorMessage, retry } = useProducts()
+  const { products, isLoading, errorMessage, retry, removeProduct: removeProductFromList } = useProducts()
   const [searchParams, setSearchParams] = useSearchParams()
   const [database, setDatabase] = useState<AdminDatabase>(() => {
     const localDatabase = getAdminDatabase()
@@ -202,17 +205,12 @@ function AuthenticatedAdmin({
         : products.find((product) => product.id === requestedProductId),
     [editingProduct, products, requestedProductId],
   )
-  const searchedProducts = useMemo(() => {
-    const query = (searchParams.get('q') ?? '').trim().toLocaleLowerCase('vi')
-    if (!query) return products
-    return products.filter((product) => [
-      product.name,
-      product.nameEn,
-      product.sku,
-      product.category?.name,
-      product.brand?.name,
-    ].filter(Boolean).join(' ').toLocaleLowerCase('vi').includes(query))
-  }, [products, searchParams])
+  const productListFilters = useMemo<AdminProductListFilters>(() => ({
+    search: searchParams.get('q') ?? '',
+    category: searchParams.get('productCategory') ?? 'ALL',
+    status: toProductStatusFilter(searchParams.get('productStatus')),
+    saleType: toProductSaleFilter(searchParams.get('productSaleType')),
+  }), [searchParams])
 
   const replaceServerOrders = useCallback((orders: AdminOrder[]) => {
     setDatabase((current) => ({
@@ -280,8 +278,31 @@ function AuthenticatedAdmin({
 
   function navigate(view: AdminView) {
     if (view !== 'product-editor') setEditingProduct(undefined)
-    setSearchParams(view === 'dashboard' ? {} : { view })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    const restoreProductsScroll = activeView === 'product-editor' && view === 'products'
+    const nextSearchParams = new URLSearchParams(searchParams)
+    if (view === 'dashboard') {
+      nextSearchParams.delete('view')
+    } else {
+      nextSearchParams.set('view', view)
+    }
+    if (view !== 'product-editor') nextSearchParams.delete('product')
+    setSearchParams(
+      nextSearchParams,
+      restoreProductsScroll ? { state: { restoreScroll: true } } : undefined,
+    )
+  }
+
+  function updateProductListFilters(filters: AdminProductListFilters) {
+    setSearchParams((current) => {
+      const nextSearchParams = new URLSearchParams(current)
+      nextSearchParams.set('view', 'products')
+      nextSearchParams.delete('product')
+      setProductFilterParam(nextSearchParams, 'q', filters.search)
+      setProductFilterParam(nextSearchParams, 'productCategory', filters.category, 'ALL')
+      setProductFilterParam(nextSearchParams, 'productStatus', filters.status, 'ALL')
+      setProductFilterParam(nextSearchParams, 'productSaleType', filters.saleType, 'ALL')
+      return nextSearchParams
+    }, { replace: true, preventScrollReset: true })
   }
 
   function signOut() {
@@ -330,16 +351,22 @@ function AuthenticatedAdmin({
 
   function openProductEditor(product?: Product) {
     setEditingProduct(product)
-    setSearchParams(product
-      ? { view: 'product-editor', product: String(product.id) }
-      : { view: 'product-editor' })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setSearchParams((current) => {
+      const nextSearchParams = new URLSearchParams(current)
+      nextSearchParams.set('view', 'product-editor')
+      if (product) {
+        nextSearchParams.set('product', String(product.id))
+      } else {
+        nextSearchParams.delete('product')
+      }
+      return nextSearchParams
+    })
   }
 
   async function removeProduct(product: Product) {
     await deleteProduct(product.id, isAdminDemoEnabled)
     deleteAdminProduct(product.id)
-    retry()
+    removeProductFromList(product.id)
     setToast(`Đã xóa sản phẩm “${product.name}”.`)
   }
 
@@ -364,10 +391,12 @@ function AuthenticatedAdmin({
 
         {activeView === 'products' ? (
           <AdminProductsListView
-            products={searchedProducts}
+            products={products}
+            filters={productListFilters}
             isLoading={isLoading}
             errorMessage={errorMessage}
             onRetry={retry}
+            onFiltersChange={updateProductListFilters}
             onCreate={() => openProductEditor()}
             onEdit={openProductEditor}
             onDelete={removeProduct}
@@ -434,10 +463,52 @@ function AuthenticatedAdmin({
 
 function AdminEditorLoading() {
   return (
-    <section className="admin-panel" aria-busy="true" aria-label="Đang tải sản phẩm">
-      <KhungXuong className="admin-login-form__loading-title" />
-      <KhungXuong className="admin-login-form__loading-copy" />
-      <KhungXuong className="admin-login-form__loading-copy admin-login-form__loading-copy--short" />
+    <section className="admin-editor-loading" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">Đang tải dữ liệu sản phẩm</span>
+      <header className="admin-editor-loading__heading" aria-hidden="true">
+        <div>
+          <KhungXuong className="admin-editor-loading__title" />
+          <KhungXuong className="admin-editor-loading__description" />
+        </div>
+        <div className="admin-editor-loading__actions">
+          <KhungXuong />
+          <KhungXuong />
+        </div>
+      </header>
+
+      <div className="admin-editor-loading__grid" aria-hidden="true">
+        <div className="admin-editor-loading__main">
+          <section className="admin-panel admin-editor-loading__panel">
+            <KhungXuong className="admin-editor-loading__panel-title" />
+            <div className="admin-editor-loading__field-grid">
+              {Array.from({ length: 4 }, (_, index) => <KhungXuong key={index} />)}
+            </div>
+            <KhungXuong className="admin-editor-loading__field" />
+            <KhungXuong className="admin-editor-loading__textarea" />
+            <KhungXuong className="admin-editor-loading__textarea admin-editor-loading__textarea--short" />
+          </section>
+          <section className="admin-panel admin-editor-loading__panel admin-editor-loading__panel--detail">
+            <KhungXuong className="admin-editor-loading__panel-title" />
+            <KhungXuong className="admin-editor-loading__line" />
+            <KhungXuong className="admin-editor-loading__line admin-editor-loading__line--short" />
+            <KhungXuong className="admin-editor-loading__textarea" />
+          </section>
+        </div>
+        <aside className="admin-editor-loading__side">
+          <section className="admin-panel admin-editor-loading__panel">
+            <KhungXuong className="admin-editor-loading__panel-title" />
+            <KhungXuong className="admin-editor-loading__field" />
+            <KhungXuong className="admin-editor-loading__field" />
+            <KhungXuong className="admin-editor-loading__field admin-editor-loading__field--short" />
+          </section>
+          <section className="admin-panel admin-editor-loading__panel">
+            <KhungXuong className="admin-editor-loading__panel-title" />
+            <div className="admin-editor-loading__images">
+              {Array.from({ length: 4 }, (_, index) => <KhungXuong key={index} />)}
+            </div>
+          </section>
+        </aside>
+      </div>
     </section>
   )
 }
@@ -458,6 +529,31 @@ function parseProductId(value: string | null) {
   if (!value || !/^\d+$/.test(value)) return null
   const id = Number(value)
   return Number.isSafeInteger(id) && id > 0 ? id : null
+}
+
+function toProductStatusFilter(value: string | null): ProductStatusFilter {
+  return value === 'ACTIVE' || value === 'OUT_OF_STOCK' || value === 'INACTIVE' || value === 'DRAFT'
+    ? value as ProductStatus
+    : 'ALL'
+}
+
+function toProductSaleFilter(value: string | null): ProductSaleFilter {
+  return value === 'DIRECT_ORDER' || value === 'REQUEST_QUOTE'
+    ? value as SaleType
+    : 'ALL'
+}
+
+function setProductFilterParam(
+  searchParams: URLSearchParams,
+  key: string,
+  value: string,
+  defaultValue = '',
+) {
+  if (value === defaultValue || value === '') {
+    searchParams.delete(key)
+  } else {
+    searchParams.set(key, value)
+  }
 }
 
 function AdminAccessState({

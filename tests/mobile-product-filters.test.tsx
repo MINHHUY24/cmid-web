@@ -43,7 +43,7 @@ beforeEach(() => {
   closeFilters.mockClear()
   noop.mockClear()
   window.localStorage.setItem('cmid-language', 'vi')
-  window.localStorage.setItem('cmid-language-welcome-complete', 'true')
+  window.sessionStorage.setItem('cmid-language-welcome-complete', 'true')
 
   document.body.innerHTML = '<div id="site-modal-root"></div>'
   vi.stubGlobal('matchMedia', vi.fn().mockImplementation(() => ({
@@ -62,6 +62,7 @@ afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
   window.localStorage.clear()
+  window.sessionStorage.clear()
   document.body.style.overflow = ''
 })
 

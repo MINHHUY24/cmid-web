@@ -8,6 +8,7 @@ interface UseProductsResult {
   isLoading: boolean
   errorMessage: string | null
   retry: () => void
+  removeProduct: (productId: number) => void
 }
 
 export function useProducts(): UseProductsResult {
@@ -72,5 +73,9 @@ export function useProducts(): UseProductsResult {
     setReloadKey((currentKey) => currentKey + 1)
   }, [])
 
-  return { products, isLoading, errorMessage, retry }
+  const removeProduct = useCallback((productId: number) => {
+    setProducts((currentProducts) => currentProducts.filter((product) => product.id !== productId))
+  }, [])
+
+  return { products, isLoading, errorMessage, retry, removeProduct }
 }

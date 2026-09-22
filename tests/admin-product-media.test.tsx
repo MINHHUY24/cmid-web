@@ -89,6 +89,19 @@ describe('product media', () => {
     await screen.findByText('TRELLIS đã kết nối')
   })
 
+  it('offers the three requested TRELLIS quality presets with their exact specifications', async () => {
+    editor()
+    await screen.findByText('TRELLIS đã kết nối')
+    const quality = screen.getByRole('button', { name: 'Chất lượng tạo hình 3D' })
+    expect(quality.textContent).toContain('Studio')
+    expect(screen.getByText(/Pipeline 1024_cascade · Texture 2048 · 12 steps · tối đa 600\.000 faces/)).toBeTruthy()
+    fireEvent.click(quality)
+    expect((await screen.findAllByRole('option')).map((option) => option.textContent)).toEqual(['Nhanh', 'Cân bằng', 'Studio'])
+    fireEvent.click(screen.getByRole('option', { name: 'Cân bằng' }))
+    expect(quality.textContent).toContain('Cân bằng')
+    expect(screen.getByText(/Pipeline 1024 · Texture 2048 · 12 steps · tối đa 400\.000 faces/)).toBeTruthy()
+  })
+
   it('allows product-specific technical details, guidance and sales policy to be saved and edited again', async () => {
     const mounted = editor({ ...product, price: '6900000.00' })
     await screen.findByText('TRELLIS đã kết nối')
@@ -132,7 +145,7 @@ describe('product media', () => {
     await screen.findByText('TRELLIS đã kết nối')
     fireEvent.click(screen.getByRole('button', { name: 'Tạo mô hình 3D' }))
     await screen.findByTestId('model-preview')
-    expect(trellis.createTrellisJob).toHaveBeenCalledWith(['/front.png', '', '/right.png', '/back.png'], 12, expect.any(AbortSignal))
+    expect(trellis.createTrellisJob).toHaveBeenCalledWith(['/front.png', '', '/right.png', '/back.png'], 'studio', expect.any(AbortSignal))
     expect(trellis.saveTrellisModel).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: 'Lưu mô hình để sử dụng' }))
     await screen.findByText('Đã chọn dùng cho sản phẩm')
@@ -156,6 +169,21 @@ describe('product media', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Kết nối lại' }))
     await screen.findByText('TRELLIS đã kết nối')
     expect((screen.getByRole('button', { name: 'Tạo mô hình 3D' }) as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('shows live generation percentage and estimated remaining time', async () => {
+    const generating: trellis.TrellisJob = {
+      id: 'running-job', state: 'generating', message: 'Đang dựng hình học chi tiết…',
+      previewUrl: null, savedUrl: null, progress: 42, estimatedSecondsRemaining: 138,
+    }
+    vi.mocked(trellis.createTrellisJob).mockResolvedValueOnce(generating)
+    vi.mocked(trellis.getTrellisJob).mockResolvedValue(generating)
+    editor()
+    await screen.findByText('TRELLIS đã kết nối')
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo mô hình 3D' }))
+    await screen.findByText('42%', { selector: 'strong' })
+    expect(screen.getByText('Còn khoảng 2 phút 18 giây')).toBeTruthy()
+    expect(screen.getByRole('progressbar', { name: 'Tiến trình tạo mô hình 3D' })).toHaveProperty('value', 42)
   })
 
   it('never attaches a model when saving it fails', async () => {

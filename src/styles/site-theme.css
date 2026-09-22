@@ -3830,16 +3830,11 @@ html[data-theme='light'] .app-shell--site.app-shell--home .product-card--showcas
 
 /* One warm palette for featured, catalog, and related product cards. */
 html[data-theme='light'] .app-shell--site {
-  --product-card-canvas: #f4ece2;
   --product-card-surface: #fdfaf6;
   --product-card-title: #42372d;
   --product-card-price: #c58a3a;
   --product-card-muted: #8f8175;
   --product-card-border: #e7d9c9;
-}
-
-html[data-theme='light'] .app-shell--site .site-main .related-products {
-  background: var(--product-card-canvas);
 }
 
 html[data-theme='light'] .app-shell--site .site-main article.product-card {
@@ -4157,4 +4152,82 @@ html[data-theme] .app-shell--site :is(
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+/* Detail pages use the homepage header composition (`app-shell--hero`). The
+   header is fixed there, so reserve its vertical space for the product view. */
+.app-shell--site.app-shell--product-detail .trang-chi-tiet-san-pham {
+  padding-top: 124px;
+}
+
+@media (max-width: 1024px) {
+  .app-shell--site.app-shell--product-detail .trang-chi-tiet-san-pham {
+    padding-top: 99px;
+  }
+}
+
+/* Store availability has its own dark presentation on product detail pages.
+   The light version stays unchanged; this only follows the global dark switch. */
+html[data-theme='dark'] .app-shell--site.app-shell--product-detail .product-detail-store-availability {
+  border-color: rgb(204 151 61 / 55%);
+  background: #21170f;
+  box-shadow: inset 0 1px 0 rgb(255 239 208 / 4%);
+}
+
+html[data-theme='dark'] .app-shell--site.app-shell--product-detail :is(
+  .product-detail-store-availability h2,
+  .product-detail-store-availability__list strong
+) {
+  color: #f5ede3;
+}
+
+html[data-theme='dark'] .app-shell--site.app-shell--product-detail :is(
+  .product-detail-store-availability__heading p,
+  .product-detail-store-availability__list p
+) {
+  color: #b9aa98;
+}
+
+html[data-theme='dark'] .app-shell--site.app-shell--product-detail .product-detail-store-select__trigger {
+  border-color: rgb(211 160 71 / 62%);
+  color: #eee5d9;
+  background: #1b120b;
+}
+
+html[data-theme='dark'] .app-shell--site.app-shell--product-detail .product-detail-store-select__trigger:hover,
+html[data-theme='dark'] .app-shell--site.app-shell--product-detail .product-detail-store-select__trigger[aria-expanded='true'] {
+  border-color: #e0ad55;
+}
+
+html[data-theme='dark'] .app-shell--site.app-shell--product-detail .product-detail-store-select__menu {
+  border-color: rgb(211 160 71 / 62%);
+  background: #20160e;
+  box-shadow: 0 14px 28px rgb(0 0 0 / 36%);
+}
+
+html[data-theme='dark'] .app-shell--site.app-shell--product-detail .product-detail-store-select__menu button {
+  color: #eee5d9;
+}
+
+html[data-theme='dark'] .app-shell--site.app-shell--product-detail .product-detail-store-select__menu button:hover,
+html[data-theme='dark'] .app-shell--site.app-shell--product-detail .product-detail-store-select__menu button.is-selected {
+  color: #1a1109;
+  background: #d3a047;
+}
+
+html[data-theme='dark'] .app-shell--site.app-shell--product-detail .product-detail-store-availability__list li {
+  border-color: rgb(204 151 61 / 47%);
+  background: #171009;
+}
+
+html[data-theme='dark'] .app-shell--site.app-shell--product-detail .product-detail-store-availability__list a {
+  border-color: rgb(220 171 79 / 74%);
+  color: #e2b55d;
+  background: transparent;
+}
+
+html[data-theme='dark'] .app-shell--site.app-shell--product-detail .product-detail-store-availability__list a:hover {
+  border-color: #e0ad55;
+  color: #1a1109;
+  background: #e0ad55;
 }

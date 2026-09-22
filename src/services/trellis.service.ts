@@ -4,8 +4,57 @@ export interface TrellisJob {
   message: string
   previewUrl: string | null
   savedUrl: string | null
+  progress?: number
+  elapsedSeconds?: number
+  estimatedSecondsRemaining?: number
   vertices?: number
   triangles?: number
+}
+
+export type TrellisQualityPresetKey = 'fast' | 'balanced' | 'studio'
+
+export interface TrellisQualityPreset {
+  key: TrellisQualityPresetKey
+  label: string
+  pipeline: '512' | '1024' | '1024_cascade'
+  textureSize: 1024 | 2048
+  steps: 8 | 12
+  maxFaces: 200000 | 400000 | 600000
+  estimatedSeconds: number
+  purpose: string
+}
+
+export const TRELLIS_QUALITY_PRESETS: Record<TrellisQualityPresetKey, TrellisQualityPreset> = {
+  fast: {
+    key: 'fast',
+    label: 'Nhanh',
+    pipeline: '512',
+    textureSize: 1024,
+    steps: 8,
+    maxFaces: 200000,
+    estimatedSeconds: 140,
+    purpose: 'Test nhanh, xem trước',
+  },
+  balanced: {
+    key: 'balanced',
+    label: 'Cân bằng',
+    pipeline: '1024',
+    textureSize: 2048,
+    steps: 12,
+    maxFaces: 400000,
+    estimatedSeconds: 17 * 60,
+    purpose: 'Mặc định cho sản phẩm',
+  },
+  studio: {
+    key: 'studio',
+    label: 'Studio',
+    pipeline: '1024_cascade',
+    textureSize: 2048,
+    steps: 12,
+    maxFaces: 600000,
+    estimatedSeconds: 19 * 60,
+    purpose: 'Asset final, cần chi tiết cao',
+  },
 }
 
 export interface SavedTrellisModel {
@@ -71,7 +120,7 @@ export function getTrellisHealth() {
   return trellisFetch<{ service: string; ready: boolean }>('/health')
 }
 
-export async function createTrellisJob(images: string[], steps: number, signal: AbortSignal) {
+export async function createTrellisJob(images: string[], preset: TrellisQualityPresetKey, signal: AbortSignal) {
   const formData = new FormData()
   const views = ['front', 'left', 'right', 'back']
   await Promise.all(images.slice(0, 4).map(async (url, index) => {
@@ -82,7 +131,7 @@ export async function createTrellisJob(images: string[], steps: number, signal: 
     if (!blob.type.startsWith('image/')) throw new Error(`Ảnh ${index + 1} không hợp lệ.`)
     formData.set(views[index], blob, `${views[index]}.png`)
   }))
-  formData.set('steps', String(steps))
+  formData.set('preset', preset)
   return jobWithAssetUrls(await trellisFetch<TrellisJob>('/jobs', { method: 'POST', body: formData, signal }))
 }
 

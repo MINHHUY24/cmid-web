@@ -53,10 +53,15 @@ export function ProductCard({ product, variant = 'catalog', className = '' }: Pr
     product.images.find((image) => image.isPrimary) ?? product.images[0]
   const has3DModel = product.models3D.length > 0
   const canAddToCart = product.saleType === 'DIRECT_ORDER' && product.status === 'ACTIVE'
+  const isOutOfStock = product.status === 'OUT_OF_STOCK'
   const isQuoteOnly = product.saleType === 'REQUEST_QUOTE'
   const actionLabel = canAddToCart ? content.product.addToCart : content.product.quote
   const actionPath = `/lien-he?bao-gia-san-pham=${product.id}`
-  const availabilityLabel = product.status === 'ACTIVE' ? content.product.inStock : content.product.madeToOrder
+  const availabilityLabel = isOutOfStock
+    ? content.product.outOfStock
+    : product.status === 'ACTIVE'
+      ? content.product.inStock
+      : content.product.madeToOrder
 
   function handleAddToCart() {
     addItem(product)
@@ -118,7 +123,7 @@ export function ProductCard({ product, variant = 'catalog', className = '' }: Pr
             <strong>{formatCurrency(product.price, language)}</strong>
             {product.unit ? <span>/{product.unit}</span> : null}
           </> : null}
-          <span className="product-card__availability">
+          <span className={`product-card__availability${isOutOfStock ? ' is-out-of-stock' : ''}`}>
             <i aria-hidden="true" />
             {availabilityLabel}
           </span>
@@ -129,7 +134,11 @@ export function ProductCard({ product, variant = 'catalog', className = '' }: Pr
             {product.saleType === 'DIRECT_ORDER' ? content.product.directOrder : content.product.quote}
             {has3DModel ? `, ${content.product.has3D}` : ''}
           </span>
-          {canAddToCart ? (
+          {isOutOfStock ? (
+            <button className="button button--small product-card__action product-card__action--out-of-stock" type="button" disabled>
+              {content.product.outOfStock}
+            </button>
+          ) : canAddToCart ? (
             <button
               className="button button--small button--gold product-card__action"
               type="button"

@@ -4,7 +4,7 @@ import logoImage from '../../assets/images/logo.webp'
 import type { AppLanguage } from '../../content/site-content'
 import { useLanguage } from '../../contexts/NgonNguContext'
 
-const LANGUAGE_WELCOME_STORAGE_KEY = 'cmid-language-welcome-complete'
+const LANGUAGE_WELCOME_SESSION_KEY = 'cmid-language-welcome-complete'
 
 const dialogCopy = {
   vi: {
@@ -34,9 +34,17 @@ const dialogCopy = {
 
 function shouldShowLanguageWelcome(): boolean {
   try {
-    return window.localStorage.getItem(LANGUAGE_WELCOME_STORAGE_KEY) !== 'true'
+    return window.sessionStorage.getItem(LANGUAGE_WELCOME_SESSION_KEY) !== 'true'
   } catch {
     return true
+  }
+}
+
+function rememberWelcomeForCurrentVisit() {
+  try {
+    window.sessionStorage.setItem(LANGUAGE_WELCOME_SESSION_KEY, 'true')
+  } catch {
+    // The dialog still closes for this visit when storage is unavailable.
   }
 }
 
@@ -57,23 +65,13 @@ export function LanguageWelcomeDialog() {
   }, [isOpen])
 
   function chooseLanguage(language: AppLanguage) {
-    try {
-      window.localStorage.setItem(LANGUAGE_WELCOME_STORAGE_KEY, 'true')
-    } catch {
-      // The choice still applies for this visit when storage is unavailable.
-    }
-
+    rememberWelcomeForCurrentVisit()
     setLanguage(language)
     setIsOpen(false)
   }
 
   function closeDialog() {
-    try {
-      window.localStorage.setItem(LANGUAGE_WELCOME_STORAGE_KEY, 'true')
-    } catch {
-      // The current language remains in use when storage is unavailable.
-    }
-
+    rememberWelcomeForCurrentVisit()
     setIsOpen(false)
   }
 

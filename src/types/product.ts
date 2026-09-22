@@ -1,6 +1,6 @@
 export type SaleType = 'DIRECT_ORDER' | 'REQUEST_QUOTE'
 
-export type ProductStatus = 'ACTIVE' | 'INACTIVE' | 'DRAFT'
+export type ProductStatus = 'ACTIVE' | 'OUT_OF_STOCK' | 'INACTIVE' | 'DRAFT'
 
 export interface ProductCategory {
   id: number

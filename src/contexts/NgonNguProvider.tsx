@@ -3,7 +3,6 @@ import { siteContent, type AppLanguage } from '../content/site-content'
 import { LanguageContext } from './NgonNguContext'
 
 const LANGUAGE_STORAGE_KEY = 'cmid-language'
-const LANGUAGE_WELCOME_STORAGE_KEY = 'cmid-language-welcome-complete'
 
 function getBrowserLanguage(): AppLanguage {
   return navigator.language.toLowerCase().startsWith('vi') ? 'vi' : 'en'
@@ -12,8 +11,7 @@ function getBrowserLanguage(): AppLanguage {
 function getInitialLanguage(): AppLanguage {
   try {
     const savedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY)
-    const hasCompletedLanguageWelcome = window.localStorage.getItem(LANGUAGE_WELCOME_STORAGE_KEY) === 'true'
-    if (hasCompletedLanguageWelcome && (savedLanguage === 'vi' || savedLanguage === 'en')) {
+    if (savedLanguage === 'vi' || savedLanguage === 'en') {
       return savedLanguage
     }
   } catch {

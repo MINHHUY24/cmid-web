@@ -173,7 +173,7 @@ function ScrollRestoration() {
 
     const shouldRestore = firstRender
       ? isPageReload()
-      : navigationType === "POP";
+      : navigationType === "POP" || location.state?.restoreScroll === true;
 
     if (shouldRestore) {
       restoringUrl.current = locationUrl;

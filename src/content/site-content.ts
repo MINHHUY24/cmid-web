@@ -165,6 +165,7 @@ export interface SiteContent {
     noImage: string;
     uncategorized: string;
     inStock: string;
+    outOfStock: string;
     madeToOrder: string;
     viewDetail: (name: string) => string;
     filter: {
@@ -606,6 +607,7 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       noImage: "Chưa có ảnh",
       uncategorized: "Chưa phân loại",
       inStock: "Còn hàng",
+      outOfStock: "Hết hàng",
       madeToOrder: "Đặt hàng",
       viewDetail: (name) => `Xem chi tiết ${name}`,
       filter: {
@@ -1288,6 +1290,7 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       noImage: "No image available",
       uncategorized: "Uncategorized",
       inStock: "In stock",
+      outOfStock: "Out of stock",
       madeToOrder: "Made to order",
       viewDetail: (name) => `View details for ${name}`,
       filter: {

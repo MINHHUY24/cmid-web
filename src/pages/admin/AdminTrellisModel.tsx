@@ -1,9 +1,11 @@
 import { Cube, FloppyDisk, Play, Trash } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { ProductModelViewer } from '../../components/product/ProductModelViewer'
+import { AdminSelect } from './AdminPrimitives'
 import {
   cancelTrellisJob, createTrellisJob, getTrellisHealth, getTrellisJob, saveTrellisModel,
-  TrellisApiError, type SavedTrellisModel, type TrellisJob,
+  TRELLIS_QUALITY_PRESETS, TrellisApiError, type SavedTrellisModel, type TrellisJob,
+  type TrellisQualityPresetKey,
 } from '../../services/trellis.service'
 
 interface Props {
@@ -27,6 +29,16 @@ function rememberJob(key: string, id: string) {
   } catch { /* The running page still tracks the job. */ }
 }
 
+function formatDuration(seconds: number) {
+  const roundedSeconds = Math.max(0, Math.round(seconds))
+  const minutes = Math.floor(roundedSeconds / 60)
+  const remainingSeconds = roundedSeconds % 60
+
+  if (minutes === 0) return `${remainingSeconds} giây`
+  if (remainingSeconds === 0) return `${minutes} phút`
+  return `${minutes} phút ${remainingSeconds} giây`
+}
+
 export function AdminTrellisModel({ images, productName, productKey, modelUrl, onSaved, onRemove, onBusyChange }: Props) {
   const storageKey = `cmid-trellis-job:${productKey}`
   const [jobId, setJobId] = useState(() => restoreJob(storageKey))
@@ -35,7 +47,7 @@ export function AdminTrellisModel({ images, productName, productKey, modelUrl, o
   const [isStarting, setIsStarting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
-  const [steps, setSteps] = useState(12)
+  const [presetKey, setPresetKey] = useState<TrellisQualityPresetKey>('studio')
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const uploadController = useRef<AbortController | null>(null)
@@ -45,6 +57,13 @@ export function AdminTrellisModel({ images, productName, productKey, modelUrl, o
   const pendingPreview = job?.state === 'completed' ? job.previewUrl : null
   const previewUrl = pendingPreview || modelUrl
   const isAttached = Boolean(job?.savedUrl && modelUrl === job.savedUrl)
+  const selectedPreset = TRELLIS_QUALITY_PRESETS[presetKey]
+  const progress = running
+    ? Math.min(99, Math.max(0, Math.round(job?.progress ?? (job?.state === 'generating' ? 15 : 3))))
+    : job?.state === 'completed' ? 100 : 0
+  const estimatedSecondsRemaining = running
+    ? Math.max(0, Math.round(job?.estimatedSecondsRemaining ?? selectedPreset.estimatedSeconds))
+    : 0
 
   useEffect(() => { onBusyChange(busy) }, [busy, onBusyChange])
 
@@ -100,7 +119,7 @@ export function AdminTrellisModel({ images, productName, productKey, modelUrl, o
     setIsStarting(true)
     uploadController.current = new AbortController()
     try {
-      const next = await createTrellisJob(images, steps, uploadController.current.signal)
+      const next = await createTrellisJob(images, presetKey, uploadController.current.signal)
       rememberJob(storageKey, next.id)
       setJob(next)
       setJobId(next.id)
@@ -143,19 +162,45 @@ export function AdminTrellisModel({ images, productName, productKey, modelUrl, o
         {viewCount ? `Đã có ${viewCount}/4 góc ảnh. ` : ''}
         Ảnh mặt trước là bắt buộc. Thêm đủ bốn góc để mô hình có nhiều thông tin hơn; ảnh bổ sung dùng cho thư viện sản phẩm.
       </p>
-      <div className="admin-trellis__controls">
-        <label className="admin-field"><span>Chất lượng tạo hình</span>
-          <select value={steps} onChange={(event) => setSteps(Number(event.target.value))} disabled={busy}>
-            <option value={12}>Tiêu chuẩn</option><option value={8}>Tạo nhanh</option>
-          </select>
-        </label>
+        <div className="admin-trellis__controls">
+          <div className="admin-trellis__quality">
+            <div className="admin-field"><span>Chất lượng tạo hình</span>
+            <AdminSelect
+              value={presetKey}
+              onChange={(value) => setPresetKey(value as TrellisQualityPresetKey)}
+              disabled={busy}
+              aria-label="Chất lượng tạo hình 3D"
+              options={Object.values(TRELLIS_QUALITY_PRESETS).map((preset) => ({
+                value: preset.key,
+                label: preset.label,
+              }))}
+            />
+            </div>
+          <small className="admin-trellis__preset-detail">
+            Pipeline {selectedPreset.pipeline} · Texture {selectedPreset.textureSize} · {selectedPreset.steps} steps · tối đa {selectedPreset.maxFaces.toLocaleString('vi-VN')} faces
+            <span>{selectedPreset.purpose}</span>
+          </small>
+        </div>
         <button className="admin-button admin-button--primary" type="button" disabled={!images[0] || busy || connection !== 'ready'} onClick={() => void generate()}>
           <Play size={17} /> {isStarting ? 'Đang gửi ảnh…' : running ? 'Đang tạo mô hình…' : job?.state === 'completed' ? 'Tạo lại mô hình 3D' : 'Tạo mô hình 3D'}
         </button>
         {running ? <button className="admin-button" type="button" disabled={isCancelling} onClick={() => void cancel()}>{isCancelling ? 'Đang dừng…' : 'Dừng tạo'}</button> : null}
         {connection === 'offline' ? <button className="admin-button" type="button" onClick={() => void checkConnection()}>Kết nối lại</button> : null}
       </div>
-      {job ? <p className={`admin-trellis__status${running ? ' is-running' : ''}`} role={job.state === 'failed' ? 'alert' : 'status'}>{job.message}</p> : null}
+      {job ? (
+        <div className={`admin-trellis__status${running ? ' is-running' : ''}`} role={job.state === 'failed' ? 'alert' : 'status'}>
+          <p>{job.message}</p>
+          {running ? (
+            <div className="admin-trellis__progress">
+              <div className="admin-trellis__progress-meta">
+                <strong>{progress}%</strong>
+                <span>Còn khoảng {formatDuration(estimatedSecondsRemaining)}</span>
+              </div>
+              <progress aria-label="Tiến trình tạo mô hình 3D" max={100} value={progress}>{progress}%</progress>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       {previewUrl ? (
         <>
           <ProductModelViewer key={previewUrl} src={previewUrl} poster={images[0]} name={productName || 'sản phẩm'} />

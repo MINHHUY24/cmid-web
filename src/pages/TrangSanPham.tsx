@@ -1,5 +1,5 @@
 import { CaretLeft, CaretRight, SlidersHorizontal } from "@phosphor-icons/react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import productHeroImage from "../assets/images/hero-san-pham-cmid.png";
 import { StatusPanel } from "../components/common/KhunTranThai";
@@ -12,11 +12,38 @@ import { CatalogSortDropdown } from "../components/product/CatalogSortDropdown";
 import { useProducts } from "../hooks/useProducts";
 import type { Product } from "../types/product";
 import { useLanguage } from "../contexts/NgonNguContext";
+import {
+  DESKTOP_CATALOG_MEDIA_QUERY,
+  getCatalogPaginationItems,
+  getCatalogProductsPerPage,
+} from "../utils/catalogPagination";
 
 type SortOrder = "newest" | "price-asc" | "price-desc";
 
-const PRODUCTS_PER_PAGE = 12;
 const CATALOG_SKELETON_CARD_COUNT = 8;
+
+function useCatalogProductsPerPage() {
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window === "undefined"
+      ? true
+      : window.matchMedia
+        ? window.matchMedia(DESKTOP_CATALOG_MEDIA_QUERY).matches
+        : window.innerWidth >= 1025,
+  );
+
+  useEffect(() => {
+    if (!window.matchMedia) return undefined;
+
+    const mediaQuery = window.matchMedia(DESKTOP_CATALOG_MEDIA_QUERY);
+    const syncViewport = () => setIsDesktop(mediaQuery.matches);
+    syncViewport();
+    mediaQuery.addEventListener("change", syncViewport);
+
+    return () => mediaQuery.removeEventListener("change", syncViewport);
+  }, []);
+
+  return getCatalogProductsPerPage(isDesktop);
+}
 
 function getProductPrice(product: Product): number {
   const price = Number(product.price);
@@ -122,6 +149,7 @@ export function TrangSanPhamPage() {
   const { products, isLoading, errorMessage, retry } = useProducts();
   const { content } = useLanguage();
   const [searchParams] = useSearchParams();
+  const productsPerPage = useCatalogProductsPerPage();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [hasChangedCategoryFilter, setHasChangedCategoryFilter] =
     useState(false);
@@ -201,10 +229,17 @@ export function TrangSanPhamPage() {
       {
         id: "ORDER",
         label: content.product.madeToOrder,
-        count: products.filter((product) => product.status !== "ACTIVE").length,
+        count: products.filter(
+          (product) => product.status !== "ACTIVE" && product.status !== "OUT_OF_STOCK",
+        ).length,
+      },
+      {
+        id: "OUT_OF_STOCK",
+        label: content.product.outOfStock,
+        count: products.filter((product) => product.status === "OUT_OF_STOCK").length,
       },
     ],
-    [content.product.inStock, content.product.madeToOrder, products],
+    [content.product.inStock, content.product.madeToOrder, content.product.outOfStock, products],
   );
   const priceBounds = useMemo(() => {
     const prices = products.map(getProductPrice).filter((price) => price > 0);
@@ -239,7 +274,11 @@ export function TrangSanPhamPage() {
         const statusMatches =
           selectedStatuses.length === 0 ||
           selectedStatuses.includes(
-            product.status === "ACTIVE" ? "AVAILABLE" : "ORDER",
+            product.status === "ACTIVE"
+              ? "AVAILABLE"
+              : product.status === "OUT_OF_STOCK"
+                ? "OUT_OF_STOCK"
+                : "ORDER",
           );
         const modelMatches = !only3D || product.models3D.length > 0;
 
@@ -289,12 +328,16 @@ export function TrangSanPhamPage() {
   }, [filteredProducts, sortOrder]);
   const totalPages = Math.max(
     1,
-    Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE),
+    Math.ceil(sortedProducts.length / productsPerPage),
   );
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const displayedProducts = sortedProducts.slice(
-    (safeCurrentPage - 1) * PRODUCTS_PER_PAGE,
-    safeCurrentPage * PRODUCTS_PER_PAGE,
+    (safeCurrentPage - 1) * productsPerPage,
+    safeCurrentPage * productsPerPage,
+  );
+  const paginationItems = useMemo(
+    () => getCatalogPaginationItems(totalPages, safeCurrentPage),
+    [safeCurrentPage, totalPages],
   );
   const activeFilterCount =
     activeSelectedCategories.length +
@@ -489,39 +532,37 @@ export function TrangSanPhamPage() {
                     type="button"
                     aria-label="Previous page"
                     disabled={safeCurrentPage === 1}
-                    onClick={() =>
-                      setCurrentPage((page) => Math.max(page - 1, 1))
-                    }
+                    onClick={() => setCurrentPage(safeCurrentPage - 1)}
                   >
                     <CaretLeft size={18} aria-hidden="true" />
                   </button>
-                  {Array.from(
-                    { length: totalPages },
-                    (_, index) => index + 1,
-                  ).map((page) => (
-                    <button
-                      key={page}
-                      type="button"
-                      className={
-                        page === safeCurrentPage
-                          ? "catalog-pagination__current"
-                          : undefined
-                      }
-                      aria-current={
-                        page === safeCurrentPage ? "page" : undefined
-                      }
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                  {paginationItems.map((item, index) =>
+                    item === "ellipsis" ? (
+                      <span className="catalog-pagination__ellipsis" aria-hidden="true" key={`ellipsis-${index}`}>…</span>
+                    ) : (
+                      <button
+                        key={item}
+                        type="button"
+                        className={
+                          item === safeCurrentPage
+                            ? "catalog-pagination__current"
+                            : undefined
+                        }
+                        aria-current={
+                          item === safeCurrentPage ? "page" : undefined
+                        }
+                        aria-label={`Page ${item}`}
+                        onClick={() => setCurrentPage(item)}
+                      >
+                        {item}
+                      </button>
+                    ),
+                  )}
                   <button
                     type="button"
                     aria-label="Next page"
                     disabled={safeCurrentPage === totalPages}
-                    onClick={() =>
-                      setCurrentPage((page) => Math.min(page + 1, totalPages))
-                    }
+                    onClick={() => setCurrentPage(safeCurrentPage + 1)}
                   >
                     <CaretRight size={18} aria-hidden="true" />
                   </button>

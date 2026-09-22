@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
-import { AdminProductsListView } from '../src/pages/admin/AdminCommerceViews'
+import { AdminProductsListView, type AdminProductListFilters } from '../src/pages/admin/AdminCommerceViews'
 import type { Product } from '../src/types/product'
 
 const product: Product = {
@@ -23,6 +23,13 @@ const product: Product = {
   models3D: [],
 }
 
+const filters: AdminProductListFilters = {
+  search: '',
+  category: 'ALL',
+  status: 'ALL',
+  saleType: 'ALL',
+}
+
 afterEach(cleanup)
 
 it('hides the toolbar count and asks for confirmation before deleting a product', async () => {
@@ -30,9 +37,11 @@ it('hides the toolbar count and asks for confirmation before deleting a product'
   render(
     <AdminProductsListView
       products={[product]}
+      filters={filters}
       isLoading={false}
       errorMessage={null}
       onRetry={() => {}}
+      onFiltersChange={() => {}}
       onCreate={() => {}}
       onEdit={() => {}}
       onDelete={onDelete}
@@ -49,4 +58,34 @@ it('hides the toolbar count and asks for confirmation before deleting a product'
   fireEvent.click(screen.getByRole('button', { name: 'Xóa sản phẩm' }))
   await waitFor(() => expect(onDelete).toHaveBeenCalledWith(product))
   await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
+})
+
+it('keeps a skeleton in the product row while the deletion request is pending', async () => {
+  let finishDelete: (() => void) | undefined
+  const onDelete = vi.fn().mockImplementation(() => new Promise<void>((resolve) => {
+    finishDelete = resolve
+  }))
+  const { container } = render(
+    <AdminProductsListView
+      products={[product]}
+      filters={filters}
+      isLoading={false}
+      errorMessage={null}
+      onRetry={() => {}}
+      onFiltersChange={() => {}}
+      onCreate={() => {}}
+      onEdit={() => {}}
+      onDelete={onDelete}
+    />,
+  )
+
+  fireEvent.click(screen.getByRole('button', { name: `Xóa ${product.name}` }))
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa sản phẩm' }))
+
+  await waitFor(() => expect(onDelete).toHaveBeenCalledWith(product))
+  expect(container.querySelector('.admin-product-row--deleting')).toBeTruthy()
+  expect(screen.queryByRole('alertdialog')).toBeNull()
+
+  finishDelete?.()
+  await waitFor(() => expect(container.querySelector('.admin-product-row--deleting')).toBeNull())
 })

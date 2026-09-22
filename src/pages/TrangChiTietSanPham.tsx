@@ -1,21 +1,25 @@
 import {
+  CaretDown,
   ArrowLeft,
   ArrowRight,
   CaretRight,
   Check,
   Cube,
   House,
+  MapPin,
   Minus,
+  Phone,
   Plus,
   ShoppingCartSimple,
 } from "@phosphor-icons/react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { CamKetDichVu } from "../components/common/CamKetDichVu";
 import { StatusPanel } from "../components/common/KhunTranThai";
 import { Seo } from "../components/common/Seo";
 import { TheSanPhamLienQuan } from "../components/product/TheSanPhamLienQuan";
 import { ThuVienAnhSanPham } from "../components/product/ThuVienAnhSanPham";
+import { chiNhanhCmid } from "../constants/chi-nhanh";
 import { useCart } from "../contexts/GioHangContext";
 import { useLanguage } from "../contexts/NgonNguContext";
 import { useProducts } from "../hooks/useProducts";
@@ -155,6 +159,83 @@ function ProductDetailLoadingSkeleton({ label }: { label: string }) {
   );
 }
 
+function StoreAvailabilitySelect({
+  value,
+  options,
+  ariaLabel,
+  onChange,
+}: {
+  value: string;
+  options: { value: string; label: string }[];
+  ariaLabel: string;
+  onChange: (value: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const selectedOption = options.find((option) => option.value === value) ?? options[0];
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    function closeMenu(event: PointerEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) setIsOpen(false);
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsOpen(false);
+    }
+
+    document.addEventListener("pointerdown", closeMenu);
+    document.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.removeEventListener("pointerdown", closeMenu);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isOpen]);
+
+  return (
+    <div className="product-detail-store-select" ref={rootRef}>
+      <button
+        className="product-detail-store-select__trigger"
+        type="button"
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((currentOpen) => !currentOpen)}
+      >
+        <span>{selectedOption?.label}</span>
+        <CaretDown size={18} weight="bold" aria-hidden="true" />
+      </button>
+
+      {isOpen ? (
+        <div className="product-detail-store-select__menu" role="listbox" aria-label={ariaLabel}>
+          {options.map((option) => {
+            const isSelected = option.value === value;
+
+            return (
+              <button
+                className={isSelected ? "is-selected" : undefined}
+                type="button"
+                key={option.value}
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+              >
+                <span>{option.label}</span>
+                {isSelected ? <Check size={16} weight="bold" aria-hidden="true" /> : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function TrangChiTietSanPham() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -162,6 +243,8 @@ export function TrangChiTietSanPham() {
   const [activeTab, setActiveTab] = useState<TabChiTiet>("mo-ta");
   const [quantity, setQuantity] = useState(1);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
+  const [selectedStoreCity, setSelectedStoreCity] = useState("");
+  const [selectedStoreDistrict, setSelectedStoreDistrict] = useState("");
   const relatedProductsScrollerRef = useRef<HTMLDivElement>(null);
   const { addItem, dismissCartToast } = useCart();
   const { content, language } = useLanguage();
@@ -269,10 +352,53 @@ export function TrangChiTietSanPham() {
     ? product.salesPolicyPoints.filter(Boolean)
     : productDetail.policyPoints;
   const isDirectOrder = product.saleType === "DIRECT_ORDER";
+  const isOutOfStock = product.status === "OUT_OF_STOCK";
+  const canAddToCart = isDirectOrder && product.status === "ACTIVE";
+  const hasStoreAvailability = canAddToCart && product.stock !== 0;
+  const availableStoreBranches = hasStoreAvailability ? chiNhanhCmid : [];
+  const storeCities = [...new Set(availableStoreBranches.map((branch) => branch.city))];
+  const activeStoreCity = selectedStoreCity || storeCities[0] || "";
+  const storeDistricts = [
+    ...new Set(
+      availableStoreBranches
+        .filter((branch) => branch.city === activeStoreCity)
+        .map((branch) => branch.district),
+    ),
+  ];
+  const activeStoreDistrict = storeDistricts.includes(selectedStoreDistrict)
+    ? selectedStoreDistrict
+    : "";
+  const filteredStoreBranches = availableStoreBranches.filter(
+    (branch) =>
+      branch.city === activeStoreCity &&
+      (!activeStoreDistrict || branch.district === activeStoreDistrict),
+  );
+  const storeAvailabilityCopy =
+    language === "vi"
+      ? {
+          title: "Xem chi nhánh có hàng",
+          availableSuffix: "chi nhánh có sản phẩm",
+          city: "Tỉnh/Thành phố",
+          district: "Quận/Huyện",
+          allDistricts: "Tất cả quận/huyện",
+          call: "Gọi cửa hàng",
+          map: "Bản đồ",
+        }
+      : {
+          title: "Find an in-stock branch",
+          availableSuffix: "branches have this product",
+          city: "City",
+          district: "District",
+          allDistricts: "All districts",
+          call: "Call store",
+          map: "Map",
+        };
   const actionPath = `/lien-he?bao-gia-san-pham=${product.id}`;
-  const actionLabel = isDirectOrder
-    ? productDetail.buyNow
-    : productDetail.requestQuoteAndConsultation;
+  const actionLabel = isOutOfStock
+    ? content.product.outOfStock
+    : canAddToCart
+      ? productDetail.buyNow
+      : productDetail.requestQuoteAndConsultation;
   const canonicalPath = `/products/${product.id}`;
   const seoDescription = createDescription(
     productDescription,
@@ -305,9 +431,11 @@ export function TrangChiTietSanPham() {
               priceCurrency: "VND",
               price: numericPrice,
               availability:
-                product.status === "ACTIVE"
-                  ? "https://schema.org/InStock"
-                  : "https://schema.org/PreOrder",
+                isOutOfStock
+                  ? "https://schema.org/OutOfStock"
+                  : product.status === "ACTIVE"
+                    ? "https://schema.org/InStock"
+                    : "https://schema.org/PreOrder",
             }
           : undefined,
       },
@@ -350,9 +478,11 @@ export function TrangChiTietSanPham() {
     {
       label: productDetail.specs.availability,
       value:
-        product.status === "ACTIVE"
-          ? content.product.inStock
-          : content.product.madeToOrder,
+        isOutOfStock
+          ? content.product.outOfStock
+          : product.status === "ACTIVE"
+            ? content.product.inStock
+            : content.product.madeToOrder,
     },
     {
       label: productDetail.specs.purchaseType,
@@ -455,7 +585,7 @@ export function TrangChiTietSanPham() {
                   {product.unit ? <span>/{product.unit}</span> : null}
                 </div>
 
-                <div className="product-detail-quantity">
+                {canAddToCart ? <div className="product-detail-quantity">
                   <span>{productDetail.quantity}</span>
                   <div>
                     <button
@@ -482,12 +612,16 @@ export function TrangChiTietSanPham() {
                     </button>
                   </div>
                   {product.unit ? <small>{product.unit}</small> : null}
-                </div>
+                </div> : null}
               </>
             ) : null}
 
             <div className="product-detail-actions">
-              {isDirectOrder ? (
+              {isOutOfStock ? (
+                <button className="button button--gold product-detail-actions__primary" type="button" disabled>
+                  {actionLabel}
+                </button>
+              ) : canAddToCart ? (
                 <button
                   className="button button--gold product-detail-actions__primary"
                   type="button"
@@ -508,7 +642,7 @@ export function TrangChiTietSanPham() {
                   {actionLabel}
                 </Link>
               )}
-              {isDirectOrder ? (
+              {canAddToCart ? (
                 <button
                   className="product-detail-actions__secondary"
                   type="button"
@@ -530,6 +664,68 @@ export function TrangChiTietSanPham() {
                 </Link>
               ) : null}
             </div>
+
+            {availableStoreBranches.length > 0 ? (
+              <section
+                className="product-detail-store-availability"
+                aria-labelledby="product-detail-store-availability-title"
+              >
+                <div className="product-detail-store-availability__heading">
+                  <div>
+                    <h2 id="product-detail-store-availability-title">
+                      {storeAvailabilityCopy.title}
+                    </h2>
+                    <p>
+                      <strong>{filteredStoreBranches.length}</strong>{" "}
+                      {storeAvailabilityCopy.availableSuffix}
+                    </p>
+                  </div>
+                  <div className="product-detail-store-availability__filters">
+                    <StoreAvailabilitySelect
+                      ariaLabel={storeAvailabilityCopy.city}
+                      value={activeStoreCity}
+                      options={storeCities.map((city) => ({ value: city, label: city }))}
+                      onChange={(city) => {
+                        setSelectedStoreCity(city);
+                        setSelectedStoreDistrict("");
+                      }}
+                    />
+                    <StoreAvailabilitySelect
+                      ariaLabel={storeAvailabilityCopy.district}
+                      value={activeStoreDistrict}
+                      options={[
+                        { value: "", label: storeAvailabilityCopy.allDistricts },
+                        ...storeDistricts.map((district) => ({ value: district, label: district })),
+                      ]}
+                      onChange={setSelectedStoreDistrict}
+                    />
+                  </div>
+                </div>
+
+                <ul className="product-detail-store-availability__list">
+                  {filteredStoreBranches.map((branch) => {
+                    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(branch.address)}`;
+
+                    return (
+                      <li key={branch.id}>
+                        <strong>{branch.name}</strong>
+                        <p>{branch.address}</p>
+                        <div>
+                          <a href={`tel:${branch.phone.replaceAll(" ", "")}`}>
+                            <Phone size={16} weight="fill" aria-hidden="true" />
+                            {storeAvailabilityCopy.call}
+                          </a>
+                          <a href={mapUrl} target="_blank" rel="noreferrer">
+                            <MapPin size={16} weight="fill" aria-hidden="true" />
+                            {storeAvailabilityCopy.map}
+                          </a>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ) : null}
           </div>
         </section>
 
