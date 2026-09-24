@@ -15,7 +15,7 @@
     font-size: calc(0.67rem + 2px);
   }
 
-  .home-product-grid {
+  :is(.home-product-grid, .home-products__skeleton-grid) {
     grid-auto-columns: calc((100% - 48px) / 4);
     gap: 16px;
   }
@@ -209,10 +209,6 @@
     background-position: 59% center;
   }
 
-  .trang-chu__hero-overlay {
-    background: linear-gradient(90deg, rgb(6 6 5 / 86%), rgb(9 8 6 / 54%));
-  }
-
   .trang-chu__hero-content {
     padding: 76px 0 84px;
   }
@@ -253,7 +249,7 @@
     margin-left: 8px;
   }
 
-  .home-product-grid {
+  :is(.home-product-grid, .home-products__skeleton-grid) {
     grid-auto-columns: calc((100% - 12px) / 2);
     gap: 12px;
   }

@@ -12,12 +12,27 @@ import {
   WarningCircle,
   Wrench,
 } from '@phosphor-icons/react'
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { KhungXuong } from '../../components/common/KhungXuong'
 import type { AppLanguage } from '../../content/site-content'
 import { getAdminDataMode } from '../../services/admin.service'
+import {
+  createManagedRole,
+  createManagedUser,
+  deactivateManagedUser,
+  deleteManagedRole,
+  getManagedRoles,
+  getManagedUsers,
+  resetManagedUserPassword,
+  updateManagedRole,
+  updateManagedUser,
+  type ManagedAdminUser,
+  type ManagedRole,
+} from '../../services/admin-access.service'
 import { formatCurrency } from '../../utils/formatCurrency'
 import {
   AdminCollectionManager,
+  AdminBangKhungXuong,
   AdminPageHeading,
   AdminPanel,
   AdminSelect,
@@ -39,6 +54,7 @@ interface OperationalViewProps {
   view: AdminView
   database: AdminDatabase
   onToast: (message: string) => void
+  onNavigate: (view: AdminView) => void
 }
 
 function editableRows(records: Array<{ id: string }>) {
@@ -69,7 +85,73 @@ const statusOptions = [
   { value: 'INACTIVE', label: 'Không hoạt động' },
 ]
 
-export function AdminOperationalView({ view, database, onToast }: OperationalViewProps) {
+const rolePermissionGroups = [
+  {
+    label: 'Tổng quan & báo cáo',
+    permissions: [
+      { value: 'dashboard.view', label: 'Xem Dashboard' },
+      { value: 'report.view', label: 'Xem báo cáo' },
+      { value: 'sales.performance.view', label: 'Xem hiệu suất kinh doanh' },
+    ],
+  },
+  {
+    label: 'Sản phẩm',
+    permissions: [
+      { value: 'product.view', label: 'Xem sản phẩm' },
+      { value: 'product.create', label: 'Tạo sản phẩm' },
+      { value: 'product.update', label: 'Cập nhật sản phẩm' },
+      { value: 'product.delete', label: 'Xóa sản phẩm' },
+      { value: 'product.publish', label: 'Xuất bản sản phẩm' },
+      { value: 'category.manage', label: 'Quản lý danh mục' },
+      { value: 'brand.manage', label: 'Quản lý thương hiệu' },
+      { value: 'media.manage', label: 'Quản lý hình ảnh' },
+      { value: 'model.manage', label: 'Quản lý model 3D' },
+    ],
+  },
+  {
+    label: 'Đơn hàng & khách hàng',
+    permissions: [
+      { value: 'customer.view', label: 'Xem khách hàng' },
+      { value: 'customer.manage', label: 'Quản lý khách hàng' },
+      { value: 'quotation.view', label: 'Xem báo giá' },
+      { value: 'quotation.create', label: 'Tạo báo giá' },
+      { value: 'quotation.update', label: 'Cập nhật báo giá' },
+      { value: 'quotation.approve', label: 'Duyệt báo giá/chiết khấu' },
+      { value: 'order.view', label: 'Xem đơn hàng' },
+      { value: 'order.create', label: 'Tạo đơn hàng' },
+      { value: 'order.update', label: 'Cập nhật trạng thái đơn' },
+      { value: 'order.cancel', label: 'Hủy đơn hàng' },
+    ],
+  },
+  {
+    label: 'Nội dung website',
+    permissions: [
+      { value: 'content.manage', label: 'Quản lý nội dung website' },
+      { value: 'content.publish', label: 'Duyệt/Xuất bản nội dung' },
+    ],
+  },
+  {
+    label: 'Hệ thống',
+    permissions: [
+      { value: 'inventory.view', label: 'Xem tồn kho' },
+      { value: 'inventory.update', label: 'Cập nhật tồn kho' },
+      { value: 'warehouse.reserve', label: 'Reserve/Release Request' },
+      { value: 'warehouse.outbound', label: 'Outbound Request' },
+      { value: 'payment.view', label: 'Xem thanh toán' },
+      { value: 'payment.update', label: 'Cập nhật thanh toán' },
+      { value: 'settings.manage', label: 'Cấu hình hệ thống' },
+      { value: 'user.manage', label: 'Quản lý người dùng' },
+      { value: 'role.manage', label: 'Quản lý vai trò' },
+      { value: 'permission.manage', label: 'Quản lý phân quyền' },
+      { value: 'audit.view', label: 'Xem Audit Log' },
+      { value: 'integration.view', label: 'Xem Integration Log' },
+      { value: 'integration.retry', label: 'Retry tích hợp' },
+      { value: '*', label: 'Toàn quyền hệ thống' },
+    ],
+  },
+]
+
+export function AdminOperationalView({ view, database, onToast, onNavigate }: OperationalViewProps) {
   const complete = (message: string) => onToast(message)
 
   if (view === 'categories') {
@@ -419,60 +501,7 @@ export function AdminOperationalView({ view, database, onToast }: OperationalVie
 
   if (view === 'settings') return <AdminSettingsView settings={database.settings} onToast={onToast} />
 
-  if (view === 'users') {
-    return (
-      <AdminCollectionManager
-        title="Người dùng quản trị"
-        description="Quản lý tài khoản nội bộ và vai trò được cấp."
-        singularLabel="người dùng"
-        rows={editableRows(database.users)}
-        columns={[
-          { key: 'name', label: 'Người dùng', render: (row) => <strong>{String(row.name)}</strong> },
-          { key: 'email', label: 'Email' },
-          { key: 'roleId', label: 'Vai trò', render: (row) => database.roles.find((role) => role.id === row.roleId)?.name ?? String(row.roleId) },
-          { key: 'lastLogin', label: 'Đăng nhập gần nhất', render: (row) => formatDate(String(row.lastLogin)) },
-          { key: 'status', label: 'Trạng thái', render: (row) => <AdminStatus>{String(row.status)}</AdminStatus> },
-        ]}
-        fields={[
-          { key: 'name', label: 'Họ và tên', required: true },
-          { key: 'email', label: 'Email', type: 'email', required: true },
-          { key: 'roleId', label: 'Vai trò', type: 'select', options: database.roles.map((role) => ({ value: role.id, label: role.name })) },
-          { key: 'status', label: 'Trạng thái', type: 'select', options: [{ value: 'ACTIVE', label: 'Đang hoạt động' }, { value: 'LOCKED', label: 'Đã khóa' }] },
-        ]}
-        onSave={(record) => { upsertRecord('users', { ...record, lastLogin: String(record.lastLogin || '') }, 'Người dùng'); complete('Đã lưu người dùng.') }}
-        onDelete={(id) => { deleteRecord('users', id, 'Người dùng'); complete('Đã xóa người dùng.') }}
-      />
-    )
-  }
-
-  if (view === 'roles') {
-    return (
-      <AdminCollectionManager
-        title="Vai trò và phân quyền"
-        description="Khai báo nhóm quyền cho quản trị, nội dung và kinh doanh."
-        singularLabel="vai trò"
-        rows={database.roles.map((role) => ({ ...role, permissionsText: role.permissions.join(', ') }))}
-        columns={[
-          { key: 'name', label: 'Vai trò', render: (row) => <strong>{String(row.name)}</strong> },
-          { key: 'description', label: 'Mô tả' },
-          { key: 'permissionsText', label: 'Phạm vi quyền' },
-          { key: 'userCount', label: 'Người dùng' },
-        ]}
-        fields={[
-          { key: 'name', label: 'Tên vai trò', required: true },
-          { key: 'description', label: 'Mô tả', type: 'textarea' },
-          { key: 'permissionsText', label: 'Danh sách quyền', type: 'textarea', helper: 'Ngăn cách quyền bằng dấu phẩy, ví dụ products.read, products.write.' },
-          { key: 'userCount', label: 'Số người dùng', type: 'number' },
-        ]}
-        onSave={(record) => {
-          const permissions = String(record.permissionsText ?? '').split(',').map((item) => item.trim()).filter(Boolean)
-          upsertRecord('roles', { ...record, permissions }, 'Vai trò')
-          complete('Đã lưu vai trò và phạm vi quyền.')
-        }}
-        onDelete={(id) => { deleteRecord('roles', id, 'Vai trò'); complete('Đã xóa vai trò.') }}
-      />
-    )
-  }
+  if (view === 'users' || view === 'roles') return <AdminAccessManagementView view={view} onToast={onToast} onNavigate={onNavigate} />
 
   if (view === 'logs') {
     return (
@@ -497,6 +526,179 @@ export function AdminOperationalView({ view, database, onToast }: OperationalVie
   }
 
   return null
+}
+
+function AdminAccessManagementView({
+  view,
+  onToast,
+  onNavigate,
+}: {
+  view: 'users' | 'roles'
+  onToast: (message: string) => void
+  onNavigate: (view: AdminView) => void
+}) {
+  const [users, setUsers] = useState<ManagedAdminUser[]>([])
+  const [roles, setRoles] = useState<ManagedRole[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const reload = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const [nextRoles, nextUsers] = await Promise.all([
+        getManagedRoles(),
+        view === 'users' ? getManagedUsers() : Promise.resolve(null),
+      ])
+      setRoles(nextRoles.roles)
+      if (nextUsers) setUsers(nextUsers.users)
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Không thể tải dữ liệu phân quyền.')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [view])
+
+  useEffect(() => {
+    const initialLoad = window.setTimeout(() => { void reload() }, 0)
+    return () => window.clearTimeout(initialLoad)
+  }, [reload])
+
+  if (isLoading) return <AdminAccessManagementSkeleton view={view} />
+  if (error) return <AdminPanel title={view === 'users' ? 'Người dùng quản trị' : 'Vai trò và phân quyền'}><p className="admin-form-error">{error}</p><button className="admin-button" type="button" onClick={() => void reload()}>Thử lại</button></AdminPanel>
+
+  if (view === 'users') {
+    const rows = users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      roleCode: user.roleCode,
+      lastLogin: user.lastLoginAt ?? '',
+      status: user.isActive ? 'ACTIVE' : 'LOCKED',
+    })) as AdminEditableRecord[]
+    return (
+      <AdminCollectionManager
+        title="Người dùng quản trị"
+        description="Tài khoản nội bộ được lưu trên Supabase và xác thực bằng mật khẩu riêng."
+        singularLabel="người dùng"
+        rows={rows}
+        columns={[
+          { key: 'name', label: 'Người dùng', render: (row) => <strong>{String(row.name)}</strong> },
+          { key: 'email', label: 'Email' },
+          { key: 'roleCode', label: 'Vai trò', render: (row) => roles.find((role) => role.code === row.roleCode)?.name ?? String(row.roleCode) },
+          { key: 'lastLogin', label: 'Đăng nhập gần nhất', render: (row) => formatDate(String(row.lastLogin)) },
+          { key: 'status', label: 'Trạng thái', render: (row) => <AdminStatus>{String(row.status)}</AdminStatus> },
+        ]}
+        fields={[
+          { key: 'name', label: 'Họ và tên', required: true },
+          { key: 'email', label: 'Email', required: true, suffix: '@cmid.com.vn' },
+          { key: 'password', label: 'Mật khẩu', type: 'password', requiredOnCreate: true, helper: 'Tối thiểu 10 ký tự. Để trống khi không đổi mật khẩu.' },
+          { key: 'roleCode', label: 'Vai trò', type: 'select', options: roles.map((role) => ({ value: role.code, label: role.name })), required: true, action: { label: 'Tạo vai trò mới', onClick: () => onNavigate('roles') } },
+          { key: 'status', label: 'Trạng thái', type: 'select', options: [{ value: 'ACTIVE', label: 'Đang hoạt động' }, { value: 'LOCKED', label: 'Đã khóa' }] },
+        ]}
+        onSave={async (record) => {
+          const isExisting = users.some((user) => user.id === record.id)
+          const username = String(record.email ?? '').split('@')[0]
+          const isActive = record.status === 'ACTIVE'
+          if (isExisting) {
+            await updateManagedUser(record.id, { fullName: String(record.name), roleCode: String(record.roleCode), isActive })
+            if (String(record.password ?? '')) await resetManagedUserPassword(record.id, String(record.password))
+          } else {
+            await createManagedUser({ fullName: String(record.name), username, password: String(record.password ?? ''), roleCode: String(record.roleCode), isActive })
+          }
+          await reload()
+          onToast(isExisting ? 'Đã cập nhật người dùng.' : 'Đã tạo tài khoản người dùng.')
+        }}
+        onDelete={async (id) => {
+          await deactivateManagedUser(id)
+          await reload()
+          onToast('Đã khóa tài khoản người dùng.')
+        }}
+      />
+    )
+  }
+
+  const rows = roles.map((role) => ({ ...role })) as AdminEditableRecord[]
+  return (
+    <AdminCollectionManager
+      title="Vai trò và phân quyền"
+      description="Nhóm quyền được lưu trên Supabase và áp dụng cho cả menu lẫn API."
+      singularLabel="vai trò"
+      rows={rows}
+      tableClassName="admin-table--roles"
+      columns={[
+        { key: 'name', label: 'Vai trò', render: (row) => <strong>{String(row.name)}</strong> },
+        { key: 'description', label: 'Mô tả' },
+        {
+          key: 'permissions',
+          label: 'Quyền đã cấp',
+          render: (row) => {
+            const permissions = Array.isArray(row.permissions) ? row.permissions.map(String) : []
+            const isFullAccess = permissions.includes('*')
+            const label = isFullAccess ? 'Toàn quyền hệ thống' : `${permissions.length} chức năng`
+            return <span className={`admin-permission-summary${isFullAccess ? ' is-full-access' : ''}`} title={permissions.join(', ')}>{label}</span>
+          },
+        },
+        { key: 'userCount', label: 'Người dùng', align: 'center' },
+      ]}
+      fields={[
+        { key: 'name', label: 'Tên vai trò', required: true },
+        { key: 'description', label: 'Mô tả', type: 'textarea' },
+        { key: 'permissions', label: 'Chức năng được phép', type: 'permissions', permissionGroups: rolePermissionGroups },
+      ]}
+      onSave={async (record) => {
+        const isExisting = roles.some((role) => role.id === record.id)
+        const permissions = Array.isArray(record.permissions) ? record.permissions.map(String) : []
+        if (isExisting) {
+          await updateManagedRole(record.id, { name: String(record.name), description: String(record.description ?? ''), permissionCodes: permissions })
+        } else {
+          await createManagedRole({ code: createRoleCode(String(record.name)), name: String(record.name), description: String(record.description ?? ''), permissionCodes: permissions })
+        }
+        await reload()
+        onToast(isExisting ? 'Đã cập nhật vai trò.' : 'Đã tạo vai trò mới.')
+      }}
+      onDelete={async (id) => {
+        await deleteManagedRole(id)
+        await reload()
+        onToast('Đã xóa vai trò.')
+      }}
+    />
+  )
+}
+
+function AdminAccessManagementSkeleton({ view }: { view: 'users' | 'roles' }) {
+  const isUsersView = view === 'users'
+  const title = isUsersView ? 'Người dùng quản trị' : 'Vai trò và phân quyền'
+  const description = isUsersView
+    ? 'Tài khoản nội bộ được lưu trên Supabase và xác thực bằng mật khẩu riêng.'
+    : 'Nhóm quyền được lưu trên Supabase và áp dụng cho cả menu lẫn API.'
+
+  return (
+    <div className="admin-access-skeleton" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">Đang tải dữ liệu phân quyền</span>
+      <AdminPageHeading
+        title={title}
+        description={description}
+        action={<KhungXuong className="admin-access-skeleton__action" />}
+      />
+      <AdminPanel className="admin-toolbar">
+        <KhungXuong className="admin-access-skeleton__search" />
+      </AdminPanel>
+      <AdminPanel className="admin-table-panel">
+        <AdminBangKhungXuong
+          columns={isUsersView ? 6 : 5}
+          rows={6}
+          label="Đang tải dữ liệu phân quyền"
+        />
+      </AdminPanel>
+    </div>
+  )
+}
+
+function createRoleCode(name: string) {
+  const normalized = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const slug = normalized.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+  return `CUSTOM_${slug || Date.now().toString()}`.slice(0, 64)
 }
 
 function AdminDocumentsView({ documents, onToast }: { documents: AdminDocument[]; onToast: (message: string) => void }) {

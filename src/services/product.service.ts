@@ -62,6 +62,7 @@ function toProductPayload(product: Product) {
     saleType: product.saleType,
     status: product.status,
     stock: product.stock ?? null,
+    stockByStore: product.stockByStore ?? [],
     isFeatured: product.isFeatured ?? false,
     materialIds: product.materialIds ?? [],
     supplierId: product.supplierId ?? null,

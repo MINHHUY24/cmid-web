@@ -135,6 +135,7 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
   const [articles, setArticles] = useState<NewsArticleRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
 
   const loadNews = useCallback(async () => {
     setIsLoading(true)
@@ -254,6 +255,41 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
     }
   }
 
+  async function updateArticleStatus(article: NewsArticleRecord, status: AdminPublishStatus) {
+    if (article.status === status || updatingStatusId) return
+
+    setUpdatingStatusId(article.id)
+    try {
+      await saveNewsArticle({
+        id: article.id,
+        slug: article.slug,
+        title: article.title,
+        titleEn: article.titleEn,
+        summary: article.summary,
+        summaryEn: article.summaryEn,
+        body: toStringArray(article.body),
+        bodyEn: toStringArray(article.bodyEn),
+        highlights: toStringArray(article.highlights),
+        highlightsEn: toStringArray(article.highlightsEn),
+        tags: toStringArray(article.tags),
+        tagsEn: toStringArray(article.tagsEn),
+        category: toArticleCategory(article.category),
+        imageUrl: article.imageUrl,
+        readingMinutes: article.readingMinutes,
+        isFeatured: article.isFeatured,
+        status,
+        publishedAt: article.publishedAt,
+        sortOrder: article.sortOrder,
+      }, isAdminDemoEnabled)
+      await loadNews()
+      onToast(`Đã cập nhật trạng thái bài viết “${article.title}”.`)
+    } catch (error: unknown) {
+      onToast(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái bài viết.')
+    } finally {
+      setUpdatingStatusId(null)
+    }
+  }
+
   return (
     <>
       <AdminPageHeading
@@ -299,7 +335,16 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
                   </td>
                   <td>{getAdminCategoryLabel(article.category)}</td>
                   <td>{formatAdminDate(article.publishedAt)}</td>
-                  <td className="admin-table__cell--center"><AdminStatus>{publishStatusLabel(article.status)}</AdminStatus></td>
+                  <td className="admin-table__cell--center">
+                    <AdminSelect
+                      className="admin-inline-select"
+                      value={article.status}
+                      onChange={(value) => void updateArticleStatus(article, value as AdminPublishStatus)}
+                      options={inlinePublishStatusOptions}
+                      disabled={updatingStatusId === article.id}
+                      aria-label={`Cập nhật trạng thái ${article.title}`}
+                    />
+                  </td>
                   <td className="admin-table__cell--center"><AdminStatus>{article.isFeatured ? 'Nổi bật' : 'Thông thường'}</AdminStatus></td>
                   <td className="admin-table__cell--actions">
                     <RowActions
@@ -411,6 +456,7 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
 
   const loadProjects = useCallback(async () => {
     setIsLoading(true)
@@ -518,6 +564,36 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
     }
   }
 
+  async function updateProjectStatus(project: Project, status: AdminPublishStatus) {
+    if (project.status === status || updatingStatusId) return
+
+    setUpdatingStatusId(project.id)
+    try {
+      await saveProject({
+        id: project.id,
+        slug: project.slug,
+        title: project.title,
+        titleEn: project.titleEn,
+        location: project.location,
+        locationEn: project.locationEn,
+        description: project.description,
+        descriptionEn: project.descriptionEn,
+        content: project.content,
+        contentEn: project.contentEn,
+        imageUrl: project.imageUrl,
+        status,
+        isFeatured: project.isFeatured,
+        sortOrder: project.sortOrder,
+      }, isAdminDemoEnabled)
+      await loadProjects()
+      onToast(`Đã cập nhật trạng thái dự án “${project.title}”.`)
+    } catch (error: unknown) {
+      onToast(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái dự án.')
+    } finally {
+      setUpdatingStatusId(null)
+    }
+  }
+
   return (
     <>
       <AdminPageHeading
@@ -559,7 +635,16 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
                       <small>{project.description || 'Chưa có mô tả dự án.'}</small>
                     </td>
                     <td>{project.location || 'Chưa cập nhật'}</td>
-                    <td className="admin-table__cell--center"><AdminStatus>{publishStatusLabel(project.status)}</AdminStatus></td>
+                    <td className="admin-table__cell--center">
+                      <AdminSelect
+                        className="admin-inline-select"
+                        value={project.status}
+                        onChange={(value) => void updateProjectStatus(project, value as AdminPublishStatus)}
+                        options={inlinePublishStatusOptions}
+                        disabled={updatingStatusId === project.id}
+                        aria-label={`Cập nhật trạng thái ${project.title}`}
+                      />
+                    </td>
                     <td className="admin-table__cell--center"><AdminStatus>{project.isFeatured ? 'Nổi bật' : 'Thông thường'}</AdminStatus></td>
                     <td className="admin-table__cell--actions">
                       <RowActions
@@ -649,6 +734,11 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
 
 const publishStatusOptions = [
   { value: 'DRAFT', label: 'Bản nháp - chưa hiển thị' },
+  { value: 'PUBLISHED', label: 'Đã xuất bản' },
+]
+
+const inlinePublishStatusOptions = [
+  { value: 'DRAFT', label: 'Bản nháp' },
   { value: 'PUBLISHED', label: 'Đã xuất bản' },
 ]
 
@@ -844,10 +934,6 @@ function SelectField({
       <AdminSelect value={value} onChange={onChange} options={options} required={required} aria-label={label} />
     </label>
   )
-}
-
-function publishStatusLabel(status: AdminPublishStatus) {
-  return status === 'PUBLISHED' ? 'Đã xuất bản' : 'Bản nháp'
 }
 
 function normalizeSearch(value: string) {

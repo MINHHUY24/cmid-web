@@ -1719,17 +1719,11 @@ html[data-theme='light'] .product-detail-loading {
 
   .product-detail-tabs__description > div:first-child {
     padding: 0;
-  }
-
-  .product-detail-tabs__description > div:first-child {
     font-size: calc(0.78rem + 5px);
   }
 
   .product-detail-tabs__copy {
     font-size: calc(0.78rem + 2px);
-  }
-
-  .product-detail-tabs__copy {
     min-height: 0;
     padding: 25px 20px;
   }

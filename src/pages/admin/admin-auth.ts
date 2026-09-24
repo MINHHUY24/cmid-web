@@ -1,20 +1,20 @@
 import type { AuthenticatedUser } from '../../contexts/NguoiDungContext'
 import type { AuthenticatedRole } from '../../services/auth.service'
+import { hasPermission } from './admin-permissions'
 
-export type AdminRole = Exclude<AuthenticatedRole, 'CUSTOMER'>
+export type AdminRole = AuthenticatedRole
 
 export interface AdminSession {
   email: string
   name: string
   role: AdminRole
+  permissions: string[]
 }
-
-const ADMIN_ROLES: AdminRole[] = ['SALES', 'CONTENT_ADMIN', 'SUPER_ADMIN']
 
 export function isAdminUser(
   user: AuthenticatedUser | null,
 ): user is AuthenticatedUser & { role: AdminRole } {
-  return Boolean(user && ADMIN_ROLES.includes(user.role as AdminRole))
+  return Boolean(user && user.role !== 'CUSTOMER' && hasPermission(user.permissions, 'admin.access'))
 }
 
 export function toAdminSession(
@@ -24,5 +24,6 @@ export function toAdminSession(
     email: user.email,
     name: user.name,
     role: user.role,
+    permissions: user.permissions,
   }
 }

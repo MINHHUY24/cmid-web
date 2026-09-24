@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import type { AuthenticatedUser, CustomerProfile } from './NguoiDungContext'
 import { UserContext } from './NguoiDungContext'
 import {
-  getCurrentAuthenticatedUser,
   loginWithGoogleCredential,
+  loginAdminWithPassword,
   logoutAuthSession,
   refreshAuthSession,
   type ServerAuthenticatedUser,
@@ -117,6 +117,7 @@ function toAuthenticatedUser(user: ServerAuthenticatedUser): AuthenticatedUser {
     email: user.email,
     picture: user.picture,
     role: user.role,
+    permissions: user.permissions,
     emailVerified: user.emailVerified,
   }
 }
@@ -221,12 +222,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
     window.localStorage.removeItem(LEGACY_USER_STORAGE_KEY)
 
     void refreshAuthSession()
-      .then(async (session) => {
+      .then((session) => {
         setAccessToken(session.accessToken)
-        const response = await getCurrentAuthenticatedUser()
 
         if (isCurrent) {
-          applyAuthenticatedUser(toAuthenticatedUser(response.user))
+          // The refresh endpoint already returns the current, server-validated
+          // profile. Avoiding a second request prevents a successful session
+          // restore from being mistaken for a logout if that follow-up request
+          // is interrupted during a hard reload.
+          applyAuthenticatedUser(toAuthenticatedUser(session.user))
         }
       })
       .catch(() => {
@@ -263,6 +267,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, [applyAuthenticatedUser])
 
+  const signInAdminWithPassword = useCallback(async (username: string, password: string) => {
+    setIsSigningIn(true)
+    try {
+      const session = await loginAdminWithPassword(username, password)
+      setAccessToken(session.accessToken)
+      const authenticatedUser = toAuthenticatedUser(session.user)
+      applyAuthenticatedUser(authenticatedUser)
+      return authenticatedUser
+    } finally { setIsSigningIn(false) }
+  }, [applyAuthenticatedUser])
+
   const updateProfile = useCallback(
     (nextProfile: CustomerProfile) => {
       if (!user) {
@@ -295,10 +310,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
       isAuthLoading,
       isSigningIn,
       signInWithGoogle,
+      signInAdminWithPassword,
       updateProfile,
       signOut,
     }),
-    [isAuthLoading, isSigningIn, profile, signInWithGoogle, signOut, updateProfile, user],
+    [isAuthLoading, isSigningIn, profile, signInAdminWithPassword, signInWithGoogle, signOut, updateProfile, user],
   )
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>

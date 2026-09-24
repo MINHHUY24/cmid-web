@@ -1,6 +1,6 @@
 import { apiFetch } from './api'
 
-export type AuthenticatedRole = 'CUSTOMER' | 'SALES' | 'CONTENT_ADMIN' | 'SUPER_ADMIN'
+export type AuthenticatedRole = string
 
 export interface ServerAuthenticatedUser {
   id: string
@@ -8,6 +8,7 @@ export interface ServerAuthenticatedUser {
   email: string
   picture?: string
   role: AuthenticatedRole
+  permissions: string[]
   emailVerified: boolean
 }
 
@@ -25,6 +26,13 @@ export function loginWithGoogleCredential(credential: string) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ credential }),
     skipAuth: true,
+  })
+}
+
+export function loginAdminWithPassword(username: string, password: string) {
+  return apiFetch<AuthSessionResponse>('/auth/admin/login', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }), skipAuth: true,
   })
 }
 
@@ -55,4 +63,3 @@ export function logoutAuthSession() {
     skipAuth: true,
   })
 }
-

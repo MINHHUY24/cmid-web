@@ -81,6 +81,8 @@ const productStatusLabels: Record<ProductStatus, string> = {
   DRAFT: 'Bản nháp',
 }
 
+const productStatusOptions = Object.entries(productStatusLabels).map(([value, label]) => ({ value, label }))
+
 const saleTypeLabels: Record<SaleType, string> = {
   DIRECT_ORDER: 'Mua trực tiếp',
   REQUEST_QUOTE: 'Liên hệ báo giá',
@@ -103,6 +105,8 @@ export interface AdminProductsListViewProps {
   onCreate: () => void
   onEdit: (product: Product) => void
   onDelete: (product: Product) => Promise<void>
+  onStatusChange: (product: Product, status: ProductStatus) => Promise<void>
+  canChangeStatus: boolean
 }
 
 export interface AdminProductListFilters {
@@ -285,6 +289,8 @@ export function AdminProductsListView({
   onCreate,
   onEdit,
   onDelete,
+  onStatusChange,
+  canChangeStatus,
 }: AdminProductsListViewProps) {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
   const [deletingProductId, setDeletingProductId] = useState<number | null>(null)
@@ -293,6 +299,8 @@ export function AdminProductsListView({
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
+  const [statusError, setStatusError] = useState<string | null>(null)
+  const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null)
 
   function requestDelete(product: Product) {
     setDeletingProduct(product)
@@ -322,6 +330,20 @@ export function AdminProductsListView({
       setDeleteError(error instanceof Error ? error.message : 'Không thể xóa sản phẩm.')
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  async function updateStatus(product: Product, status: ProductStatus) {
+    if (!canChangeStatus || product.status === status || updatingStatusId !== null) return
+
+    setStatusError(null)
+    setUpdatingStatusId(product.id)
+    try {
+      await onStatusChange(product, status)
+    } catch (error) {
+      setStatusError(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái sản phẩm.')
+    } finally {
+      setUpdatingStatusId(null)
     }
   }
 
@@ -390,6 +412,7 @@ export function AdminProductsListView({
       />
 
       {exportError ? <p className="admin-form-error" role="alert">{exportError}</p> : null}
+      {statusError ? <p className="admin-form-error" role="alert">{statusError}</p> : null}
 
       {isLoading ? <AdminChiSoKhungXuong label="Đang tải số liệu sản phẩm" /> : (
         <div className="admin-kpi-grid">
@@ -462,7 +485,16 @@ export function AdminProductsListView({
                       <td className="admin-table__price">{formatCurrency(product.price)}</td>
                       <td>{saleTypeLabels[product.saleType]}</td>
                       <td>{typeof product.stock === 'number' ? `${product.stock} ${product.unit ?? ''}`.trim() : 'Chưa cập nhật'}</td>
-                      <td className="admin-table__cell--center"><AdminStatus>{productStatusLabels[product.status]}</AdminStatus></td>
+                      <td className="admin-table__cell--center">
+                        <AdminSelect
+                          className="admin-inline-select"
+                          value={product.status}
+                          onChange={(value) => void updateStatus(product, value as ProductStatus)}
+                          options={productStatusOptions}
+                          disabled={!canChangeStatus || updatingStatusId === product.id}
+                          aria-label={`Cập nhật trạng thái ${product.name}`}
+                        />
+                      </td>
                       <td className="admin-table__cell--actions">
                         <div className="admin-row-actions">
                           <button type="button" onClick={() => onEdit(product)} aria-label={`Chỉnh sửa ${product.name}`}><PencilSimple size={17} /></button>

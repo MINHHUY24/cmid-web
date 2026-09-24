@@ -10,6 +10,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { AdminSession } from './admin-auth'
 import { adminMenuGroups, adminViewMeta, type AdminView } from './admin-navigation'
+import { canAccessAdminView } from './admin-permissions'
 import type { AdminActivity } from './admin-database'
 import { useAdminCopy } from './admin-language-context'
 
@@ -67,10 +68,13 @@ export function AdminLayout({
         </div>
 
         <nav className="admin-sidebar__nav">
-          {adminMenuGroups.map((group) => (
-            <section className="admin-nav-group" key={group.label}>
-              <p>{t(group.label)}</p>
-              {group.items.map((item) => {
+          {adminMenuGroups.map((group) => {
+            const permittedItems = group.items.filter((item) => canAccessAdminView(session.permissions, item.id))
+            if (permittedItems.length === 0) return null
+            return (
+              <section className="admin-nav-group" key={group.label}>
+                <p>{t(group.label)}</p>
+                {permittedItems.map((item) => {
                 const active = activeView === item.id || (item.id === 'products' && activeView === 'product-editor')
                 const badge = badges[item.id] ?? item.badge
                 return (
@@ -86,9 +90,10 @@ export function AdminLayout({
                     {!badge ? <CaretRight size={14} aria-hidden="true" /> : null}
                   </button>
                 )
-              })}
-            </section>
-          ))}
+                })}
+              </section>
+            )
+          })}
         </nav>
 
         <div className="admin-sidebar__profile">

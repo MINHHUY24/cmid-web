@@ -7,6 +7,7 @@ export interface AuthenticatedUser {
   email: string
   picture?: string
   role: AuthenticatedRole
+  permissions: string[]
   emailVerified: boolean
 }
 
@@ -30,6 +31,7 @@ export interface UserContextValue {
   isAuthLoading: boolean
   isSigningIn: boolean
   signInWithGoogle: () => Promise<AuthenticatedUser>
+  signInAdminWithPassword: (username: string, password: string) => Promise<AuthenticatedUser>
   updateProfile: (profile: CustomerProfile) => void
   signOut: () => Promise<void>
 }

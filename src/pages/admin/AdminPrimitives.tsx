@@ -217,15 +217,22 @@ export function AdminSelect({
       setIsOpen(false)
       triggerRef.current?.focus()
     }
+    const updatePositionOnViewportScroll = (event: Event) => {
+      // The menu itself is scrollable. Recalculating its position for that
+      // scroll re-runs the selected-option centering effect and snaps the
+      // menu back, which makes a long option list feel locked.
+      if (menuRef.current?.contains(event.target as Node)) return
+      updateMenuPosition()
+    }
     document.addEventListener('pointerdown', closeOnOutsideClick, true)
     document.addEventListener('keydown', closeOnEscape)
     window.addEventListener('resize', updateMenuPosition)
-    window.addEventListener('scroll', updateMenuPosition, true)
+    window.addEventListener('scroll', updatePositionOnViewportScroll, true)
     return () => {
       document.removeEventListener('pointerdown', closeOnOutsideClick, true)
       document.removeEventListener('keydown', closeOnEscape)
       window.removeEventListener('resize', updateMenuPosition)
-      window.removeEventListener('scroll', updateMenuPosition, true)
+      window.removeEventListener('scroll', updatePositionOnViewportScroll, true)
     }
   }, [isOpen, updateMenuPosition])
 
@@ -303,12 +310,21 @@ export function AdminToast({ message, onClose }: { message: string; onClose: () 
 
 export type AdminEditableRecord = { id: string; [key: string]: unknown }
 
+export interface AdminPermissionGroup {
+  label: string
+  permissions: Array<{ value: string; label: string }>
+}
+
 export interface AdminFieldConfig {
   key: string
   label: string
-  type?: 'text' | 'email' | 'tel' | 'number' | 'textarea' | 'select' | 'image' | 'checkbox'
+  type?: 'text' | 'email' | 'tel' | 'number' | 'password' | 'textarea' | 'select' | 'image' | 'checkbox' | 'permissions'
   required?: boolean
+  requiredOnCreate?: boolean
   placeholder?: string
+  suffix?: string
+  action?: { label: string; onClick: () => void }
+  permissionGroups?: AdminPermissionGroup[]
   options?: Array<{ value: string; label: string }>
   helper?: string
 }
@@ -322,7 +338,10 @@ export interface AdminColumnConfig {
 
 function getAdminColumnClass(column: AdminColumnConfig) {
   const alignment = column.align ?? (column.key === 'status' ? 'center' : 'left')
-  return alignment === 'left' ? undefined : `admin-table__cell--${alignment}`
+  return [
+    `admin-table__cell--${column.key}`,
+    alignment === 'left' ? '' : `admin-table__cell--${alignment}`,
+  ].filter(Boolean).join(' ')
 }
 
 interface AdminCollectionManagerProps {
@@ -332,11 +351,12 @@ interface AdminCollectionManagerProps {
   rows: AdminEditableRecord[]
   columns: AdminColumnConfig[]
   fields: AdminFieldConfig[]
-  onSave: (record: AdminEditableRecord) => void
+  onSave: (record: AdminEditableRecord) => void | Promise<void>
   onDelete: (id: string) => void
   searchPlaceholder?: string
   addLabel?: string
   readOnly?: boolean
+  tableClassName?: string
 }
 
 export function AdminCollectionManager({
@@ -351,6 +371,7 @@ export function AdminCollectionManager({
   searchPlaceholder = 'Tìm kiếm...',
   addLabel,
   readOnly = false,
+  tableClassName = '',
 }: AdminCollectionManagerProps) {
   const { t } = useAdminCopy()
   const [search, setSearch] = useState('')
@@ -358,6 +379,12 @@ export function AdminCollectionManager({
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState<AdminEditableRecord | null>(null)
   const [editorError, setEditorError] = useState<string | null>(null)
+  const [inlineStatusError, setInlineStatusError] = useState<string | null>(null)
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
+
+  const inlineStatusField = fields.find(
+    (field) => field.key === 'status' && field.type === 'select' && (field.options?.length ?? 0) > 0,
+  )
 
   const filteredRows = useMemo(() => {
     const value = search.trim().toLocaleLowerCase('vi')
@@ -373,6 +400,11 @@ export function AdminCollectionManager({
     placeholder: field.placeholder ? t(field.placeholder) : undefined,
     helper: field.helper ? t(field.helper) : undefined,
     options: field.options?.map((option) => ({ ...option, label: t(option.label) })),
+    permissionGroups: field.permissionGroups?.map((group) => ({
+      ...group,
+      label: t(group.label),
+      permissions: group.permissions.map((permission) => ({ ...permission, label: t(permission.label) })),
+    })),
   }))
 
   function openEditor(record?: AdminEditableRecord) {
@@ -381,7 +413,21 @@ export function AdminCollectionManager({
     setDialogOpen(true)
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function updateInlineStatus(record: AdminEditableRecord, status: string) {
+    if (!inlineStatusField || String(record.status ?? '') === status || updatingStatusId) return
+
+    setInlineStatusError(null)
+    setUpdatingStatusId(record.id)
+    try {
+      await onSave({ ...record, status })
+    } catch (error) {
+      setInlineStatusError(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái.')
+    } finally {
+      setUpdatingStatusId(null)
+    }
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     const next: AdminEditableRecord = {
@@ -395,8 +441,13 @@ export function AdminCollectionManager({
         next[field.key] = formData.get(field.key) === 'on'
         return
       }
+      if (field.type === 'permissions') {
+        next[field.key] = formData.getAll(field.key).map(String)
+        return
+      }
       const rawValue = String(formData.get(field.key) ?? '')
-      next[field.key] = field.type === 'number' ? Number(rawValue) : rawValue
+      const value = field.suffix ? `${rawValue.trim().split('@')[0]}${field.suffix}` : rawValue
+      next[field.key] = field.type === 'number' ? Number(value) : value
     })
 
     const missingImage = fields.find((field) => field.type === 'image' && field.required && !next[field.key])
@@ -405,9 +456,13 @@ export function AdminCollectionManager({
       return
     }
 
-    onSave(next)
-    setDialogOpen(false)
-    setEditing(null)
+    try {
+      await onSave(next)
+      setDialogOpen(false)
+      setEditing(null)
+    } catch (error) {
+      setEditorError(error instanceof Error ? error.message : 'Không thể lưu dữ liệu.')
+    }
   }
 
   return (
@@ -429,9 +484,11 @@ export function AdminCollectionManager({
         </label>
       </AdminPanel>
 
+      {inlineStatusError ? <p className="admin-form-error" role="alert">{inlineStatusError}</p> : null}
+
       <AdminPanel className="admin-table-panel">
         <div className="admin-table-wrap">
-          <table className="admin-table">
+          <table className={`admin-table ${tableClassName}`.trim()}>
             <thead>
               <tr>
                 {columns.map((column) => (
@@ -445,7 +502,16 @@ export function AdminCollectionManager({
                 <tr key={row.id}>
                   {columns.map((column) => (
                     <td className={getAdminColumnClass(column)} key={column.key}>
-                      {column.render ? column.render(row) : String(row[column.key] ?? '')}
+                      {column.key === 'status' && inlineStatusField && !readOnly ? (
+                        <AdminSelect
+                          className="admin-inline-select"
+                          value={String(row.status ?? '')}
+                          onChange={(status) => void updateInlineStatus(row, status)}
+                          options={inlineStatusField.options ?? []}
+                          disabled={updatingStatusId === row.id}
+                          aria-label={`${t('Cập nhật trạng thái')} ${String(row.name ?? row.title ?? row.id)}`}
+                        />
+                      ) : column.render ? column.render(row) : String(row[column.key] ?? '')}
                     </td>
                   ))}
                   {!readOnly ? (
@@ -477,7 +543,8 @@ export function AdminCollectionManager({
               <div className="admin-dialog__body">
                 {editorError ? <p className="admin-form-error" role="alert">{editorError}</p> : null}
                 {translatedFields.map((field) => {
-                  const initialValue = editing?.[field.key]
+                  const savedValue = String(editing?.[field.key] ?? '')
+                  const initialValue = field.suffix ? savedValue.split('@')[0] : savedValue
                   if (field.type === 'image') {
                     return (
                       <AdminImageUpload
@@ -494,24 +561,57 @@ export function AdminCollectionManager({
                   if (field.type === 'checkbox') {
                     return <label className="admin-check-field" key={field.key}><input name={field.key} type="checkbox" defaultChecked={Boolean(initialValue)} /><span>{field.label}</span></label>
                   }
+                  if (field.type === 'permissions') {
+                    const rawPermissions = editing?.[field.key]
+                    const selected = new Set(Array.isArray(rawPermissions) ? rawPermissions.map(String) : [])
+                    return (
+                      <section className="admin-field admin-field--permissions" key={field.key}>
+                        <span>{field.label}{field.required ? <b>*</b> : null}</span>
+                        <div className="admin-permission-groups">
+                          {field.permissionGroups?.map((group) => (
+                            <fieldset key={group.label}>
+                              <legend>{group.label}</legend>
+                              <div>
+                                {group.permissions.map((permission) => (
+                                  <label className="admin-checkbox" key={permission.value}>
+                                    <input name={field.key} type="checkbox" value={permission.value} defaultChecked={selected.has(permission.value)} />
+                                    <span>{permission.label}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </fieldset>
+                          ))}
+                        </div>
+                        {field.helper ? <small>{field.helper}</small> : null}
+                      </section>
+                    )
+                  }
                   return (
                     <label className="admin-field" key={field.key}>
-                      <span>{field.label}{field.required ? <b>*</b> : null}</span>
+                      <span>{field.label}{field.required || (field.requiredOnCreate && !editing) ? <b>*</b> : null}</span>
                       {field.type === 'textarea' ? (
-                        <textarea name={field.key} defaultValue={String(initialValue ?? '')} placeholder={field.placeholder} required={field.required} />
+                        <textarea name={field.key} defaultValue={String(initialValue ?? '')} placeholder={field.placeholder} required={field.required || (field.requiredOnCreate && !editing)} />
                       ) : field.type === 'select' ? (
                         <AdminSelect
                           key={`${field.key}-${String(initialValue ?? field.options?.[0]?.value ?? '')}`}
                           name={field.key}
                           defaultValue={String(initialValue ?? field.options?.[0]?.value ?? '')}
                           options={field.options ?? []}
-                          required={field.required}
+                          required={field.required || (field.requiredOnCreate && !editing)}
                           aria-label={field.label}
                         />
                       ) : (
-                        <input name={field.key} type={field.type ?? 'text'} defaultValue={String(initialValue ?? '')} placeholder={field.placeholder} required={field.required} />
+                        field.suffix ? (
+                          <div className="admin-input-suffix">
+                            <input name={field.key} type="text" defaultValue={initialValue} placeholder={field.placeholder} required={field.required || (field.requiredOnCreate && !editing)} />
+                            <span>{field.suffix}</span>
+                          </div>
+                        ) : (
+                          <input name={field.key} type={field.type ?? 'text'} defaultValue={initialValue} placeholder={field.placeholder} required={field.required || (field.requiredOnCreate && !editing)} />
+                        )
                       )}
                       {field.helper ? <small>{field.helper}</small> : null}
+                      {field.action ? <button className="admin-field__action" type="button" onClick={field.action.onClick}><Plus size={15} weight="bold" /> {field.action.label}</button> : null}
                     </label>
                   )
                 })}

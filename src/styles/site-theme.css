@@ -1649,8 +1649,7 @@ html[data-theme='light'] .app-shell--site.app-shell--home .trang-chu {
   background: linear-gradient(135deg, #f7f4ee 0%, #efe8df 100%);
 }
 
-html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main::before,
-html[data-theme='light'] .app-shell--site.app-shell--home .trang-chu::before {
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main::before {
   background-image: linear-gradient(rgb(247 244 238 / 78%), rgb(239 232 223 / 84%));
   filter: blur(18px) saturate(0.7);
   opacity: 0.13;
@@ -2317,10 +2316,6 @@ html[data-theme='light'] .maintenance-page__notice {
 }
 
 @media (min-width: 1025px) {
-  .app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang h1 {
-    max-width: none;
-  }
-
   .trang-ve-cmid__hero-title-first-line {
     white-space: nowrap;
   }
@@ -2426,7 +2421,6 @@ html[data-theme='light'] .app-shell--site .trang-ve-cmid .about-reach {
   .about-cmid,
   .brand-strip,
   .experience-3d,
-  .trang-chu__hero-panel,
   .product-card,
   .project-card,
   .catalog-toolbar,
@@ -2510,6 +2504,7 @@ html[data-theme='light'] .app-shell--site .trang-ve-cmid .about-reach {
   --cmid-hero-panel-block-size: 360px;
   --cmid-hero-source-ratio: 1672 / 941;
   --cmid-hero-content-width: min(1280px, calc(100% - 72px));
+  --cmid-page-content-width: min(1240px, calc(100% - 48px));
   --cmid-hero-title-card-width: min(900px, 68%);
   --cmid-hero-title-card-min-height: 340px;
   --cmid-hero-title-card-gap-top: 112px;
@@ -2570,10 +2565,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main:has(.
 .app-shell--site.app-shell--home .trang-chu__hero-content,
 .app-shell--site.app-shell--home .trang-chu__container {
   width: var(--cmid-hero-content-width);
-}
-
-.app-shell--site.app-shell--home .trang-chu__hero-panel {
-  width: 60%;
 }
 
 /* Fixed image stage keeps route changes still. The title card itself has a
@@ -2660,8 +2651,15 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main:has(.
   .tin-tuc__hero-content h1
 ) {
   max-width: 720px;
+  color: #fffdf8;
   font-size: clamp(2.55rem, 3.7vw, 4.15rem);
+  font-weight: 500;
   line-height: 1.03;
+  text-shadow:
+    0 2px 2px rgb(0 0 0 / 96%),
+    0 6px 24px rgb(0 0 0 / 90%);
+  -webkit-text-stroke: 0.3px rgb(0 0 0 / 72%);
+  paint-order: stroke fill;
 }
 
 .app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang__noi-dung {
@@ -2684,10 +2682,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main:has(.
     --cmid-hero-title-card-min-height: 320px;
   }
 
-  .app-shell--site.app-shell--home .trang-chu__hero-content,
-  .app-shell--site.app-shell--home .trang-chu__container {
-    width: var(--cmid-hero-content-width);
-  }
 }
 
 @media (max-width: 1024px) {
@@ -2704,7 +2698,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main:has(.
     width: var(--cmid-hero-content-width);
   }
 
-  .app-shell--site.app-shell--home .trang-chu__hero-panel,
   .app-shell--site.app-shell--hero :is(
     .khung-dau-trang__noi-dung,
     .catalog-hero__glass,
@@ -2733,12 +2726,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main:has(.
     --cmid-hero-title-card-gap-bottom: 56px;
   }
 
-  .app-shell--site.app-shell--hero .trang-san-pham :is(
-    .catalog-hero,
-    .catalog-hero__content
-  ) {
-    min-height: var(--cmid-hero-block-size);
-  }
 }
 
 @media (max-width: 1024px) {
@@ -2776,7 +2763,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-main:has(.
 /* Dark cards stay near-black. In light mode the same cards return to the
    warm translucent CMID surface used by the approved light-theme reference. */
 html[data-theme='light'] .app-shell--site.app-shell--hero :is(
-  .trang-chu__hero-panel,
   .khung-dau-trang__noi-dung,
   .catalog-hero__content > .catalog-hero__glass,
   .tin-tuc__hero-content > .tin-tuc__hero-glass
@@ -2806,7 +2792,6 @@ html[data-theme='light'] .app-shell--site.app-shell--hero :is(
 
 @media (prefers-reduced-transparency: reduce) {
   html[data-theme='light'] .app-shell--site.app-shell--hero :is(
-    .trang-chu__hero-panel,
     .khung-dau-trang__noi-dung,
     .catalog-hero__content > .catalog-hero__glass,
     .tin-tuc__hero-content > .tin-tuc__hero-glass
@@ -3032,7 +3017,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home)
      content-led card sizing explicitly.  The card will only grow as far as
      its heading/description needs, while long copy still respects the hero
      reading measure. */
-  .app-shell--site.app-shell--home .trang-chu__hero-panel,
   .app-shell--site.app-shell--hero .trang-ve-cmid .khung-dau-trang__noi-dung,
   .app-shell--site.app-shell--hero .tin-tuc__hero-content > .tin-tuc__hero-glass {
     inline-size: max-content;
@@ -3047,7 +3031,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home)
 /* The hero cards use Roboto throughout.  Earlier heading styles had overly
    negative tracking, which made large Vietnamese titles visually collide. */
 .app-shell--site:is(.app-shell--home, .app-shell--hero) :is(
-  .trang-chu__hero-panel,
   .khung-dau-trang__noi-dung,
   .catalog-hero__glass,
   .tin-tuc__hero-glass
@@ -3056,7 +3039,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home)
 }
 
 .app-shell--site:is(.app-shell--home, .app-shell--hero) :is(
-  .trang-chu__hero-panel,
   .khung-dau-trang__noi-dung,
   .catalog-hero__glass,
   .tin-tuc__hero-glass
@@ -3639,9 +3621,7 @@ html[data-theme='light'] .app-shell--site {
     accent-color: #ffd88d;
   }
 
-  /* Hero surfaces are intentionally dark in both themes, so their labels stay
-     light while their hover still uses the same gold outline and warm response. */
-  .app-shell--site .trang-chu__hero-panel :is(.button--gold, .button--outline-light):not(:disabled):hover,
+  /* Detail-page hero actions retain the shared gold hover response. */
   .app-shell--site .khung-dau-trang__button:not(:disabled):hover {
     border-color: #dbaa55 !important;
     color: #fffaf2 !important;
@@ -3885,11 +3865,11 @@ html[data-theme='light'] .app-shell--site .site-main article.product-card :is(
 /* Keep the featured carousel's responsive density and controls aligned with
    the related-products carousel. */
 @media (max-width: 960px) {
-  .app-shell--site.app-shell--home .home-product-grid {
+  .app-shell--site.app-shell--home :is(.home-product-grid, .home-products__skeleton-grid) {
     grid-auto-columns: calc((100% - 48px) / 4);
   }
 
-  .app-shell--site.app-shell--home .home-products__carousel {
+  .app-shell--site.app-shell--home :is(.home-products__carousel, .home-products__skeleton) {
     padding-inline: 58px;
   }
 
@@ -3900,18 +3880,18 @@ html[data-theme='light'] .app-shell--site .site-main article.product-card :is(
 }
 
 @media (max-width: 760px) {
-  .app-shell--site.app-shell--home .home-product-grid {
+  .app-shell--site.app-shell--home :is(.home-product-grid, .home-products__skeleton-grid) {
     grid-auto-columns: calc((100% - 32px) / 3);
   }
 }
 
 @media (max-width: 540px) {
-  .app-shell--site.app-shell--home .home-product-grid {
+  .app-shell--site.app-shell--home :is(.home-product-grid, .home-products__skeleton-grid) {
     grid-auto-columns: calc((100% - 10px) / 2);
     gap: 10px;
   }
 
-  .app-shell--site.app-shell--home .home-products__carousel {
+  .app-shell--site.app-shell--home :is(.home-products__carousel, .home-products__skeleton) {
     padding-inline: 33px;
   }
 
@@ -4141,7 +4121,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
 
 /* Hero titles sit directly on their image instead of a frosted glass panel. */
 html[data-theme] .app-shell--site :is(
-  .trang-chu__hero-panel,
   .khung-dau-trang__noi-dung,
   .catalog-hero__glass,
   .tin-tuc__hero-glass,
@@ -4152,6 +4131,87 @@ html[data-theme] .app-shell--site :is(
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+/* A hero title starts on the same vertical line as the first content block on
+   its route: products align with the catalog, while all other public pages
+   align with their shared page-content container. */
+.app-shell--site.app-shell--hero :is(
+  .khung-dau-trang__noi-dung,
+  .tin-tuc__hero-content
+) {
+  width: var(--cmid-page-content-width) !important;
+}
+
+.app-shell--site.app-shell--hero .trang-san-pham .catalog-hero__content {
+  width: var(--cmid-product-catalog-width) !important;
+}
+
+/* The old frosted title cards kept horizontal padding after their surface was
+   removed. Keep their vertical rhythm, but let the text meet the same edge as
+   the content below. */
+.app-shell--site.app-shell--hero :is(
+  .khung-dau-trang__noi-dung,
+  .catalog-hero__glass,
+  .tin-tuc__hero-glass
+) {
+  padding-inline: 0 !important;
+}
+
+/* Keep the contact hero image crisp through its lower edge. The horizontal
+   overlay remains so the title and description retain their contrast. */
+html[data-theme] .app-shell--site:not(.app-shell--home) .trang-lien-he .khung-dau-trang__anh::after {
+  background: linear-gradient(90deg, rgb(7 5 3 / 84%) 0%, rgb(10 7 5 / 68%) 35%, rgb(12 8 5 / 22%) 72%, rgb(12 8 5 / 9%) 100%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .trang-lien-he .khung-dau-trang__anh::after {
+  background: linear-gradient(90deg, rgb(69 47 29 / 34%) 0%, rgb(77 51 30 / 10%) 50%, transparent 82%);
+}
+
+@media (max-width: 760px) {
+  .app-shell--site {
+    --cmid-page-content-width: min(1240px, calc(100% - 32px));
+  }
+}
+
+/* Match every inner-page image banner to the product-page reference.  The
+   homepage has its own composition and does not use `app-shell--hero`. */
+.app-shell--site.app-shell--hero {
+  --cmid-hero-block-size: 500px;
+  --cmid-hero-panel-block-size: 300px;
+}
+
+@media (max-width: 1024px) {
+  .app-shell--site.app-shell--hero {
+    --cmid-hero-block-size: 470px;
+    --cmid-hero-panel-block-size: auto;
+  }
+}
+
+/* Some legacy route styles supplied their own minimum heights. Lock the
+   rendered image stage to the product-banner reference, not merely its token. */
+.app-shell--site.app-shell--hero :is(
+  .khung-dau-trang,
+  .catalog-hero,
+  .tin-tuc__hero
+) {
+  block-size: var(--cmid-hero-block-size) !important;
+  min-height: var(--cmid-hero-block-size) !important;
+}
+
+/* KhungDauTrang has older route-level minimum-height rules. Contact uses this
+   component, so cap the physical box as well as its logical block size. */
+.app-shell--site.app-shell--hero .trang-lien-he .khung-dau-trang {
+  height: var(--cmid-hero-block-size) !important;
+  max-height: var(--cmid-hero-block-size) !important;
+}
+
+/* News previously inherited its banner minimum height and then added large
+   block padding, which expanded its hero past the product reference. */
+.app-shell--site.app-shell--hero .tin-tuc__hero-content {
+  box-sizing: border-box;
+  block-size: 100% !important;
+  min-height: 0 !important;
 }
 
 /* Detail pages use the homepage header composition (`app-shell--hero`). The

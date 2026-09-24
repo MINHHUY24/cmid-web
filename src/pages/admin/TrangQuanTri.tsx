@@ -4,7 +4,7 @@ import { KhungXuong } from '../../components/common/KhungXuong'
 import { useProducts } from '../../hooks/useProducts'
 import { useUser, type AuthenticatedUser } from '../../contexts/NguoiDungContext'
 import { getCurrentAdmin } from '../../services/auth.service'
-import { deleteProduct } from '../../services/product.service'
+import { deleteProduct, saveProduct } from '../../services/product.service'
 import {
   createAdminRefund,
   getAdminOrders,
@@ -25,17 +25,13 @@ import {
 } from './AdminCommerceViews'
 import { AdminNewsView, AdminProjectsView } from './AdminContentViews'
 import { AdminLayout } from './AdminLayout'
+import { canAccessAdminView, getFirstAccessibleAdminView, hasPermission } from './admin-permissions'
 import { AdminLanguageProvider } from './admin-language'
 import { AdminOperationalView } from './AdminOperationalViews'
 import { AdminProductEditor } from './AdminProductEditor'
-import { AdminToast } from './AdminPrimitives'
+import { AdminBangKhungXuong, AdminToast } from './AdminPrimitives'
 import { TrangDangNhapQuanTri } from './TrangDangNhapQuanTri'
-import {
-  getAdminDemoSession,
-  isAdminDemoEnabled,
-  signInAdminDemo,
-  signOutAdminDemo,
-} from './admin-demo-auth'
+import { isAdminDemoEnabled } from './admin-demo-auth'
 import {
   isAdminUser,
   toAdminSession,
@@ -52,6 +48,7 @@ import {
   ADMIN_CONTENT_UPDATED_EVENT,
   ADMIN_PRODUCTS_UPDATED_EVENT,
   deleteAdminProduct,
+  saveAdminProduct,
 } from './admin-local-store'
 import { isAdminView, type AdminView } from './admin-navigation'
 
@@ -77,26 +74,8 @@ const operationalViews = new Set<AdminView>([
 
 export function TrangQuanTriPage() {
   const { user, isAuthLoading, signOut } = useUser()
-  const [demoSession, setDemoSession] = useState(getAdminDemoSession)
-
-  if (isAdminDemoEnabled && demoSession) {
-    return (
-      <AuthenticatedAdmin
-        session={demoSession}
-        onSignOut={() => {
-          signOutAdminDemo()
-          setDemoSession(null)
-        }}
-      />
-    )
-  }
-
-  if (isAdminDemoEnabled && !isAdminUser(user)) {
-    return <TrangDangNhapQuanTri onDemoSignIn={() => setDemoSession(signInAdminDemo())} />
-  }
-
   if (isAuthLoading) {
-    return <AdminAccessState message="Đang xác minh quyền truy cập quản trị..." isLoading />
+    return <AdminSessionSkeleton />
   }
 
   if (!user) {
@@ -155,7 +134,7 @@ function AdminAuthorizationGate({
   }, [])
 
   if (accessState === 'checking') {
-    return <AdminAccessState message="Đang xác minh quyền truy cập quản trị..." isLoading />
+    return <AdminSessionSkeleton />
   }
 
   if (accessState === 'denied') {
@@ -168,6 +147,62 @@ function AdminAuthorizationGate({
   }
 
   return <AuthenticatedAdmin session={toAdminSession(user)} onSignOut={onSignOut} />
+}
+
+function AdminSessionSkeleton() {
+  return (
+    <div className="admin-shell admin-shell--skeleton" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">Đang khôi phục phiên quản trị</span>
+      <aside className="admin-sidebar" aria-hidden="true">
+        <div className="admin-sidebar__brand admin-session-skeleton__brand">
+          <KhungXuong className="admin-session-skeleton__brand-name" />
+          <KhungXuong className="admin-session-skeleton__brand-subtitle" />
+          <KhungXuong className="admin-session-skeleton__brand-label" />
+        </div>
+        <nav className="admin-sidebar__nav admin-session-skeleton__nav">
+          {Array.from({ length: 3 }, (_, groupIndex) => (
+            <div className="admin-session-skeleton__nav-group" key={groupIndex}>
+              <KhungXuong className="admin-session-skeleton__nav-label" />
+              {Array.from({ length: groupIndex === 0 ? 4 : 3 }, (_, itemIndex) => (
+                <div className="admin-session-skeleton__nav-item" key={itemIndex}>
+                  <KhungXuong className="admin-session-skeleton__nav-icon" />
+                  <KhungXuong className="admin-session-skeleton__nav-copy" />
+                </div>
+              ))}
+            </div>
+          ))}
+        </nav>
+        <div className="admin-sidebar__profile admin-session-skeleton__profile">
+          <KhungXuong className="admin-session-skeleton__avatar" />
+          <div>
+            <KhungXuong className="admin-session-skeleton__profile-name" />
+            <KhungXuong className="admin-session-skeleton__profile-role" />
+          </div>
+          <KhungXuong className="admin-session-skeleton__sign-out" />
+        </div>
+      </aside>
+
+      <div className="admin-workspace" aria-hidden="true">
+        <header className="admin-topbar admin-session-skeleton__topbar">
+          <KhungXuong className="admin-session-skeleton__breadcrumb" />
+          <KhungXuong className="admin-session-skeleton__notification" />
+          <KhungXuong className="admin-session-skeleton__site-link" />
+        </header>
+        <main className="admin-main">
+          <section className="admin-session-skeleton__heading">
+            <KhungXuong className="admin-session-skeleton__title" />
+            <KhungXuong className="admin-session-skeleton__description" />
+          </section>
+          <section className="admin-panel admin-toolbar admin-session-skeleton__toolbar">
+            <KhungXuong />
+          </section>
+          <section className="admin-panel admin-table-panel">
+            <AdminBangKhungXuong columns={6} rows={6} label="Đang tải nội dung quản trị" />
+          </section>
+        </main>
+      </div>
+    </div>
+  )
 }
 
 function AuthenticatedAdmin({
@@ -183,7 +218,9 @@ function AuthenticatedAdmin({
     const localDatabase = getAdminDatabase()
     return { ...localDatabase, orders: [], returns: [] }
   })
-  const [ordersLoading, setOrdersLoading] = useState(true)
+  const [ordersLoading, setOrdersLoading] = useState(
+    () => canAccessAdminView(session.permissions, 'orders'),
+  )
   const [ordersError, setOrdersError] = useState<string | null>(null)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>()
   const [toast, setToast] = useState<string | null>(null)
@@ -193,6 +230,7 @@ function AuthenticatedAdmin({
     const requestedView = searchParams.get('view')
     return isAdminView(requestedView) ? requestedView : 'dashboard'
   }, [searchParams])
+  const canAccessActiveView = canAccessAdminView(session.permissions, activeView)
   const requestedProductId = useMemo(
     () => parseProductId(searchParams.get('product')),
     [searchParams],
@@ -234,6 +272,7 @@ function AuthenticatedAdmin({
 
   useEffect(() => {
     let isCurrent = true
+    if (!canAccessAdminView(session.permissions, 'orders')) return () => { isCurrent = false }
     void getAdminOrders(isAdminDemoEnabled)
       .then((orders) => {
         if (isCurrent) replaceServerOrders(orders)
@@ -247,7 +286,7 @@ function AuthenticatedAdmin({
     return () => {
       isCurrent = false
     }
-  }, [replaceServerOrders])
+  }, [replaceServerOrders, session.permissions])
 
   useEffect(() => {
     function syncDatabase() {
@@ -277,6 +316,7 @@ function AuthenticatedAdmin({
   }, [toast])
 
   function navigate(view: AdminView) {
+    if (!canAccessAdminView(session.permissions, view)) return
     if (view !== 'product-editor') setEditingProduct(undefined)
     const restoreProductsScroll = activeView === 'product-editor' && view === 'products'
     const nextSearchParams = new URLSearchParams(searchParams)
@@ -370,6 +410,13 @@ function AuthenticatedAdmin({
     setToast(`Đã xóa sản phẩm “${product.name}”.`)
   }
 
+  async function changeProductStatus(product: Product, status: ProductStatus) {
+    const savedProduct = await saveProduct({ ...product, status }, isAdminDemoEnabled)
+    saveAdminProduct(savedProduct)
+    setEditingProduct((current) => current?.id === savedProduct.id ? savedProduct : current)
+    setToast(`Đã cập nhật trạng thái “${savedProduct.name}”.`)
+  }
+
   return (
     <AdminLanguageProvider language={database.settings.adminLanguage}>
       <AdminLayout
@@ -385,11 +432,18 @@ function AuthenticatedAdmin({
           inquiries: database.inquiries.filter((inquiry) => inquiry.status === 'Mới').length,
         }}
       >
-        {activeView === 'dashboard' ? (
+        {!canAccessActiveView ? (
+          <AdminForbiddenView onNavigate={() => {
+            const fallback = getFirstAccessibleAdminView(session.permissions)
+            if (fallback) navigate(fallback)
+          }} />
+        ) : null}
+
+        {canAccessActiveView && activeView === 'dashboard' ? (
           <AdminDashboardView products={products} database={database} isLoading={isLoading || ordersLoading} onNavigate={navigate} />
         ) : null}
 
-        {activeView === 'products' ? (
+        {canAccessActiveView && activeView === 'products' ? (
           <AdminProductsListView
             products={products}
             filters={productListFilters}
@@ -400,10 +454,12 @@ function AuthenticatedAdmin({
             onCreate={() => openProductEditor()}
             onEdit={openProductEditor}
             onDelete={removeProduct}
+            onStatusChange={changeProductStatus}
+            canChangeStatus={hasPermission(session.permissions, 'product.publish')}
           />
         ) : null}
 
-        {activeView === 'product-editor' ? (
+        {canAccessActiveView && activeView === 'product-editor' ? (
           requestedProductId !== null && !editorProduct ? (
             isLoading ? (
               <AdminEditorLoading />
@@ -416,6 +472,9 @@ function AuthenticatedAdmin({
               product={editorProduct}
               categories={database.categories}
               brands={database.brands}
+              showrooms={database.showrooms}
+              canManageInventory={hasPermission(session.permissions, 'inventory.update')}
+              canPublish={hasPermission(session.permissions, 'product.publish')}
               onCancel={() => navigate('products')}
               onSaved={(product) => {
                 setEditingProduct(product)
@@ -426,7 +485,7 @@ function AuthenticatedAdmin({
           )
         ) : null}
 
-        {activeView === 'orders' ? (
+        {canAccessActiveView && activeView === 'orders' ? (
           <AdminOrdersView
             database={database}
             isLoading={ordersLoading}
@@ -439,25 +498,36 @@ function AuthenticatedAdmin({
           />
         ) : null}
 
-        {activeView === 'reports' ? (
+        {canAccessActiveView && activeView === 'reports' ? (
           <AdminReportsView products={products} database={database} isLoading={isLoading || ordersLoading} />
         ) : null}
 
-        {activeView === 'news' ? (
+        {canAccessActiveView && activeView === 'news' ? (
           <AdminNewsView key={`news-${contentVersion}`} onToast={setToast} />
         ) : null}
 
-        {activeView === 'projects' ? (
+        {canAccessActiveView && activeView === 'projects' ? (
           <AdminProjectsView key={`projects-${contentVersion}`} onToast={setToast} />
         ) : null}
 
-        {operationalViews.has(activeView) ? (
-          <AdminOperationalView view={activeView} database={database} onToast={setToast} />
+        {canAccessActiveView && operationalViews.has(activeView) ? (
+          <AdminOperationalView view={activeView} database={database} onToast={setToast} onNavigate={navigate} />
         ) : null}
 
         {toast ? <AdminToast message={toast} onClose={() => setToast(null)} /> : null}
       </AdminLayout>
     </AdminLanguageProvider>
+  )
+}
+
+function AdminForbiddenView({ onNavigate }: { onNavigate: () => void }) {
+  return (
+    <section className="admin-forbidden" role="alert">
+      <span>403</span>
+      <h1>Bạn không có quyền truy cập chức năng này</h1>
+      <p>Chức năng chỉ hiển thị và hoạt động khi tài khoản được cấp permission phù hợp.</p>
+      <button className="admin-button admin-button--primary" type="button" onClick={onNavigate}>Về trang được cấp quyền</button>
+    </section>
   )
 }
 

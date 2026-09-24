@@ -88,9 +88,53 @@ const thuongHieu = [
   "CAESAR",
 ];
 
+function FeaturedProductsSkeleton({ label }: { label: string }) {
+  return (
+    <TrangDangTaiKhungXuong className="home-products__skeleton" label={label}>
+      <div className="home-products__skeleton-controls" aria-hidden="true">
+        <KhungXuong />
+        <KhungXuong />
+      </div>
+      <div className="home-products__skeleton-grid" aria-hidden="true">
+        {Array.from({ length: 5 }, (_, index) => (
+          <article className="home-products__skeleton-card" key={index}>
+            <KhungXuong className="home-products__skeleton-media" />
+            <div className="home-products__skeleton-body">
+              <KhungXuong className="home-products__skeleton-title" />
+              <KhungXuong className="home-products__skeleton-title home-products__skeleton-title--short" />
+              <KhungXuong className="home-products__skeleton-price" />
+            </div>
+          </article>
+        ))}
+      </div>
+    </TrangDangTaiKhungXuong>
+  )
+}
+
+function FeaturedProjectsSkeleton({ label }: { label: string }) {
+  return (
+    <TrangDangTaiKhungXuong className="project-grid home-projects-skeleton" label={label}>
+      {Array.from({ length: 4 }, (_, index) => (
+        <article className="home-projects-skeleton__card" key={index} aria-hidden="true">
+          <KhungXuong className="home-projects-skeleton__image" />
+          <div className="home-projects-skeleton__body">
+            <KhungXuong className="home-projects-skeleton__title" />
+            <KhungXuong className="home-projects-skeleton__location" />
+          </div>
+        </article>
+      ))}
+    </TrangDangTaiKhungXuong>
+  )
+}
+
 export function TrangChuPage() {
   const { products, isLoading, errorMessage, retry } = useProducts();
-  const { projects } = useProjects();
+  const {
+    projects,
+    isLoading: isProjectsLoading,
+    errorMessage: projectsErrorMessage,
+    retry: retryProjects,
+  } = useProjects();
   const {
     articles: newsRecords,
     isLoading: isNewsLoading,
@@ -127,24 +171,21 @@ export function TrangChuPage() {
         className="trang-chu__hero"
         style={{ backgroundImage: `url(${heroImage})` }}
       >
-        <div className="trang-chu__hero-overlay" />
         <div className="trang-chu__hero-content">
-          <div className="trang-chu__hero-panel">
-            <h1>
-              {home.heroTitle}
-              <br />
-              <span>{home.heroHighlight}</span>
-            </h1>
-            <p>{home.heroDescription}</p>
-            <div className="trang-chu__hero-actions">
-              <Link className="button button--gold" to="/products">
-                {home.browseProducts}
-                <ArrowRight size={18} weight="bold" aria-hidden="true" />
-              </Link>
-              <Link className="button button--outline-light" to="/lien-he">
-                {home.requestQuote}
-              </Link>
-            </div>
+          <h1>
+            {home.heroTitle}
+            <br />
+            <span>{home.heroHighlight}</span>
+          </h1>
+          <p>{home.heroDescription}</p>
+          <div className="trang-chu__hero-actions">
+            <Link className="button button--gold" to="/products">
+              {home.browseProducts}
+              <ArrowRight size={18} weight="bold" aria-hidden="true" />
+            </Link>
+            <Link className="button button--outline-light" to="/lien-he">
+              {home.requestQuote}
+            </Link>
           </div>
         </div>
       </section>
@@ -169,12 +210,7 @@ export function TrangChuPage() {
         >
           <SectionHeading id="san-pham-noi-bat" title={home.featuredTitle} />
 
-          {isLoading ? (
-            <div
-              className="home-products__skeleton"
-              aria-label={home.loading}
-            />
-          ) : null}
+          {isLoading ? <FeaturedProductsSkeleton label={home.loading} /> : null}
 
           {!isLoading && errorMessage ? (
             <StatusPanel title={home.loadFailed} tone="error">
@@ -366,14 +402,28 @@ export function TrangChuPage() {
               {home.allProjects} <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </div>
-          <div className="project-grid">
-            {featuredProjects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                {...project}
-              />
-            ))}
-          </div>
+          {isProjectsLoading ? (
+            <FeaturedProjectsSkeleton
+              label={language === "vi" ? "Đang tải dự án nổi bật" : "Loading featured projects"}
+            />
+          ) : null}
+          {!isProjectsLoading && projectsErrorMessage ? (
+            <StatusPanel title={projectsErrorMessage} tone="error">
+              <button className="button button--small" type="button" onClick={retryProjects}>
+                {common.retry}
+              </button>
+            </StatusPanel>
+          ) : null}
+          {!isProjectsLoading && !projectsErrorMessage ? (
+            <div className="project-grid">
+              {featuredProjects.map((project) => (
+                <ProjectCard
+                  key={project.id}
+                  {...project}
+                />
+              ))}
+            </div>
+          ) : null}
         </section>
 
         <section

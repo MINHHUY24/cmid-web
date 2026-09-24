@@ -43,6 +43,11 @@ export interface ProductTechnicalSpecification {
   value: string
 }
 
+export interface ProductStoreStock {
+  storeId: string
+  quantity: number
+}
+
 export interface Product {
   id: number
   sku: string
@@ -62,6 +67,7 @@ export interface Product {
   saleType: SaleType
   status: ProductStatus
   stock?: number | null
+  stockByStore?: ProductStoreStock[]
   isFeatured?: boolean
   materialIds?: string[]
   supplierId?: string | null

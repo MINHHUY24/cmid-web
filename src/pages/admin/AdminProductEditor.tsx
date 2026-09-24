@@ -1,11 +1,11 @@
 import { Check, FloppyDisk, Plus, Trash } from '@phosphor-icons/react'
 import { useId, useState, type FormEvent } from 'react'
-import type { Product, ProductStatus, ProductTechnicalSpecification, SaleType } from '../../types/product'
+import type { Product, ProductStatus, ProductStoreStock, ProductTechnicalSpecification, SaleType } from '../../types/product'
 import { AdminImageUpload } from './AdminImageUpload'
 import { AdminTrellisModel } from './AdminTrellisModel'
 import { createProductImageSlots, PRODUCT_IMAGE_VIEWS, toProductImages, type ProductImageSlot } from './admin-product-images'
 import { AdminPageHeading, AdminPanel, AdminSelect } from './AdminPrimitives'
-import type { AdminBrand, AdminNamedRecord } from './admin-database'
+import type { AdminBrand, AdminNamedRecord, AdminShowroom } from './admin-database'
 import { saveAdminProduct } from './admin-local-store'
 import { saveProduct } from '../../services/product.service'
 import { isAdminDemoEnabled } from './admin-demo-auth'
@@ -14,6 +14,9 @@ interface AdminProductEditorProps {
   product?: Product
   categories: AdminNamedRecord[]
   brands: AdminBrand[]
+  showrooms: AdminShowroom[]
+  canManageInventory?: boolean
+  canPublish?: boolean
   onCancel: () => void
   onSaved: (product: Product) => void
 }
@@ -28,7 +31,7 @@ interface ProductEditorState {
   brandId: string
   saleType: SaleType
   status: ProductStatus
-  stock: string
+  stockByStore: ProductStoreStockDraft[]
   isFeatured: boolean
   description: string
   descriptionEn: string
@@ -44,10 +47,18 @@ interface ProductEditorState {
   modelFileSize: number | null
 }
 
+interface ProductStoreStockDraft {
+  storeId: string
+  quantity: string
+}
+
 export function AdminProductEditor({
   product,
   categories,
   brands,
+  showrooms,
+  canManageInventory = true,
+  canPublish = true,
   onCancel,
   onSaved,
 }: AdminProductEditorProps) {
@@ -86,6 +97,20 @@ export function AdminProductEditor({
     update('technicalSpecifications', form.technicalSpecifications.filter((_, currentIndex) => currentIndex !== index))
   }
 
+  function updateStoreStock(index: number, key: keyof ProductStoreStockDraft, value: string) {
+    update('stockByStore', form.stockByStore.map((storeStock, currentIndex) =>
+      currentIndex === index ? { ...storeStock, [key]: value } : storeStock,
+    ))
+  }
+
+  function addStoreStock() {
+    update('stockByStore', [...form.stockByStore, { storeId: '', quantity: '' }])
+  }
+
+  function removeStoreStock(index: number) {
+    update('stockByStore', form.stockByStore.filter((_, currentIndex) => currentIndex !== index))
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSaveError(null)
@@ -104,6 +129,14 @@ export function AdminProductEditor({
       setSaveError('Vui lòng tải ảnh mặt trước cho sản phẩm.')
       return
     }
+
+    const stockError = validateStoreStocks(form.stockByStore)
+    if (stockError) {
+      setSaveError(stockError)
+      return
+    }
+
+    const stockByStore = toStoreStocks(form.stockByStore)
 
     const id = product?.id ?? Date.now()
     const existingModel = product?.models3D[0]
@@ -127,7 +160,8 @@ export function AdminProductEditor({
       unit: form.unit.trim() || null,
       saleType: form.saleType,
       status: form.status,
-      stock: form.stock.trim() ? Number(form.stock) : null,
+      stock: stockByStore.length ? stockByStore.reduce((total, storeStock) => total + storeStock.quantity, 0) : null,
+      stockByStore,
       isFeatured: form.isFeatured,
       materialIds: product?.materialIds ?? [],
       supplierId: product?.supplierId ?? null,
@@ -366,6 +400,7 @@ export function AdminProductEditor({
                 value={form.status}
                 onChange={(value) => update('status', value as ProductStatus)}
                 aria-label="Trạng thái catalogue"
+                disabled={!canPublish}
                 options={[
                   { value: 'ACTIVE', label: 'Đang bán và hiển thị' },
                   { value: 'OUT_OF_STOCK', label: 'Hết hàng, vẫn hiển thị' },
@@ -374,7 +409,71 @@ export function AdminProductEditor({
                 ]}
               />
             </label>
-            <TextField label="Số lượng tồn kho" value={form.stock} type="number" min="0" onChange={(value) => update('stock', value)} />
+            <section className="admin-product-stock-picker" aria-labelledby="stock-by-store-title">
+              <div className="admin-product-stock-picker__heading">
+                <div>
+                  <h3 id="stock-by-store-title">Tồn kho theo cửa hàng</h3>
+                  <p>{canManageInventory ? 'Chọn từng cửa hàng và nhập số lượng tồn kho tương ứng.' : 'Bạn được xem tồn kho nhưng không có quyền chỉnh sửa.'}</p>
+                </div>
+                <strong>Tổng: {formatStockTotal(form.stockByStore)} {form.unit.trim() || 'cái'}</strong>
+              </div>
+              <div className="admin-product-stock-picker__labels" aria-hidden="true">
+                <span>Cửa hàng</span>
+                <span>Số lượng tồn kho</span>
+              </div>
+              <div className="admin-product-stock-picker__rows">
+                {form.stockByStore.map((storeStock, index) => {
+                  const selectedStoreIds = new Set(form.stockByStore.map((item) => item.storeId).filter(Boolean))
+                  const storeOptions = [
+                    { value: '', label: 'Chọn cửa hàng' },
+                    ...showrooms
+                      .filter((showroom) => (
+                        (showroom.status === 'ACTIVE' || showroom.id === storeStock.storeId)
+                        && (!selectedStoreIds.has(showroom.id) || showroom.id === storeStock.storeId)
+                      ))
+                      .map((showroom) => ({
+                        value: showroom.id,
+                        label: `${showroom.name}${showroom.status === 'INACTIVE' ? ' (ngưng hoạt động)' : ''}`,
+                      })),
+                  ]
+
+                  return (
+                    <div className="admin-product-stock-picker__row" key={`${storeStock.storeId}-${index}`}>
+                      <AdminSelect
+                        value={storeStock.storeId}
+                        onChange={(value) => updateStoreStock(index, 'storeId', value)}
+                        aria-label={`Cửa hàng tồn kho ${index + 1}`}
+                        options={storeOptions}
+                        disabled={!canManageInventory}
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={storeStock.quantity}
+                        onChange={(event) => updateStoreStock(index, 'quantity', event.target.value)}
+                        aria-label={`Số lượng tồn kho tại cửa hàng ${index + 1}`}
+                        placeholder="0"
+                        disabled={!canManageInventory}
+                      />
+                      <button
+                        className="admin-product-stock-picker__remove"
+                        type="button"
+                        onClick={() => removeStoreStock(index)}
+                        aria-label={`Xóa tồn kho tại cửa hàng ${index + 1}`}
+                        disabled={!canManageInventory}
+                      >
+                        <Trash size={17} />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+              <button className="admin-button admin-product-stock-picker__add" type="button" onClick={addStoreStock} disabled={!canManageInventory}>
+                <Plus size={16} /> Thêm cửa hàng
+              </button>
+              {form.stockByStore.length === 0 ? <p className="admin-product-stock-picker__empty">Chưa có tồn kho tại cửa hàng nào.</p> : null}
+            </section>
             <label className="admin-checkbox">
               <input type="checkbox" checked={form.isFeatured} onChange={(event) => update('isFeatured', event.target.checked)} />
               <span>Hiển thị trong khu vực sản phẩm nổi bật</span>
@@ -418,7 +517,7 @@ function createEditorState(
     brandId: brands.find((item) => item.slug === product?.brand?.slug)?.id ?? '',
     saleType: product?.saleType ?? 'DIRECT_ORDER',
     status: product?.status ?? 'ACTIVE',
-    stock: product?.stock == null ? '' : String(product.stock),
+    stockByStore: createStoreStockDrafts(product),
     isFeatured: product?.isFeatured ?? false,
     description: product?.description ?? '',
     descriptionEn: product?.descriptionEn ?? '',
@@ -433,6 +532,53 @@ function createEditorState(
     modelFileName: model?.version ?? '',
     modelFileSize: null,
   }
+}
+
+function createStoreStockDrafts(product?: Product): ProductStoreStockDraft[] {
+  if (product?.stockByStore?.length) {
+    return product.stockByStore.map((storeStock) => ({
+      storeId: storeStock.storeId,
+      quantity: String(storeStock.quantity),
+    }))
+  }
+
+  // Preserve the quantity recorded before inventory was split by store. The
+  // administrator can assign it to the appropriate store before saving.
+  return product?.stock == null ? [] : [{ storeId: '', quantity: String(product.stock) }]
+}
+
+function toStoreStocks(drafts: ProductStoreStockDraft[]): ProductStoreStock[] {
+  return drafts
+    .filter((draft) => draft.storeId && draft.quantity.trim())
+    .map((draft) => ({ storeId: draft.storeId, quantity: Number(draft.quantity) }))
+}
+
+function validateStoreStocks(drafts: ProductStoreStockDraft[]): string | null {
+  const selectedStores = new Set<string>()
+
+  for (const draft of drafts) {
+    const hasStore = Boolean(draft.storeId)
+    const hasQuantity = Boolean(draft.quantity.trim())
+
+    if (hasStore !== hasQuantity) return 'Mỗi dòng tồn kho cần chọn cửa hàng và nhập số lượng.'
+    if (!hasStore) continue
+
+    const quantity = Number(draft.quantity)
+    if (!Number.isSafeInteger(quantity) || quantity < 0) return 'Số lượng tồn kho phải là số nguyên không âm.'
+    if (selectedStores.has(draft.storeId)) return 'Mỗi cửa hàng chỉ được khai báo tồn kho một lần.'
+    selectedStores.add(draft.storeId)
+  }
+
+  return null
+}
+
+function formatStockTotal(drafts: ProductStoreStockDraft[]) {
+  const total = drafts.reduce((sum, draft) => {
+    const quantity = Number(draft.quantity)
+    return Number.isSafeInteger(quantity) && quantity >= 0 ? sum + quantity : sum
+  }, 0)
+
+  return new Intl.NumberFormat('vi-VN').format(total)
 }
 
 function TextField({
