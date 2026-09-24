@@ -375,10 +375,12 @@ html[data-theme='light'] .product-detail-loading {
 
 .product-gallery__main--image {
   display: grid;
-  width: 100%;
+  /* Reserve the fixed header, page spacing, and thumbnail rail so the whole
+     gallery remains visible in a short desktop viewport. */
+  width: min(100%, clamp(320px, calc(100svh - 260px), 680px));
   min-width: 0;
   min-height: 0;
-  max-height: min(72svh, 760px);
+  margin-inline: auto;
   /* One stable canvas keeps every catalog image comparable, independent of its source dimensions. */
   aspect-ratio: 1 / 1;
   place-items: center;
