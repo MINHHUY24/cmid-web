@@ -4291,3 +4291,29 @@ html[data-theme='dark'] .app-shell--site.app-shell--product-detail .product-deta
   color: #1a1109;
   background: #e0ad55;
 }
+
+/* Inner-page headers sit over photography on routes such as /products.  Do
+   not make their legibility depend on the visitor enabling an OS contrast
+   preference: use solid light surfaces and dark ink by default. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .topbar {
+  background: #fffdf9;
+  box-shadow: 0 1px 0 rgb(94 66 36 / 24%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-header__main {
+  background: #fffdf9;
+  box-shadow: 0 14px 30px rgb(60 45 30 / 14%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .topbar a,
+  .topbar__language,
+  .topbar__account-link,
+  .header-icon,
+  .brand strong,
+  .site-nav__link,
+  .menu-toggle
+) {
+  color: #292521;
+  text-shadow: none;
+}
