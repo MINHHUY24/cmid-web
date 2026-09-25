@@ -210,6 +210,20 @@ html[data-theme='dark'] .app-shell--site .site-header__main {
   -webkit-backdrop-filter: blur(15px);
 }
 
+/* Keep these light-page hero images crisp through their lower edge. The left
+   overlay remains for copy contrast; only the bright fade into the page is
+   removed. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) .trang-san-pham .catalog-hero__overlay {
+  background: linear-gradient(90deg, rgb(69 47 29 / 40%) 0%, rgb(77 51 30 / 13%) 52%, transparent 82%);
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
+  .trang-du-an,
+  .trang-ve-cmid
+) .khung-dau-trang__anh::after {
+  background: linear-gradient(90deg, rgb(69 47 29 / 34%) 0%, rgb(77 51 30 / 10%) 50%, transparent 82%);
+}
+
 .app-shell--site:not(.app-shell--home) .brand strong,
 .app-shell--site:not(.app-shell--home) .menu-toggle {
   color: var(--site-heading);
