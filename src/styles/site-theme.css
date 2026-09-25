@@ -187,6 +187,17 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .color-theme-swi
   -webkit-backdrop-filter: blur(16px) saturate(118%);
 }
 
+/* Product, project, and other inner pages sit over imagery. Keep the dark
+   header fully opaque so the image never lowers navigation contrast. */
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .site-header {
+  background: #0a0806;
+}
+
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .site-header__main {
+  background: #12100d;
+  box-shadow: 0 20px 45px rgb(0 0 0 / 28%);
+}
+
 .app-shell--site:not(.app-shell--home) .brand strong,
 .app-shell--site:not(.app-shell--home) .menu-toggle {
   color: var(--site-heading);
