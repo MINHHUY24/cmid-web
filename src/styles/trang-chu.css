@@ -578,6 +578,13 @@
   backdrop-filter: blur(12px);
 }
 
+/* The contrast update for inner pages intentionally excludes the home route.
+   Give the dark home header its own opaque surfaces so the hero photograph
+   cannot wash out navigation after deployment. */
+html[data-theme='dark'] .app-shell--home .topbar {
+  background: #0a0806;
+}
+
 .app-shell--home .topbar__inner {
   width: min(1280px, calc(100% - 72px));
 }
@@ -609,6 +616,11 @@
   background: rgb(18 14 10 / 85%);
   box-shadow: 0 20px 45px rgb(0 0 0 / 18%);
   backdrop-filter: blur(15px);
+}
+
+html[data-theme='dark'] .app-shell--home .site-header__main {
+  background: #12100d;
+  box-shadow: 0 20px 45px rgb(0 0 0 / 28%);
 }
 
 .app-shell--home .brand strong {
@@ -830,6 +842,30 @@
   border-radius: var(--cmid-surface-radius);
   background: #15100c;
   box-shadow: none;
+}
+
+/* Loading cards use the same dark material as the featured content. Without
+   this override they inherit the global (light) --cmid-panel surface, which
+   creates a white strip while data is loading in dark mode. The light-theme
+   rule below intentionally keeps its existing ivory skeleton surface. */
+html[data-theme='dark'] .app-shell--home :is(
+  .home-products__skeleton-card,
+  .home-projects-skeleton__card
+) {
+  border-color: rgb(197 151 78 / 46%);
+  background: #15100c;
+  box-shadow: none;
+}
+
+html[data-theme='dark'] .app-shell--home :is(
+  .home-products__skeleton-media,
+  .home-projects-skeleton__image
+) {
+  background: #302a24;
+}
+
+html[data-theme='dark'] .app-shell--home .home-products__skeleton-body {
+  background: #15100c;
 }
 
 .app-shell--home .product-card--showcase .product-card__media {
