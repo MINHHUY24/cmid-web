@@ -5,10 +5,10 @@ import {
 import { useState, type FormEvent } from 'react'
 import interiorImage from '../../assets/images/khong-gian-trung-bay-vat-lieu.jpg'
 import logoImage from '../../assets/images/logo.webp'
-import { useUser } from '../../contexts/NguoiDungContext'
+import { useAdminAuth } from '../../contexts/useQuanTriAuth'
 
 export function TrangDangNhapQuanTri() {
-  const { isSigningIn, signInAdminWithPassword } = useUser()
+  const { isAdminSigningIn, signInAdminWithPassword } = useAdminAuth()
   const [error, setError] = useState<string | null>(null)
 
   async function handlePasswordSignIn(event: FormEvent<HTMLFormElement>) {
@@ -53,7 +53,7 @@ export function TrangDangNhapQuanTri() {
           <form onSubmit={handlePasswordSignIn}>
             <label className="admin-field"><span>Email</span><div className="admin-login-email"><input name="username" autoComplete="username" required /><span>@cmid.com.vn</span></div></label>
             <label className="admin-field"><span>Mật khẩu</span><input name="password" type="password" autoComplete="current-password" required /></label>
-            <button className="admin-login-form__submit" type="submit" disabled={isSigningIn}><span>{isSigningIn ? 'Đang xác thực...' : 'Đăng nhập'}</span><ArrowRight size={18} /></button>
+            <button className="admin-login-form__submit" type="submit" disabled={isAdminSigningIn}><span>{isAdminSigningIn ? 'Đang xác thực...' : 'Đăng nhập'}</span><ArrowRight size={18} /></button>
           </form>
 
           {error ? <p className="admin-login-form__error" role="alert">{error}</p> : null}

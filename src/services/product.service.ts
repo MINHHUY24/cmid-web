@@ -12,6 +12,7 @@ export function getProductById(id: number): Promise<Product> {
 export function saveProduct(product: Product, useDemoAccess = false): Promise<Product> {
   return apiFetch<Product>(useDemoAccess ? '/products/demo' : '/products', {
     method: 'POST',
+    authScope: 'admin',
     headers: {
       'Content-Type': 'application/json',
       ...(useDemoAccess ? { 'X-CMID-Demo-Admin': 'true' } : {}),
@@ -28,6 +29,7 @@ export async function deleteProduct(productId: number, useDemoAccess = false): P
   try {
     await apiFetch<void>(useDemoAccess ? `/products/demo/${productId}` : `/products/${productId}`, {
       method: 'DELETE',
+      authScope: 'admin',
       headers: useDemoAccess ? { 'X-CMID-Demo-Admin': 'true' } : undefined,
     })
   } catch (error) {

@@ -14,8 +14,8 @@
   display: grid;
   grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
   min-height: 442px;
-  border-bottom: 1px solid #dfcba8;
-  background: #f7f3eb;
+  border-bottom: 1px solid var(--cmid-palette-dfcba8);
+  background: var(--cmid-palette-f7f3eb);
 }
 
 .khung-dau-trang__noi-dung {
@@ -38,7 +38,7 @@
 .khung-dau-trang h1 {
   max-width: 560px;
   margin: 0;
-  color: #302d29;
+  color: var(--cmid-palette-302d29);
   font-family: var(--cmid-font);
   font-size: clamp(2.6rem, 5vw, 5rem);
   font-weight: 400;
@@ -57,16 +57,13 @@
 .khung-dau-trang__noi-dung > p:not(.khung-dau-trang__nhan) {
   max-width: 440px;
   margin: 0;
-  color: #625d56;
+  color: var(--cmid-palette-625d56);
   font-size: calc(0.92rem + 2px);
   line-height: 1.72;
 }
 
 .khung-dau-trang__button {
   margin-top: 28px;
-  border-color: var(--cmid-gold);
-  color: #fffdf8;
-  background: var(--cmid-gold);
 }
 
 .khung-dau-trang__anh {
@@ -86,8 +83,8 @@
   min-height: 430px;
   overflow: hidden;
   border: 0;
-  color: #fffdf8;
-  background: #24211d;
+  color: var(--cmid-palette-fffdf8);
+  background: var(--cmid-palette-24211d);
 }
 
 .khung-dau-trang--toi .khung-dau-trang__anh {
@@ -98,7 +95,7 @@
 .khung-dau-trang--toi .khung-dau-trang__anh::after {
   position: absolute;
   inset: 0;
-  background: rgb(20 16 11 / 58%);
+  background: var(--cmid-palette-rgb-20-16-11-alpha-58p);
   content: '';
 }
 
@@ -118,21 +115,11 @@
 
 .khung-dau-trang--toi h1,
 .khung-dau-trang--toi .khung-dau-trang__noi-dung > p:not(.khung-dau-trang__nhan) {
-  color: #fffdf9;
+  color: var(--cmid-palette-fffdf9);
 }
 
 .khung-dau-trang--toi .khung-dau-trang__nhan {
-  color: #d6b272;
-}
-
-.khung-dau-trang--toi .khung-dau-trang__button {
-  border-color: #d4ad69;
-  color: #fffdf9;
-  background: transparent;
-}
-
-.khung-dau-trang--toi .khung-dau-trang__button:hover {
-  background: rgb(179 141 80 / 34%);
+  color: var(--cmid-palette-d6b272);
 }
 
 @media (max-width: 760px) {

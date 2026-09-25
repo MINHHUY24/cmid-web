@@ -1,3 +1,1151 @@
+/* Shared palette aliases. All stylesheets consume these tokens rather than
+   declaring independent colour literals. */
+:root {
+  --cmid-palette-0a0806: #0a0806;
+  --cmid-palette-0a0a0a: #0a0a0a;
+  --cmid-palette-0b0907: #0b0907;
+  --cmid-palette-0d0a07: #0d0a07;
+  --cmid-palette-101010: #101010;
+  --cmid-palette-110c09: #110c09;
+  --cmid-palette-11110f: #11110f;
+  --cmid-palette-120d08: #120d08;
+  --cmid-palette-12100d: #12100d;
+  --cmid-palette-141512: #141512;
+  --cmid-palette-15100c: #15100c;
+  --cmid-palette-15110d: #15110d;
+  --cmid-palette-151513: #151513;
+  --cmid-palette-16110c: #16110c;
+  --cmid-palette-171008: #171008;
+  --cmid-palette-171009: #171009;
+  --cmid-palette-17110c: #17110c;
+  --cmid-palette-17110d: #17110d;
+  --cmid-palette-17120d: #17120d;
+  --cmid-palette-171512: #171512;
+  --cmid-palette-171816: #171816;
+  --cmid-palette-184a91: #184a91;
+  --cmid-palette-191713: #191713;
+  --cmid-palette-1a1209: #1a1209;
+  --cmid-palette-1a1410: #1a1410;
+  --cmid-palette-1a1b19: #1a1b19;
+  --cmid-palette-1b130d: #1b130d;
+  --cmid-palette-1c1711: #1c1711;
+  --cmid-palette-1c1915: #1c1915;
+  --cmid-palette-1c1c1a: #1c1c1a;
+  --cmid-palette-1d1610: #1d1610;
+  --cmid-palette-1d1d1b: #1d1d1b;
+  --cmid-palette-1f1812: #1f1812;
+  --cmid-palette-20150a: #20150a;
+  --cmid-palette-20170e: #20170e;
+  --cmid-palette-20211f: #20211f;
+  --cmid-palette-211912: #211912;
+  --cmid-palette-211e1a: #211e1a;
+  --cmid-palette-211f1b: #211f1b;
+  --cmid-palette-22221f: #22221f;
+  --cmid-palette-222321: #222321;
+  --cmid-palette-237444: #237444;
+  --cmid-palette-23746d: #23746d;
+  --cmid-palette-24211d: #24211d;
+  --cmid-palette-242522: #242522;
+  --cmid-palette-25231f: #25231f;
+  --cmid-palette-252525: #252525;
+  --cmid-palette-26231f: #26231f;
+  --cmid-palette-262724: #262724;
+  --cmid-palette-27221d: #27221d;
+  --cmid-palette-272720: #272720;
+  --cmid-palette-272824: #272824;
+  --cmid-palette-2776ba: #2776ba;
+  --cmid-palette-281a0f: #281a0f;
+  --cmid-palette-282018: #282018;
+  --cmid-palette-282520: #282520;
+  --cmid-palette-286e48: #286e48;
+  --cmid-palette-287447: #287447;
+  --cmid-palette-29231d: #29231d;
+  --cmid-palette-29241f: #29241f;
+  --cmid-palette-29251f: #29251f;
+  --cmid-palette-292521: #292521;
+  --cmid-palette-2b2824: #2b2824;
+  --cmid-palette-2b2a28: #2b2a28;
+  --cmid-palette-2b2b2a: #2b2b2a;
+  --cmid-palette-2c2924: #2c2924;
+  --cmid-palette-2d2822: #2d2822;
+  --cmid-palette-2d2823: #2d2823;
+  --cmid-palette-2d5ba3: #2d5ba3;
+  --cmid-palette-2f2e29: #2f2e29;
+  --cmid-palette-2f8154: #2f8154;
+  --cmid-palette-30271f: #30271f;
+  --cmid-palette-302a24: #302a24;
+  --cmid-palette-302c27: #302c27;
+  --cmid-palette-302d29: #302d29;
+  --cmid-palette-312e29: #312e29;
+  --cmid-palette-332c26: #332c26;
+  --cmid-palette-332f29: #332f29;
+  --cmid-palette-332f2a: #332f2a;
+  --cmid-palette-332f2b: #332f2b;
+  --cmid-palette-342e28: #342e28;
+  --cmid-palette-34312c: #34312c;
+  --cmid-palette-34332e: #34332e;
+  --cmid-palette-34a457: #34a457;
+  --cmid-palette-35312a: #35312a;
+  --cmid-palette-35312c: #35312c;
+  --cmid-palette-35312d: #35312d;
+  --cmid-palette-36312b: #36312b;
+  --cmid-palette-367445: #367445;
+  --cmid-palette-37312b: #37312b;
+  --cmid-palette-37312c: #37312c;
+  --cmid-palette-37322c: #37322c;
+  --cmid-palette-37322d: #37322d;
+  --cmid-palette-37332d: #37332d;
+  --cmid-palette-37589f: #37589f;
+  --cmid-palette-38332c: #38332c;
+  --cmid-palette-38332d: #38332d;
+  --cmid-palette-39342e: #39342e;
+  --cmid-palette-39352f: #39352f;
+  --cmid-palette-397a4c: #397a4c;
+  --cmid-palette-3a291d: #3a291d;
+  --cmid-palette-3a3129: #3a3129;
+  --cmid-palette-3b3027: #3b3027;
+  --cmid-palette-3b332b: #3b332b;
+  --cmid-palette-3b3630: #3b3630;
+  --cmid-palette-3c3730: #3c3730;
+  --cmid-palette-3c3832: #3c3832;
+  --cmid-palette-3c9a53: #3c9a53;
+  --cmid-palette-3d342a: #3d342a;
+  --cmid-palette-3d352e: #3d352e;
+  --cmid-palette-3d3730: #3d3730;
+  --cmid-palette-3d3831: #3d3831;
+  --cmid-palette-3d3933: #3d3933;
+  --cmid-palette-3e3931: #3e3931;
+  --cmid-palette-3e3932: #3e3932;
+  --cmid-palette-3f7051: #3f7051;
+  --cmid-palette-403931: #403931;
+  --cmid-palette-403a32: #403a32;
+  --cmid-palette-403a33: #403a33;
+  --cmid-palette-413b34: #413b34;
+  --cmid-palette-417e4f: #417e4f;
+  --cmid-palette-43443f: #43443f;
+  --cmid-palette-443d33: #443d33;
+  --cmid-palette-443d34: #443d34;
+  --cmid-palette-443e36: #443e36;
+  --cmid-palette-453e36: #453e36;
+  --cmid-palette-454038: #454038;
+  --cmid-palette-454039: #454039;
+  --cmid-palette-464038: #464038;
+  --cmid-palette-484239: #484239;
+  --cmid-palette-48433b: #48433b;
+  --cmid-palette-48433d: #48433d;
+  --cmid-palette-49433b: #49433b;
+  --cmid-palette-49443d: #49443d;
+  --cmid-palette-4a2f19: #4a2f19;
+  --cmid-palette-4a443b: #4a443b;
+  --cmid-palette-4a443c: #4a443c;
+  --cmid-palette-4a4640: #4a4640;
+  --cmid-palette-4a8a59: #4a8a59;
+  --cmid-palette-4b423a: #4b423a;
+  --cmid-palette-4b453d: #4b453d;
+  --cmid-palette-4b463f: #4b463f;
+  --cmid-palette-4c4740: #4c4740;
+  --cmid-palette-4d4841: #4d4841;
+  --cmid-palette-4d4942: #4d4942;
+  --cmid-palette-4d6871: #4d6871;
+  --cmid-palette-4d9b60: #4d9b60;
+  --cmid-palette-4e4941: #4e4941;
+  --cmid-palette-4e4942: #4e4942;
+  --cmid-palette-4e4f49: #4e4f49;
+  --cmid-palette-4e5c71: #4e5c71;
+  --cmid-palette-4f4941: #4f4941;
+  --cmid-palette-4f4a43: #4f4a43;
+  --cmid-palette-4f865b: #4f865b;
+  --cmid-palette-504a42: #504a42;
+  --cmid-palette-514a41: #514a41;
+  --cmid-palette-514b43: #514b43;
+  --cmid-palette-514c44: #514c44;
+  --cmid-palette-544d45: #544d45;
+  --cmid-palette-54504b: #54504b;
+  --cmid-palette-54514c: #54514c;
+  --cmid-palette-55360f: #55360f;
+  --cmid-palette-556241: #556241;
+  --cmid-palette-565049: #565049;
+  --cmid-palette-575049: #575049;
+  --cmid-palette-575149: #575149;
+  --cmid-palette-575249: #575249;
+  --cmid-palette-59534a: #59534a;
+  --cmid-palette-59534c: #59534c;
+  --cmid-palette-59544c: #59544c;
+  --cmid-palette-5a544b: #5a544b;
+  --cmid-palette-5a554f: #5a554f;
+  --cmid-palette-5b5042: #5b5042;
+  --cmid-palette-5b554d: #5b554d;
+  --cmid-palette-5b554e: #5b554e;
+  --cmid-palette-5c5141: #5c5141;
+  --cmid-palette-5c5750: #5c5750;
+  --cmid-palette-5c5851: #5c5851;
+  --cmid-palette-5d554b: #5d554b;
+  --cmid-palette-5d564d: #5d564d;
+  --cmid-palette-5f594f: #5f594f;
+  --cmid-palette-5f5a52: #5f5a52;
+  --cmid-palette-615a51: #615a51;
+  --cmid-palette-62564b: #62564b;
+  --cmid-palette-62594f: #62594f;
+  --cmid-palette-625b52: #625b52;
+  --cmid-palette-625c53: #625c53;
+  --cmid-palette-625c55: #625c55;
+  --cmid-palette-625d55: #625d55;
+  --cmid-palette-625d56: #625d56;
+  --cmid-palette-63481f: #63481f;
+  --cmid-palette-645c52: #645c52;
+  --cmid-palette-655744: #655744;
+  --cmid-palette-655e54: #655e54;
+  --cmid-palette-655f58: #655f58;
+  --cmid-palette-665f56: #665f56;
+  --cmid-palette-666762: #666762;
+  --cmid-palette-675b4e: #675b4e;
+  --cmid-palette-676057: #676057;
+  --cmid-palette-685d4c: #685d4c;
+  --cmid-palette-686158: #686158;
+  --cmid-palette-68635d: #68635d;
+  --cmid-palette-695d4e: #695d4e;
+  --cmid-palette-695d51: #695d51;
+  --cmid-palette-696157: #696157;
+  --cmid-palette-6a6358: #6a6358;
+  --cmid-palette-6c645a: #6c645a;
+  --cmid-palette-6c655b: #6c655b;
+  --cmid-palette-6c6d67: #6c6d67;
+  --cmid-palette-6d5a86: #6d5a86;
+  --cmid-palette-6d675e: #6d675e;
+  --cmid-palette-6d6a64: #6d6a64;
+  --cmid-palette-6e6256: #6e6256;
+  --cmid-palette-6e9ec4: #6e9ec4;
+  --cmid-palette-6f4719: #6f4719;
+  --cmid-palette-6f4f1f: #6f4f1f;
+  --cmid-palette-6f604a: #6f604a;
+  --cmid-palette-6f675d: #6f675d;
+  --cmid-palette-6f685f: #6f685f;
+  --cmid-palette-6f6a61: #6f6a61;
+  --cmid-palette-6f6e6b: #6f6e6b;
+  --cmid-palette-704b1d: #704b1d;
+  --cmid-palette-706960: #706960;
+  --cmid-palette-706a61: #706a61;
+  --cmid-palette-71685d: #71685d;
+  --cmid-palette-71695f: #71695f;
+  --cmid-palette-716a60: #716a60;
+  --cmid-palette-716a61: #716a61;
+  --cmid-palette-716a62: #716a62;
+  --cmid-palette-716b62: #716b62;
+  --cmid-palette-716b63: #716b63;
+  --cmid-palette-716d65: #716d65;
+  --cmid-palette-726a60: #726a60;
+  --cmid-palette-72736e: #72736e;
+  --cmid-palette-736b61: #736b61;
+  --cmid-palette-746b61: #746b61;
+  --cmid-palette-746c61: #746c61;
+  --cmid-palette-746d63: #746d63;
+  --cmid-palette-746d64: #746d64;
+  --cmid-palette-756951: #756951;
+  --cmid-palette-75695d: #75695d;
+  --cmid-palette-756a5f: #756a5f;
+  --cmid-palette-756b60: #756b60;
+  --cmid-palette-756e64: #756e64;
+  --cmid-palette-756e65: #756e65;
+  --cmid-palette-756f65: #756f65;
+  --cmid-palette-76501f: #76501f;
+  --cmid-palette-7650a1: #7650a1;
+  --cmid-palette-76572b: #76572b;
+  --cmid-palette-766143: #766143;
+  --cmid-palette-766e64: #766e64;
+  --cmid-palette-776e64: #776e64;
+  --cmid-palette-776f64: #776f64;
+  --cmid-palette-777066: #777066;
+  --cmid-palette-777067: #777067;
+  --cmid-palette-777068: #777068;
+  --cmid-palette-777269: #777269;
+  --cmid-palette-77746e: #77746e;
+  --cmid-palette-784c16: #784c16;
+  --cmid-palette-785a2f: #785a2f;
+  --cmid-palette-786653: #786653;
+  --cmid-palette-786f65: #786f65;
+  --cmid-palette-787167: #787167;
+  --cmid-palette-797167: #797167;
+  --cmid-palette-7a5244: #7a5244;
+  --cmid-palette-7b9fc7: #7b9fc7;
+  --cmid-palette-7c5929: #7c5929;
+  --cmid-palette-7c756c: #7c756c;
+  --cmid-palette-7c7a74: #7c7a74;
+  --cmid-palette-7d5928: #7d5928;
+  --cmid-palette-7d7d7b: #7d7d7b;
+  --cmid-palette-7e6843: #7e6843;
+  --cmid-palette-7f776d: #7f776d;
+  --cmid-palette-805c28: #805c28;
+  --cmid-palette-80612f: #80612f;
+  --cmid-palette-80705a: #80705a;
+  --cmid-palette-80776d: #80776d;
+  --cmid-palette-80796f: #80796f;
+  --cmid-palette-807970: #807970;
+  --cmid-palette-815e2b: #815e2b;
+  --cmid-palette-815f2f: #815f2f;
+  --cmid-palette-816335: #816335;
+  --cmid-palette-817365: #817365;
+  --cmid-palette-81796f: #81796f;
+  --cmid-palette-817970: #817970;
+  --cmid-palette-817a70: #817a70;
+  --cmid-palette-817a71: #817a71;
+  --cmid-palette-817b73: #817b73;
+  --cmid-palette-817d76: #817d76;
+  --cmid-palette-827a70: #827a70;
+  --cmid-palette-836135: #836135;
+  --cmid-palette-847e75: #847e75;
+  --cmid-palette-855e28: #855e28;
+  --cmid-palette-857d73: #857d73;
+  --cmid-palette-875f27: #875f27;
+  --cmid-palette-878077: #878077;
+  --cmid-palette-885515: #885515;
+  --cmid-palette-887e70: #887e70;
+  --cmid-palette-896630: #896630;
+  --cmid-palette-896634: #896634;
+  --cmid-palette-89683a: #89683a;
+  --cmid-palette-897e70: #897e70;
+  --cmid-palette-89837b: #89837b;
+  --cmid-palette-89847d: #89847d;
+  --cmid-palette-8a6428: #8a6428;
+  --cmid-palette-8a642e: #8a642e;
+  --cmid-palette-8a6a3a: #8a6a3a;
+  --cmid-palette-8a8277: #8a8277;
+  --cmid-palette-8a8278: #8a8278;
+  --cmid-palette-8a857c: #8a857c;
+  --cmid-palette-8a8b84: #8a8b84;
+  --cmid-palette-8b5d22: #8b5d22;
+  --cmid-palette-8b652c: #8b652c;
+  --cmid-palette-8b6d3e: #8b6d3e;
+  --cmid-palette-8b8172: #8b8172;
+  --cmid-palette-8b8176: #8b8176;
+  --cmid-palette-8b8378: #8b8378;
+  --cmid-palette-8b8379: #8b8379;
+  --cmid-palette-8b857c: #8b857c;
+  --cmid-palette-8c632a: #8c632a;
+  --cmid-palette-8c642d: #8c642d;
+  --cmid-palette-8c652d: #8c652d;
+  --cmid-palette-8c6c3c: #8c6c3c;
+  --cmid-palette-8c857b: #8c857b;
+  --cmid-palette-8d6731: #8d6731;
+  --cmid-palette-8d6d3d: #8d6d3d;
+  --cmid-palette-8d857a: #8d857a;
+  --cmid-palette-8d867d: #8d867d;
+  --cmid-palette-8d877d: #8d877d;
+  --cmid-palette-8d8b85: #8d8b85;
+  --cmid-palette-8e6225: #8e6225;
+  --cmid-palette-8e7b5e: #8e7b5e;
+  --cmid-palette-8f6b48: #8f6b48;
+  --cmid-palette-8f877c: #8f877c;
+  --cmid-palette-913d2e: #913d2e;
+  --cmid-palette-918a81: #918a81;
+  --cmid-palette-918b82: #918b82;
+  --cmid-palette-918f89: #918f89;
+  --cmid-palette-928b80: #928b80;
+  --cmid-palette-928b83: #928b83;
+  --cmid-palette-928c82: #928c82;
+  --cmid-palette-938b80: #938b80;
+  --cmid-palette-938c81: #938c81;
+  --cmid-palette-94703a: #94703a;
+  --cmid-palette-948d82: #948d82;
+  --cmid-palette-948d83: #948d83;
+  --cmid-palette-948d84: #948d84;
+  --cmid-palette-948e85: #948e85;
+  --cmid-palette-956b2f: #956b2f;
+  --cmid-palette-966f35: #966f35;
+  --cmid-palette-968f84: #968f84;
+  --cmid-palette-968f85: #968f85;
+  --cmid-palette-969087: #969087;
+  --cmid-palette-969790: #969790;
+  --cmid-palette-975b37: #975b37;
+  --cmid-palette-97723d: #97723d;
+  --cmid-palette-97733f: #97733f;
+  --cmid-palette-978f84: #978f84;
+  --cmid-palette-979087: #979087;
+  --cmid-palette-979188: #979188;
+  --cmid-palette-98611f: #98611f;
+  --cmid-palette-98641f: #98641f;
+  --cmid-palette-986624: #986624;
+  --cmid-palette-986c30: #986c30;
+  --cmid-palette-996d31: #996d31;
+  --cmid-palette-999288: #999288;
+  --cmid-palette-99938a: #99938a;
+  --cmid-palette-9a6828: #9a6828;
+  --cmid-palette-9a6926: #9a6926;
+  --cmid-palette-9a6c2a: #9a6c2a;
+  --cmid-palette-9a6d2e: #9a6d2e;
+  --cmid-palette-9a7134: #9a7134;
+  --cmid-palette-9a7742: #9a7742;
+  --cmid-palette-9a9288: #9a9288;
+  --cmid-palette-9a948a: #9a948a;
+  --cmid-palette-9b4336: #9b4336;
+  --cmid-palette-9b4b34: #9b4b34;
+  --cmid-palette-9b6928: #9b6928;
+  --cmid-palette-9b6f30: #9b6f30;
+  --cmid-palette-9b958c: #9b958c;
+  --cmid-palette-9c7030: #9c7030;
+  --cmid-palette-9c927f: #9c927f;
+  --cmid-palette-9d7437: #9d7437;
+  --cmid-palette-9f3029: #9f3029;
+  --cmid-palette-9f9282: #9f9282;
+  --cmid-palette-a19a91: #a19a91;
+  --cmid-palette-a19b91: #a19b91;
+  --cmid-palette-a29c92: #a29c92;
+  --cmid-palette-a3998b: #a3998b;
+  --cmid-palette-a47534: #a47534;
+  --cmid-palette-a47737: #a47737;
+  --cmid-palette-a56b11: #a56b11;
+  --cmid-palette-a57e42: #a57e42;
+  --cmid-palette-a58c63: #a58c63;
+  --cmid-palette-a66e26: #a66e26;
+  --cmid-palette-a67d44: #a67d44;
+  --cmid-palette-a72d27: #a72d27;
+  --cmid-palette-a78754: #a78754;
+  --cmid-palette-a7a097: #a7a097;
+  --cmid-palette-a83e34: #a83e34;
+  --cmid-palette-a85642: #a85642;
+  --cmid-palette-a8752c: #a8752c;
+  --cmid-palette-a87939: #a87939;
+  --cmid-palette-a96f20: #a96f20;
+  --cmid-palette-a97025: #a97025;
+  --cmid-palette-a9722d: #a9722d;
+  --cmid-palette-a97932: #a97932;
+  --cmid-palette-a97c38: #a97c38;
+  --cmid-palette-a97d3f: #a97d3f;
+  --cmid-palette-a98142: #a98142;
+  --cmid-palette-aa752e: #aa752e;
+  --cmid-palette-aa7935: #aa7935;
+  --cmid-palette-aa7c39: #aa7c39;
+  --cmid-palette-aa8044: #aa8044;
+  --cmid-palette-aa8551: #aa8551;
+  --cmid-palette-aa9c89: #aa9c89;
+  --cmid-palette-aaa39a: #aaa39a;
+  --cmid-palette-aaa49b: #aaa49b;
+  --cmid-palette-aaa7a0: #aaa7a0;
+  --cmid-palette-ab7f3e: #ab7f3e;
+  --cmid-palette-ae4637: #ae4637;
+  --cmid-palette-ae4938: #ae4938;
+  --cmid-palette-b18c51: #b18c51;
+  --cmid-palette-b27726: #b27726;
+  --cmid-palette-b37c32: #b37c32;
+  --cmid-palette-b38135: #b38135;
+  --cmid-palette-b38d50: #b38d50;
+  --cmid-palette-b49a70: #b49a70;
+  --cmid-palette-b68236: #b68236;
+  --cmid-palette-b6b4ae: #b6b4ae;
+  --cmid-palette-b77a28: #b77a28;
+  --cmid-palette-b77b29: #b77b29;
+  --cmid-palette-b77c2b: #b77c2b;
+  --cmid-palette-b77e2f: #b77e2f;
+  --cmid-palette-b78436: #b78436;
+  --cmid-palette-b7a895: #b7a895;
+  --cmid-palette-b84236: #b84236;
+  --cmid-palette-b8483d: #b8483d;
+  --cmid-palette-b88635: #b88635;
+  --cmid-palette-b88a43: #b88a43;
+  --cmid-palette-b88f50: #b88f50;
+  --cmid-palette-b8aa9b: #b8aa9b;
+  --cmid-palette-b8b2a9: #b8b2a9;
+  --cmid-palette-b93b31: #b93b31;
+  --cmid-palette-b94438: #b94438;
+  --cmid-palette-b9483d: #b9483d;
+  --cmid-palette-b98a43: #b98a43;
+  --cmid-palette-ba7957: #ba7957;
+  --cmid-palette-ba914f: #ba914f;
+  --cmid-palette-ba9253: #ba9253;
+  --cmid-palette-bb8842: #bb8842;
+  --cmid-palette-bc8334: #bc8334;
+  --cmid-palette-bc8a43: #bc8a43;
+  --cmid-palette-bc8b40: #bc8b40;
+  --cmid-palette-bc8c46: #bc8c46;
+  --cmid-palette-bcae9c: #bcae9c;
+  --cmid-palette-bd7018: #bd7018;
+  --cmid-palette-bd8434: #bd8434;
+  --cmid-palette-bd8e41: #bd8e41;
+  --cmid-palette-bd8f48: #bd8f48;
+  --cmid-palette-bda886: #bda886;
+  --cmid-palette-bdb09f: #bdb09f;
+  --cmid-palette-be3c35: #be3c35;
+  --cmid-palette-be4d42: #be4d42;
+  --cmid-palette-be8d3d: #be8d3d;
+  --cmid-palette-bf8735: #bf8735;
+  --cmid-palette-bfb4a4: #bfb4a4;
+  --cmid-palette-c0934d: #c0934d;
+  --cmid-palette-c13d35: #c13d35;
+  --cmid-palette-c28a32: #c28a32;
+  --cmid-palette-c2b6a7: #c2b6a7;
+  --cmid-palette-c33a75: #c33a75;
+  --cmid-palette-c39243: #c39243;
+  --cmid-palette-c49a56: #c49a56;
+  --cmid-palette-c5964a: #c5964a;
+  --cmid-palette-c5964b: #c5964b;
+  --cmid-palette-c59a55: #c59a55;
+  --cmid-palette-c5b8a6: #c5b8a6;
+  --cmid-palette-c6b9a7: #c6b9a7;
+  --cmid-palette-c6b9a9: #c6b9a9;
+  --cmid-palette-c6c0b7: #c6c0b7;
+  --cmid-palette-c7933f: #c7933f;
+  --cmid-palette-c79853: #c79853;
+  --cmid-palette-c7a16b: #c7a16b;
+  --cmid-palette-c7a36a: #c7a36a;
+  --cmid-palette-c7a46b: #c7a46b;
+  --cmid-palette-c7a56b: #c7a56b;
+  --cmid-palette-c7b99f: #c7b99f;
+  --cmid-palette-c7b9a9: #c7b9a9;
+  --cmid-palette-c7baaa: #c7baaa;
+  --cmid-palette-c84238: #c84238;
+  --cmid-palette-c8a770: #c8a770;
+  --cmid-palette-c8b89f: #c8b89f;
+  --cmid-palette-c8dcce: #c8dcce;
+  --cmid-palette-c99a52: #c99a52;
+  --cmid-palette-c9a270: #c9a270;
+  --cmid-palette-c9a872: #c9a872;
+  --cmid-palette-c9b99f: #c9b99f;
+  --cmid-palette-c9b9a6: #c9b9a6;
+  --cmid-palette-c9e9e5: #c9e9e5;
+  --cmid-palette-ca9845: #ca9845;
+  --cmid-palette-cba466: #cba466;
+  --cmid-palette-cbbda9: #cbbda9;
+  --cmid-palette-cc9c4e: #cc9c4e;
+  --cmid-palette-cce8d5: #cce8d5;
+  --cmid-palette-cda55f: #cda55f;
+  --cmid-palette-cdb486: #cdb486;
+  --cmid-palette-cdb58d: #cdb58d;
+  --cmid-palette-cdc3b7: #cdc3b7;
+  --cmid-palette-cf9c4c: #cf9c4c;
+  --cmid-palette-cf9d4c: #cf9d4c;
+  --cmid-palette-cfac73: #cfac73;
+  --cmid-palette-cfe3fb: #cfe3fb;
+  --cmid-palette-d05a4f: #d05a4f;
+  --cmid-palette-d09e4d: #d09e4d;
+  --cmid-palette-d1a254: #d1a254;
+  --cmid-palette-d29a42: #d29a42;
+  --cmid-palette-d2a14e: #d2a14e;
+  --cmid-palette-d2a457: #d2a457;
+  --cmid-palette-d2a65c: #d2a65c;
+  --cmid-palette-d2b074: #d2b074;
+  --cmid-palette-d2d0cb: #d2d0cb;
+  --cmid-palette-d3a253: #d3a253;
+  --cmid-palette-d3a65b: #d3a65b;
+  --cmid-palette-d3b277: #d3b277;
+  --cmid-palette-d46c61: #d46c61;
+  --cmid-palette-d4a04b: #d4a04b;
+  --cmid-palette-d4a452: #d4a452;
+  --cmid-palette-d4c5a9: #d4c5a9;
+  --cmid-palette-d4cabc: #d4cabc;
+  --cmid-palette-d5a147: #d5a147;
+  --cmid-palette-d5a14d: #d5a14d;
+  --cmid-palette-d5a657: #d5a657;
+  --cmid-palette-d5ad68: #d5ad68;
+  --cmid-palette-d5b475: #d5b475;
+  --cmid-palette-d5ccbe: #d5ccbe;
+  --cmid-palette-d6a34d: #d6a34d;
+  --cmid-palette-d6ac63: #d6ac63;
+  --cmid-palette-d6b272: #d6b272;
+  --cmid-palette-d7a34c: #d7a34c;
+  --cmid-palette-d7a54e: #d7a54e;
+  --cmid-palette-d7ae6d: #d7ae6d;
+  --cmid-palette-d7bb8a: #d7bb8a;
+  --cmid-palette-d7c4a8: #d7c4a8;
+  --cmid-palette-d7c9b9: #d7c9b9;
+  --cmid-palette-d7d0c6: #d7d0c6;
+  --cmid-palette-d7d3ca: #d7d3ca;
+  --cmid-palette-d7d5ce: #d7d5ce;
+  --cmid-palette-d8a54f: #d8a54f;
+  --cmid-palette-d8ba83: #d8ba83;
+  --cmid-palette-d8c8b1: #d8c8b1;
+  --cmid-palette-d8c8b4: #d8c8b4;
+  --cmid-palette-d8c9b2: #d8c9b2;
+  --cmid-palette-d8cdbd: #d8cdbd;
+  --cmid-palette-d8cec0: #d8cec0;
+  --cmid-palette-d8cec1: #d8cec1;
+  --cmid-palette-d8d0c5: #d8d0c5;
+  --cmid-palette-d8d2c7: #d8d2c7;
+  --cmid-palette-d8d2c9: #d8d2c9;
+  --cmid-palette-d9ae68: #d9ae68;
+  --cmid-palette-d9b979: #d9b979;
+  --cmid-palette-d9c6a7: #d9c6a7;
+  --cmid-palette-d9cdb9: #d9cdb9;
+  --cmid-palette-d9d0c3: #d9d0c3;
+  --cmid-palette-d9d0c4: #d9d0c4;
+  --cmid-palette-d9d0c5: #d9d0c5;
+  --cmid-palette-d9d4ca: #d9d4ca;
+  --cmid-palette-d9d9d2: #d9d9d2;
+  --cmid-palette-dac7a7: #dac7a7;
+  --cmid-palette-dacdbd: #dacdbd;
+  --cmid-palette-dbaa55: #dbaa55;
+  --cmid-palette-dbc195: #dbc195;
+  --cmid-palette-dcd3c5: #dcd3c5;
+  --cmid-palette-dcd4c8: #dcd4c8;
+  --cmid-palette-dcd4c9: #dcd4c9;
+  --cmid-palette-dda954: #dda954;
+  --cmid-palette-ddc7a4: #ddc7a4;
+  --cmid-palette-ddcfb9: #ddcfb9;
+  --cmid-palette-ddd2c3: #ddd2c3;
+  --cmid-palette-ddd4c6: #ddd4c6;
+  --cmid-palette-ddd4c8: #ddd4c8;
+  --cmid-palette-ddd5c8: #ddd5c8;
+  --cmid-palette-ddd5c9: #ddd5c9;
+  --cmid-palette-ddd5ca: #ddd5ca;
+  --cmid-palette-dec9a8: #dec9a8;
+  --cmid-palette-ded3c2: #ded3c2;
+  --cmid-palette-ded5c7: #ded5c7;
+  --cmid-palette-ded5c8: #ded5c8;
+  --cmid-palette-ded6c8: #ded6c8;
+  --cmid-palette-ded6ca: #ded6ca;
+  --cmid-palette-ded7cd: #ded7cd;
+  --cmid-palette-ded8cd: #ded8cd;
+  --cmid-palette-ded8cf: #ded8cf;
+  --cmid-palette-dfb361: #dfb361;
+  --cmid-palette-dfc9a4: #dfc9a4;
+  --cmid-palette-dfc9a7: #dfc9a7;
+  --cmid-palette-dfcba8: #dfcba8;
+  --cmid-palette-dfcfef: #dfcfef;
+  --cmid-palette-dfd2be: #dfd2be;
+  --cmid-palette-dfd4c1: #dfd4c1;
+  --cmid-palette-e0a84d: #e0a84d;
+  --cmid-palette-e0ad56: #e0ad56;
+  --cmid-palette-e0b465: #e0b465;
+  --cmid-palette-e0b66b: #e0b66b;
+  --cmid-palette-e0b866: #e0b866;
+  --cmid-palette-e0cfb3: #e0cfb3;
+  --cmid-palette-e0d8cc: #e0d8cc;
+  --cmid-palette-e0d9ce: #e0d9ce;
+  --cmid-palette-e0f5f2: #e0f5f2;
+  --cmid-palette-e1ac54: #e1ac54;
+  --cmid-palette-e1b462: #e1b462;
+  --cmid-palette-e1d4bd: #e1d4bd;
+  --cmid-palette-e1d9cc: #e1d9cc;
+  --cmid-palette-e2ae55: #e2ae55;
+  --cmid-palette-e2bd79: #e2bd79;
+  --cmid-palette-e2c9be: #e2c9be;
+  --cmid-palette-e2d8ca: #e2d8ca;
+  --cmid-palette-e2d9cc: #e2d9cc;
+  --cmid-palette-e2dcd2: #e2dcd2;
+  --cmid-palette-e2e1da: #e2e1da;
+  --cmid-palette-e3bb73: #e3bb73;
+  --cmid-palette-e3d7c5: #e3d7c5;
+  --cmid-palette-e3d9ca: #e3d9ca;
+  --cmid-palette-e3d9cc: #e3d9cc;
+  --cmid-palette-e3dcd0: #e3dcd0;
+  --cmid-palette-e3dcd1: #e3dcd1;
+  --cmid-palette-e3ddd2: #e3ddd2;
+  --cmid-palette-e42928: #e42928;
+  --cmid-palette-e4b45f: #e4b45f;
+  --cmid-palette-e4d9ca: #e4d9ca;
+  --cmid-palette-e4dccf: #e4dccf;
+  --cmid-palette-e4ddd4: #e4ddd4;
+  --cmid-palette-e5d9c7: #e5d9c7;
+  --cmid-palette-e5d9c8: #e5d9c8;
+  --cmid-palette-e5ded4: #e5ded4;
+  --cmid-palette-e5dfd4: #e5dfd4;
+  --cmid-palette-e5dfd6: #e5dfd6;
+  --cmid-palette-e5dfd7: #e5dfd7;
+  --cmid-palette-e6dac8: #e6dac8;
+  --cmid-palette-e6dfd4: #e6dfd4;
+  --cmid-palette-e6e0d5: #e6e0d5;
+  --cmid-palette-e6e1d8: #e6e1d8;
+  --cmid-palette-e6e1d9: #e6e1d9;
+  --cmid-palette-e7c7bd: #e7c7bd;
+  --cmid-palette-e7d9c8: #e7d9c8;
+  --cmid-palette-e7dece: #e7dece;
+  --cmid-palette-e7ded0: #e7ded0;
+  --cmid-palette-e7e1d7: #e7e1d7;
+  --cmid-palette-e7e1d8: #e7e1d8;
+  --cmid-palette-e7e2da: #e7e2da;
+  --cmid-palette-e8dfd1: #e8dfd1;
+  --cmid-palette-e8e1d4: #e8e1d4;
+  --cmid-palette-e8e1d6: #e8e1d6;
+  --cmid-palette-e8e1d7: #e8e1d7;
+  --cmid-palette-e8e2d8: #e8e2d8;
+  --cmid-palette-e8e2d9: #e8e2d9;
+  --cmid-palette-e8e4dc: #e8e4dc;
+  --cmid-palette-e8f3ff: #e8f3ff;
+  --cmid-palette-e8f5ed: #e8f5ed;
+  --cmid-palette-e9b75f: #e9b75f;
+  --cmid-palette-e9decd: #e9decd;
+  --cmid-palette-e9dfd0: #e9dfd0;
+  --cmid-palette-e9dfd1: #e9dfd1;
+  --cmid-palette-e9e2d7: #e9e2d7;
+  --cmid-palette-e9e3da: #e9e3da;
+  --cmid-palette-e9e4db: #e9e4db;
+  --cmid-palette-e9e5dc: #e9e5dc;
+  --cmid-palette-e9e5df: #e9e5df;
+  --cmid-palette-e9f6ed: #e9f6ed;
+  --cmid-palette-eae4da: #eae4da;
+  --cmid-palette-eae5dd: #eae5dd;
+  --cmid-palette-ebe4d9: #ebe4d9;
+  --cmid-palette-ebe4da: #ebe4da;
+  --cmid-palette-ebe5da: #ebe5da;
+  --cmid-palette-ebe5db: #ebe5db;
+  --cmid-palette-ebe5dc: #ebe5dc;
+  --cmid-palette-ece4d7: #ece4d7;
+  --cmid-palette-ece5dc: #ece5dc;
+  --cmid-palette-ece6dc: #ece6dc;
+  --cmid-palette-ece6dd: #ece6dd;
+  --cmid-palette-ece7df: #ece7df;
+  --cmid-palette-ece8df: #ece8df;
+  --cmid-palette-edc174: #edc174;
+  --cmid-palette-ede4d8: #ede4d8;
+  --cmid-palette-ede7dd: #ede7dd;
+  --cmid-palette-ede8de: #ede8de;
+  --cmid-palette-edf3ed: #edf3ed;
+  --cmid-palette-edf8f0: #edf8f0;
+  --cmid-palette-eee2ce: #eee2ce;
+  --cmid-palette-eee3d5: #eee3d5;
+  --cmid-palette-eee4d6: #eee4d6;
+  --cmid-palette-eee5d9: #eee5d9;
+  --cmid-palette-eee6db: #eee6db;
+  --cmid-palette-eee7da: #eee7da;
+  --cmid-palette-eee7dc: #eee7dc;
+  --cmid-palette-eee8de: #eee8de;
+  --cmid-palette-eee8df: #eee8df;
+  --cmid-palette-eee9df: #eee9df;
+  --cmid-palette-eee9e1: #eee9e1;
+  --cmid-palette-eeeae4: #eeeae4;
+  --cmid-palette-efece4: #efece4;
+  --cmid-palette-efede7: #efede7;
+  --cmid-palette-efeee9: #efeee9;
+  --cmid-palette-f06f9c: #f06f9c;
+  --cmid-palette-f0bf6c: #f0bf6c;
+  --cmid-palette-f0c371: #f0c371;
+  --cmid-palette-f0c77f: #f0c77f;
+  --cmid-palette-f0cd92: #f0cd92;
+  --cmid-palette-f0e8dc: #f0e8dc;
+  --cmid-palette-f0e9fb: #f0e9fb;
+  --cmid-palette-f0eadf: #f0eadf;
+  --cmid-palette-f1dcae: #f1dcae;
+  --cmid-palette-f1e4cb: #f1e4cb;
+  --cmid-palette-f1e9df: #f1e9df;
+  --cmid-palette-f1ede7: #f1ede7;
+  --cmid-palette-f1eee8: #f1eee8;
+  --cmid-palette-f1eee9: #f1eee9;
+  --cmid-palette-f1efea: #f1efea;
+  --cmid-palette-f2cf91: #f2cf91;
+  --cmid-palette-f2d09a: #f2d09a;
+  --cmid-palette-f2d4b0: #f2d4b0;
+  --cmid-palette-f2d7a8: #f2d7a8;
+  --cmid-palette-f2e8d9: #f2e8d9;
+  --cmid-palette-f2e9dc: #f2e9dc;
+  --cmid-palette-f2ece1: #f2ece1;
+  --cmid-palette-f2ece2: #f2ece2;
+  --cmid-palette-f2eee5: #f2eee5;
+  --cmid-palette-f2eee7: #f2eee7;
+  --cmid-palette-f3d0cb: #f3d0cb;
+  --cmid-palette-f3eee5: #f3eee5;
+  --cmid-palette-f3eee6: #f3eee6;
+  --cmid-palette-f3efe7: #f3efe7;
+  --cmid-palette-f3f1ed: #f3f1ed;
+  --cmid-palette-f3f3ef: #f3f3ef;
+  --cmid-palette-f4dfbd: #f4dfbd;
+  --cmid-palette-f4e5cf: #f4e5cf;
+  --cmid-palette-f4e7cf: #f4e7cf;
+  --cmid-palette-f4eee5: #f4eee5;
+  --cmid-palette-f4efe7: #f4efe7;
+  --cmid-palette-f4f0e8: #f4f0e8;
+  --cmid-palette-f4f0e9: #f4f0e9;
+  --cmid-palette-f4f1eb: #f4f1eb;
+  --cmid-palette-f4f2ee: #f4f2ee;
+  --cmid-palette-f5d39e: #f5d39e;
+  --cmid-palette-f5ebd9: #f5ebd9;
+  --cmid-palette-f5efe4: #f5efe4;
+  --cmid-palette-f5f1e9: #f5f1e9;
+  --cmid-palette-f5f2ec: #f5f2ec;
+  --cmid-palette-f5f3ee: #f5f3ee;
+  --cmid-palette-f6e1bd: #f6e1bd;
+  --cmid-palette-f6eddd: #f6eddd;
+  --cmid-palette-f6efe4: #f6efe4;
+  --cmid-palette-f6efe5: #f6efe5;
+  --cmid-palette-f6f1e9: #f6f1e9;
+  --cmid-palette-f6f2eb: #f6f2eb;
+  --cmid-palette-f6f3ed: #f6f3ed;
+  --cmid-palette-f6f4ef: #f6f4ef;
+  --cmid-palette-f7eddc: #f7eddc;
+  --cmid-palette-f7efe0: #f7efe0;
+  --cmid-palette-f7f1e7: #f7f1e7;
+  --cmid-palette-f7f1e8: #f7f1e8;
+  --cmid-palette-f7f3eb: #f7f3eb;
+  --cmid-palette-f7f3ed: #f7f3ed;
+  --cmid-palette-f7f4ee: #f7f4ee;
+  --cmid-palette-f7f6f1: #f7f6f1;
+  --cmid-palette-f8edda: #f8edda;
+  --cmid-palette-f8eedb: #f8eedb;
+  --cmid-palette-f8efde: #f8efde;
+  --cmid-palette-f8f3eb: #f8f3eb;
+  --cmid-palette-f8f4ec: #f8f4ec;
+  --cmid-palette-f8f5ee: #f8f5ee;
+  --cmid-palette-f8f6f1: #f8f6f1;
+  --cmid-palette-f8f6f2: #f8f6f2;
+  --cmid-palette-f9f1e3: #f9f1e3;
+  --cmid-palette-f9f4e9: #f9f4e9;
+  --cmid-palette-f9f7f1: #f9f7f1;
+  --cmid-palette-faf7f1: #faf7f1;
+  --cmid-palette-faf8f3: #faf8f3;
+  --cmid-palette-faf8f4: #faf8f4;
+  --cmid-palette-fafaf8: #fafaf8;
+  --cmid-palette-fbf1dd: #fbf1dd;
+  --cmid-palette-fbf4e7: #fbf4e7;
+  --cmid-palette-fbf4e8: #fbf4e8;
+  --cmid-palette-fbf5e9: #fbf5e9;
+  --cmid-palette-fbf6ea: #fbf6ea;
+  --cmid-palette-fbf6ee: #fbf6ee;
+  --cmid-palette-fbf7ef: #fbf7ef;
+  --cmid-palette-fbf7f0: #fbf7f0;
+  --cmid-palette-fbf8f2: #fbf8f2;
+  --cmid-palette-fbf9f5: #fbf9f5;
+  --cmid-palette-fbfaf7: #fbfaf7;
+  --cmid-palette-fcedeb: #fcedeb;
+  --cmid-palette-fceee8: #fceee8;
+  --cmid-palette-fcf7ed: #fcf7ed;
+  --cmid-palette-fcfaf6: #fcfaf6;
+  --cmid-palette-fcfbf8: #fcfbf8;
+  --cmid-palette-fdfbf6: #fdfbf6;
+  --cmid-palette-ffe2b1: #ffe2b1;
+  --cmid-palette-fff: #fff;
+  --cmid-palette-fff0df: #fff0df;
+  --cmid-palette-fff0ee: #fff0ee;
+  --cmid-palette-fff0ef: #fff0ef;
+  --cmid-palette-fff1d5: #fff1d5;
+  --cmid-palette-fff4db: #fff4db;
+  --cmid-palette-fff7e8: #fff7e8;
+  --cmid-palette-fff7f5: #fff7f5;
+  --cmid-palette-fff8ed: #fff8ed;
+  --cmid-palette-fff8ef: #fff8ef;
+  --cmid-palette-fff8f5: #fff8f5;
+  --cmid-palette-fff9ee: #fff9ee;
+  --cmid-palette-fff9ef: #fff9ef;
+  --cmid-palette-fffaf0: #fffaf0;
+  --cmid-palette-fffaf1: #fffaf1;
+  --cmid-palette-fffaf2: #fffaf2;
+  --cmid-palette-fffaf3: #fffaf3;
+  --cmid-palette-fffaf8: #fffaf8;
+  --cmid-palette-fffcf7: #fffcf7;
+  --cmid-palette-fffdf8: #fffdf8;
+  --cmid-palette-fffdf9: #fffdf9;
+  --cmid-palette-fffdfa: #fffdfa;
+  --cmid-palette-fffefa: #fffefa;
+  --cmid-palette-fffefb: #fffefb;
+  --cmid-palette-fffefc: #fffefc;
+  --cmid-palette-fffefd: #fffefd;
+  --cmid-palette-ffffff: #ffffff;
+  --cmid-palette-rgb-0-0-0-alpha-16p: rgb(0 0 0 / 16%);
+  --cmid-palette-rgb-0-0-0-alpha-18p: rgb(0 0 0 / 18%);
+  --cmid-palette-rgb-0-0-0-alpha-20p: rgb(0 0 0 / 20%);
+  --cmid-palette-rgb-0-0-0-alpha-24p: rgb(0 0 0 / 24%);
+  --cmid-palette-rgb-0-0-0-alpha-28p: rgb(0 0 0 / 28%);
+  --cmid-palette-rgb-0-0-0-alpha-32p: rgb(0 0 0 / 32%);
+  --cmid-palette-rgb-0-0-0-alpha-34p: rgb(0 0 0 / 34%);
+  --cmid-palette-rgb-0-0-0-alpha-44p: rgb(0 0 0 / 44%);
+  --cmid-palette-rgb-0-0-0-alpha-46p: rgb(0 0 0 / 46%);
+  --cmid-palette-rgb-0-0-0-alpha-48p: rgb(0 0 0 / 48%);
+  --cmid-palette-rgb-0-0-0-alpha-65p: rgb(0 0 0 / 65%);
+  --cmid-palette-rgb-0-0-0-alpha-92p: rgb(0 0 0 / 92%);
+  --cmid-palette-rgb-0-103-255-alpha-83p: rgb(0 103 255 / 83%);
+  --cmid-palette-rgb-0-41-161-alpha-17p: rgb(0 41 161 / 17%);
+  --cmid-palette-rgb-0-63-188-alpha-86p: rgb(0 63 188 / 86%);
+  --cmid-palette-rgb-0-69-203-alpha-80p: rgb(0 69 203 / 80%);
+  --cmid-palette-rgb-0-90-221-alpha-30p: rgb(0 90 221 / 30%);
+  --cmid-palette-rgb-0-90-221-alpha-38p: rgb(0 90 221 / 38%);
+  --cmid-palette-rgb-0-97-241-alpha-88p: rgb(0 97 241 / 88%);
+  --cmid-palette-rgb-10-8-5-alpha-10p: rgb(10 8 5 / 10%);
+  --cmid-palette-rgb-10-8-5-alpha-34p: rgb(10 8 5 / 34%);
+  --cmid-palette-rgb-10-8-5-alpha-70p: rgb(10 8 5 / 70%);
+  --cmid-palette-rgb-10-8-5-alpha-93p: rgb(10 8 5 / 93%);
+  --cmid-palette-rgb-10-8-6-alpha-78p: rgb(10 8 6 / 78%);
+  --cmid-palette-rgb-101-72-41-alpha-34p: rgb(101 72 41 / 34%);
+  --cmid-palette-rgb-103-103-103-alpha-58p: rgb(103 103 103 / 58%);
+  --cmid-palette-rgb-103-66-31-alpha-88p: rgb(103 66 31 / 88%);
+  --cmid-palette-rgb-104-68-29-alpha-18p: rgb(104 68 29 / 18%);
+  --cmid-palette-rgb-112-78-35-alpha-18p: rgb(112 78 35 / 18%);
+  --cmid-palette-rgb-113-75-25-alpha-18p: rgb(113 75 25 / 18%);
+  --cmid-palette-rgb-116-77-34-alpha-25p: rgb(116 77 34 / 25%);
+  --cmid-palette-rgb-117-75-27-alpha-18p: rgb(117 75 27 / 18%);
+  --cmid-palette-rgb-12-11-9-alpha-48p: rgb(12 11 9 / 48%);
+  --cmid-palette-rgb-12-11-9-alpha-82p: rgb(12 11 9 / 82%);
+  --cmid-palette-rgb-12-9-6-alpha-61p: rgb(12 9 6 / 61%);
+  --cmid-palette-rgb-12-9-6-alpha-79p: rgb(12 9 6 / 79%);
+  --cmid-palette-rgb-13-14-12-alpha-12p: rgb(13 14 12 / 12%);
+  --cmid-palette-rgb-13-14-12-alpha-20p: rgb(13 14 12 / 20%);
+  --cmid-palette-rgb-13-14-12-alpha-58p: rgb(13 14 12 / 58%);
+  --cmid-palette-rgb-13-14-12-alpha-80p: rgb(13 14 12 / 80%);
+  --cmid-palette-rgb-13-9-6-alpha-45p: rgb(13 9 6 / 45%);
+  --cmid-palette-rgb-13-9-6-alpha-78p: rgb(13 9 6 / 78%);
+  --cmid-palette-rgb-137-89-28-alpha-46p: rgb(137 89 28 / 46%);
+  --cmid-palette-rgb-14-12-9-alpha-26p: rgb(14 12 9 / 26%);
+  --cmid-palette-rgb-142-91-29-alpha-18p: rgb(142 91 29 / 18%);
+  --cmid-palette-rgb-151-104-39-alpha-38p: rgb(151 104 39 / 38%);
+  --cmid-palette-rgb-157-110-48-alpha-10p: rgb(157 110 48 / 10%);
+  --cmid-palette-rgb-157-110-48-alpha-12p: rgb(157 110 48 / 12%);
+  --cmid-palette-rgb-16-14-11-alpha-50p: rgb(16 14 11 / 50%);
+  --cmid-palette-rgb-16-14-11-alpha-79p: rgb(16 14 11 / 79%);
+  --cmid-palette-rgb-16-14-11-alpha-94p: rgb(16 14 11 / 94%);
+  --cmid-palette-rgb-17-12-9-alpha-98p: rgb(17 12 9 / 98%);
+  --cmid-palette-rgb-17-14-11-alpha-29p: rgb(17 14 11 / 29%);
+  --cmid-palette-rgb-17-15-12-alpha-26p: rgb(17 15 12 / 26%);
+  --cmid-palette-rgb-170-121-53-alpha-14p: rgb(170 121 53 / 14%);
+  --cmid-palette-rgb-177-121-44-alpha-15p: rgb(177 121 44 / 15%);
+  --cmid-palette-rgb-179-124-44-alpha-17p: rgb(179 124 44 / 17%);
+  --cmid-palette-rgb-179-124-44-alpha-20p: rgb(179 124 44 / 20%);
+  --cmid-palette-rgb-179-124-44-alpha-21p: rgb(179 124 44 / 21%);
+  --cmid-palette-rgb-179-124-44-alpha-22p: rgb(179 124 44 / 22%);
+  --cmid-palette-rgb-179-124-44-alpha-28p: rgb(179 124 44 / 28%);
+  --cmid-palette-rgb-179-124-44-alpha-32p: rgb(179 124 44 / 32%);
+  --cmid-palette-rgb-179-124-44-alpha-34p: rgb(179 124 44 / 34%);
+  --cmid-palette-rgb-179-124-44-alpha-35p: rgb(179 124 44 / 35%);
+  --cmid-palette-rgb-179-124-44-alpha-38p: rgb(179 124 44 / 38%);
+  --cmid-palette-rgb-179-124-44-alpha-47p: rgb(179 124 44 / 47%);
+  --cmid-palette-rgb-179-124-44-alpha-48p: rgb(179 124 44 / 48%);
+  --cmid-palette-rgb-179-124-44-alpha-54p: rgb(179 124 44 / 54%);
+  --cmid-palette-rgb-179-124-44-alpha-61p: rgb(179 124 44 / 61%);
+  --cmid-palette-rgb-179-124-50-alpha-14p: rgb(179 124 50 / 14%);
+  --cmid-palette-rgb-179-141-80-alpha-20p: rgb(179 141 80 / 20%);
+  --cmid-palette-rgb-179-141-80-alpha-36p: rgb(179 141 80 / 36%);
+  --cmid-palette-rgb-18-14-10-alpha-85p: rgb(18 14 10 / 85%);
+  --cmid-palette-rgb-18-16-13-alpha-30p: rgb(18 16 13 / 30%);
+  --cmid-palette-rgb-18-16-13-alpha-55p: rgb(18 16 13 / 55%);
+  --cmid-palette-rgb-18-16-13-alpha-58p: rgb(18 16 13 / 58%);
+  --cmid-palette-rgb-18-16-13-alpha-62p: rgb(18 16 13 / 62%);
+  --cmid-palette-rgb-18-16-13-alpha-90p: rgb(18 16 13 / 90%);
+  --cmid-palette-rgb-180-127-51-alpha-24p: rgb(180 127 51 / 24%);
+  --cmid-palette-rgb-180-127-51-alpha-25p: rgb(180 127 51 / 25%);
+  --cmid-palette-rgb-180-127-51-alpha-32p: rgb(180 127 51 / 32%);
+  --cmid-palette-rgb-180-127-51-alpha-35p: rgb(180 127 51 / 35%);
+  --cmid-palette-rgb-180-128-53-alpha-39p: rgb(180 128 53 / 39%);
+  --cmid-palette-rgb-183-132-64-alpha-31p: rgb(183 132 64 / 31%);
+  --cmid-palette-rgb-184-141-72-alpha-23p: rgb(184 141 72 / 23%);
+  --cmid-palette-rgb-185-126-43-alpha-20p: rgb(185 126 43 / 20%);
+  --cmid-palette-rgb-185-138-67-alpha-10p: rgb(185 138 67 / 10%);
+  --cmid-palette-rgb-185-72-61-alpha-14p: rgb(185 72 61 / 14%);
+  --cmid-palette-rgb-185-72-61-alpha-35p: rgb(185 72 61 / 35%);
+  --cmid-palette-rgb-189-142-65-alpha-12p: rgb(189 142 65 / 12%);
+  --cmid-palette-rgb-189-142-65-alpha-14p: rgb(189 142 65 / 14%);
+  --cmid-palette-rgb-189-142-65-alpha-18p: rgb(189 142 65 / 18%);
+  --cmid-palette-rgb-189-143-73-alpha-25p: rgb(189 143 73 / 25%);
+  --cmid-palette-rgb-189-143-73-alpha-27p: rgb(189 143 73 / 27%);
+  --cmid-palette-rgb-189-143-73-alpha-28p: rgb(189 143 73 / 28%);
+  --cmid-palette-rgb-189-143-73-alpha-30p: rgb(189 143 73 / 30%);
+  --cmid-palette-rgb-189-143-73-alpha-32p: rgb(189 143 73 / 32%);
+  --cmid-palette-rgb-19-14-10-alpha-67p: rgb(19 14 10 / 67%);
+  --cmid-palette-rgb-19-19-17-alpha-43p: rgb(19 19 17 / 43%);
+  --cmid-palette-rgb-190-142-66-alpha-32p: rgb(190 142 66 / 32%);
+  --cmid-palette-rgb-190-155-100-alpha-28p: rgb(190 155 100 / 28%);
+  --cmid-palette-rgb-191-135-53-alpha-10p: rgb(191 135 53 / 10%);
+  --cmid-palette-rgb-191-135-53-alpha-11p: rgb(191 135 53 / 11%);
+  --cmid-palette-rgb-191-135-53-alpha-12p: rgb(191 135 53 / 12%);
+  --cmid-palette-rgb-191-135-53-alpha-14p: rgb(191 135 53 / 14%);
+  --cmid-palette-rgb-191-135-53-alpha-18p: rgb(191 135 53 / 18%);
+  --cmid-palette-rgb-191-135-53-alpha-3p: rgb(191 135 53 / 3%);
+  --cmid-palette-rgb-191-135-53-alpha-5p: rgb(191 135 53 / 5%);
+  --cmid-palette-rgb-191-135-53-alpha-6p: rgb(191 135 53 / 6%);
+  --cmid-palette-rgb-191-135-53-alpha-7p: rgb(191 135 53 / 7%);
+  --cmid-palette-rgb-191-135-53-alpha-8p: rgb(191 135 53 / 8%);
+  --cmid-palette-rgb-191-135-53-alpha-9p: rgb(191 135 53 / 9%);
+  --cmid-palette-rgb-194-146-73-alpha-13p: rgb(194 146 73 / 13%);
+  --cmid-palette-rgb-195-151-75-alpha-20p: rgb(195 151 75 / 20%);
+  --cmid-palette-rgb-196-180-157-alpha-38p: rgb(196 180 157 / 38%);
+  --cmid-palette-rgb-197-150-74-alpha-12p: rgb(197 150 74 / 12%);
+  --cmid-palette-rgb-197-151-78-alpha-16p: rgb(197 151 78 / 16%);
+  --cmid-palette-rgb-197-151-78-alpha-37p: rgb(197 151 78 / 37%);
+  --cmid-palette-rgb-197-151-78-alpha-38p: rgb(197 151 78 / 38%);
+  --cmid-palette-rgb-197-151-78-alpha-46p: rgb(197 151 78 / 46%);
+  --cmid-palette-rgb-197-151-78-alpha-62p: rgb(197 151 78 / 62%);
+  --cmid-palette-rgb-198-151-75-alpha-15p: rgb(198 151 75 / 15%);
+  --cmid-palette-rgb-198-151-75-alpha-25p: rgb(198 151 75 / 25%);
+  --cmid-palette-rgb-198-151-75-alpha-32p: rgb(198 151 75 / 32%);
+  --cmid-palette-rgb-198-151-75-alpha-38p: rgb(198 151 75 / 38%);
+  --cmid-palette-rgb-198-151-75-alpha-52p: rgb(198 151 75 / 52%);
+  --cmid-palette-rgb-199-158-91-alpha-52p: rgb(199 158 91 / 52%);
+  --cmid-palette-rgb-20-16-11-alpha-58p: rgb(20 16 11 / 58%);
+  --cmid-palette-rgb-20-17-13-alpha-57p: rgb(20 17 13 / 57%);
+  --cmid-palette-rgb-20-17-13-alpha-8p: rgb(20 17 13 / 8%);
+  --cmid-palette-rgb-20-19-17-alpha-58p: rgb(20 19 17 / 58%);
+  --cmid-palette-rgb-201-151-69-alpha-28p: rgb(201 151 69 / 28%);
+  --cmid-palette-rgb-201-162-112-alpha-55p: rgb(201 162 112 / 55%);
+  --cmid-palette-rgb-202-151-68-alpha-24p: rgb(202 151 68 / 24%);
+  --cmid-palette-rgb-202-151-68-alpha-42p: rgb(202 151 68 / 42%);
+  --cmid-palette-rgb-203-149-58-alpha-46p: rgb(203 149 58 / 46%);
+  --cmid-palette-rgb-203-149-58-alpha-48p: rgb(203 149 58 / 48%);
+  --cmid-palette-rgb-207-157-76-alpha-13p: rgb(207 157 76 / 13%);
+  --cmid-palette-rgb-207-157-76-alpha-72p: rgb(207 157 76 / 72%);
+  --cmid-palette-rgb-21-16-11-alpha-88p: rgb(21 16 11 / 88%);
+  --cmid-palette-rgb-21-19-16-alpha-52p: rgb(21 19 16 / 52%);
+  --cmid-palette-rgb-216-164-81-alpha-12p: rgb(216 164 81 / 12%);
+  --cmid-palette-rgb-216-164-81-alpha-13p: rgb(216 164 81 / 13%);
+  --cmid-palette-rgb-216-164-81-alpha-22p: rgb(216 164 81 / 22%);
+  --cmid-palette-rgb-216-164-81-alpha-36p: rgb(216 164 81 / 36%);
+  --cmid-palette-rgb-216-164-81-alpha-38p: rgb(216 164 81 / 38%);
+  --cmid-palette-rgb-216-164-81-alpha-47p: rgb(216 164 81 / 47%);
+  --cmid-palette-rgb-216-164-81-alpha-57p: rgb(216 164 81 / 57%);
+  --cmid-palette-rgb-216-164-81-alpha-8p: rgb(216 164 81 / 8%);
+  --cmid-palette-rgb-218-173-95-alpha-59p: rgb(218 173 95 / 59%);
+  --cmid-palette-rgb-22-14-8-alpha-38p: rgb(22 14 8 / 38%);
+  --cmid-palette-rgb-22-22-22-alpha-76p: rgb(22 22 22 / 76%);
+  --cmid-palette-rgb-221-198-154-alpha-40p: rgb(221 198 154 / 40%);
+  --cmid-palette-rgb-222-180-101-alpha-73p: rgb(222 180 101 / 73%);
+  --cmid-palette-rgb-222-184-119-alpha-54p: rgb(222 184 119 / 54%);
+  --cmid-palette-rgb-223-179-97-alpha-52p: rgb(223 179 97 / 52%);
+  --cmid-palette-rgb-224-180-101-alpha-64p: rgb(224 180 101 / 64%);
+  --cmid-palette-rgb-227-184-105-alpha-55p: rgb(227 184 105 / 55%);
+  --cmid-palette-rgb-232-219-202-alpha-58p: rgb(232 219 202 / 58%);
+  --cmid-palette-rgb-235-203-145-alpha-32p: rgb(235 203 145 / 32%);
+  --cmid-palette-rgb-237-193-116-alpha-78p: rgb(237 193 116 / 78%);
+  --cmid-palette-rgb-24-16-10-alpha-62p: rgb(24 16 10 / 62%);
+  --cmid-palette-rgb-24-18-13-alpha-83p: rgb(24 18 13 / 83%);
+  --cmid-palette-rgb-24-20-15-alpha-77p: rgb(24 20 15 / 77%);
+  --cmid-palette-rgb-240-199-127-alpha-76p: rgb(240 199 127 / 76%);
+  --cmid-palette-rgb-243-233-219-alpha-79p: rgb(243 233 219 / 79%);
+  --cmid-palette-rgb-245-238-228-alpha-72p: rgb(245 238 228 / 72%);
+  --cmid-palette-rgb-245-238-228-alpha-7p: rgb(245 238 228 / 7%);
+  --cmid-palette-rgb-245-238-228-alpha-94p: rgb(245 238 228 / 94%);
+  --cmid-palette-rgb-245-238-228-alpha-96p: rgb(245 238 228 / 96%);
+  --cmid-palette-rgb-245-239-230-alpha-30p: rgb(245 239 230 / 30%);
+  --cmid-palette-rgb-246-239-229-alpha-96p: rgb(246 239 229 / 96%);
+  --cmid-palette-rgb-246-240-231-alpha-95p: rgb(246 240 231 / 95%);
+  --cmid-palette-rgb-247-241-233-alpha-83p: rgb(247 241 233 / 83%);
+  --cmid-palette-rgb-247-241-233-alpha-86p: rgb(247 241 233 / 86%);
+  --cmid-palette-rgb-247-242-235-alpha-32p: rgb(247 242 235 / 32%);
+  --cmid-palette-rgb-247-242-235-alpha-8p: rgb(247 242 235 / 8%);
+  --cmid-palette-rgb-248-243-236-alpha-92p: rgb(248 243 236 / 92%);
+  --cmid-palette-rgb-249-245-239-alpha-80p: rgb(249 245 239 / 80%);
+  --cmid-palette-rgb-25-18-11-alpha-58p: rgb(25 18 11 / 58%);
+  --cmid-palette-rgb-25-26-25-alpha-25p: rgb(25 26 25 / 25%);
+  --cmid-palette-rgb-25-26-25-alpha-74p: rgb(25 26 25 / 74%);
+  --cmid-palette-rgb-25-26-25-alpha-76p: rgb(25 26 25 / 76%);
+  --cmid-palette-rgb-25-26-25-alpha-8p: rgb(25 26 25 / 8%);
+  --cmid-palette-rgb-25-26-25-alpha-97p: rgb(25 26 25 / 97%);
+  --cmid-palette-rgb-255-230-183-alpha-16p: rgb(255 230 183 / 16%);
+  --cmid-palette-rgb-255-235-196-alpha-12p: rgb(255 235 196 / 12%);
+  --cmid-palette-rgb-255-235-204-alpha-74p: rgb(255 235 204 / 74%);
+  --cmid-palette-rgb-255-244-222-alpha-12p: rgb(255 244 222 / 12%);
+  --cmid-palette-rgb-255-244-222-alpha-16p: rgb(255 244 222 / 16%);
+  --cmid-palette-rgb-255-244-222-alpha-7p: rgb(255 244 222 / 7%);
+  --cmid-palette-rgb-255-248-239-alpha-78p: rgb(255 248 239 / 78%);
+  --cmid-palette-rgb-255-249-239-alpha-16p: rgb(255 249 239 / 16%);
+  --cmid-palette-rgb-255-249-239-alpha-20p: rgb(255 249 239 / 20%);
+  --cmid-palette-rgb-255-249-239-alpha-28p: rgb(255 249 239 / 28%);
+  --cmid-palette-rgb-255-249-239-alpha-34p: rgb(255 249 239 / 34%);
+  --cmid-palette-rgb-255-249-239-alpha-42p: rgb(255 249 239 / 42%);
+  --cmid-palette-rgb-255-250-240-alpha-76p: rgb(255 250 240 / 76%);
+  --cmid-palette-rgb-255-250-241-alpha-58p: rgb(255 250 241 / 58%);
+  --cmid-palette-rgb-255-250-241-alpha-82p: rgb(255 250 241 / 82%);
+  --cmid-palette-rgb-255-252-246-alpha-72p: rgb(255 252 246 / 72%);
+  --cmid-palette-rgb-255-252-247-alpha-75p: rgb(255 252 247 / 75%);
+  --cmid-palette-rgb-255-252-247-alpha-80p: rgb(255 252 247 / 80%);
+  --cmid-palette-rgb-255-253-249-alpha-64p: rgb(255 253 249 / 64%);
+  --cmid-palette-rgb-255-253-249-alpha-68p: rgb(255 253 249 / 68%);
+  --cmid-palette-rgb-255-253-249-alpha-6p: rgb(255 253 249 / 6%);
+  --cmid-palette-rgb-255-253-249-alpha-74p: rgb(255 253 249 / 74%);
+  --cmid-palette-rgb-255-253-249-alpha-76p: rgb(255 253 249 / 76%);
+  --cmid-palette-rgb-255-253-249-alpha-84p: rgb(255 253 249 / 84%);
+  --cmid-palette-rgb-255-253-249-alpha-86p: rgb(255 253 249 / 86%);
+  --cmid-palette-rgb-255-253-249-alpha-87p: rgb(255 253 249 / 87%);
+  --cmid-palette-rgb-255-253-249-alpha-88p: rgb(255 253 249 / 88%);
+  --cmid-palette-rgb-255-253-249-alpha-94p: rgb(255 253 249 / 94%);
+  --cmid-palette-rgb-255-253-249-alpha-96p: rgb(255 253 249 / 96%);
+  --cmid-palette-rgb-255-254-250-alpha-92p: rgb(255 254 250 / 92%);
+  --cmid-palette-rgb-255-254-250-alpha-95p: rgb(255 254 250 / 95%);
+  --cmid-palette-rgb-255-254-253-alpha-96p: rgb(255 254 253 / 96%);
+  --cmid-palette-rgb-255-254-253-alpha-97p: rgb(255 254 253 / 97%);
+  --cmid-palette-rgb-255-255-255-alpha-10p: rgb(255 255 255 / 10%);
+  --cmid-palette-rgb-255-255-255-alpha-11p: rgb(255 255 255 / 11%);
+  --cmid-palette-rgb-255-255-255-alpha-12p: rgb(255 255 255 / 12%);
+  --cmid-palette-rgb-255-255-255-alpha-13p: rgb(255 255 255 / 13%);
+  --cmid-palette-rgb-255-255-255-alpha-14p: rgb(255 255 255 / 14%);
+  --cmid-palette-rgb-255-255-255-alpha-16p: rgb(255 255 255 / 16%);
+  --cmid-palette-rgb-255-255-255-alpha-24p: rgb(255 255 255 / 24%);
+  --cmid-palette-rgb-255-255-255-alpha-28p: rgb(255 255 255 / 28%);
+  --cmid-palette-rgb-255-255-255-alpha-42p: rgb(255 255 255 / 42%);
+  --cmid-palette-rgb-255-255-255-alpha-48p: rgb(255 255 255 / 48%);
+  --cmid-palette-rgb-255-255-255-alpha-4p: rgb(255 255 255 / 4%);
+  --cmid-palette-rgb-255-255-255-alpha-50p: rgb(255 255 255 / 50%);
+  --cmid-palette-rgb-255-255-255-alpha-5p: rgb(255 255 255 / 5%);
+  --cmid-palette-rgb-255-255-255-alpha-60p: rgb(255 255 255 / 60%);
+  --cmid-palette-rgb-255-255-255-alpha-62p: rgb(255 255 255 / 62%);
+  --cmid-palette-rgb-255-255-255-alpha-64p: rgb(255 255 255 / 64%);
+  --cmid-palette-rgb-255-255-255-alpha-65p: rgb(255 255 255 / 65%);
+  --cmid-palette-rgb-255-255-255-alpha-68p: rgb(255 255 255 / 68%);
+  --cmid-palette-rgb-255-255-255-alpha-70p: rgb(255 255 255 / 70%);
+  --cmid-palette-rgb-255-255-255-alpha-72p: rgb(255 255 255 / 72%);
+  --cmid-palette-rgb-255-255-255-alpha-74p: rgb(255 255 255 / 74%);
+  --cmid-palette-rgb-255-255-255-alpha-76p: rgb(255 255 255 / 76%);
+  --cmid-palette-rgb-255-255-255-alpha-7p: rgb(255 255 255 / 7%);
+  --cmid-palette-rgb-255-255-255-alpha-82p: rgb(255 255 255 / 82%);
+  --cmid-palette-rgb-255-255-255-alpha-8p: rgb(255 255 255 / 8%);
+  --cmid-palette-rgb-255-255-255-alpha-96p: rgb(255 255 255 / 96%);
+  --cmid-palette-rgb-255-255-255-alpha-97p: rgb(255 255 255 / 97%);
+  --cmid-palette-rgb-255-255-255-alpha-9p: rgb(255 255 255 / 9%);
+  --cmid-palette-rgb-26-19-14-alpha-98p: rgb(26 19 14 / 98%);
+  --cmid-palette-rgb-28-26-22-alpha-84p: rgb(28 26 22 / 84%);
+  --cmid-palette-rgb-29-19-11-alpha-94p: rgb(29 19 11 / 94%);
+  --cmid-palette-rgb-29-20-10-alpha-28p: rgb(29 20 10 / 28%);
+  --cmid-palette-rgb-29-27-23-alpha-18p: rgb(29 27 23 / 18%);
+  --cmid-palette-rgb-30-18-9-alpha-46p: rgb(30 18 9 / 46%);
+  --cmid-palette-rgb-30-20-13-alpha-58p: rgb(30 20 13 / 58%);
+  --cmid-palette-rgb-30-22-13-alpha-24p: rgb(30 22 13 / 24%);
+  --cmid-palette-rgb-31-21-13-alpha-68p: rgb(31 21 13 / 68%);
+  --cmid-palette-rgb-34-26-15-alpha-5p: rgb(34 26 15 / 5%);
+  --cmid-palette-rgb-38-23-12-alpha-22p: rgb(38 23 12 / 22%);
+  --cmid-palette-rgb-38-23-12-alpha-24p: rgb(38 23 12 / 24%);
+  --cmid-palette-rgb-4-3-2-alpha-18p: rgb(4 3 2 / 18%);
+  --cmid-palette-rgb-42-29-18-alpha-24p: rgb(42 29 18 / 24%);
+  --cmid-palette-rgb-42-31-22-alpha-81p: rgb(42 31 22 / 81%);
+  --cmid-palette-rgb-42-32-17-alpha-18p: rgb(42 32 17 / 18%);
+  --cmid-palette-rgb-44-33-18-alpha-9p: rgb(44 33 18 / 9%);
+  --cmid-palette-rgb-45-33-20-alpha-18p: rgb(45 33 20 / 18%);
+  --cmid-palette-rgb-46-37-23-alpha-5p: rgb(46 37 23 / 5%);
+  --cmid-palette-rgb-47-37-20-alpha-15p: rgb(47 37 20 / 15%);
+  --cmid-palette-rgb-48-35-19-alpha-18p: rgb(48 35 19 / 18%);
+  --cmid-palette-rgb-48-37-17-alpha-10p: rgb(48 37 17 / 10%);
+  --cmid-palette-rgb-49-38-21-alpha-5p: rgb(49 38 21 / 5%);
+  --cmid-palette-rgb-49-38-21-alpha-9p: rgb(49 38 21 / 9%);
+  --cmid-palette-rgb-5-3-2-alpha-14p: rgb(5 3 2 / 14%);
+  --cmid-palette-rgb-5-3-2-alpha-34p: rgb(5 3 2 / 34%);
+  --cmid-palette-rgb-50-145-255-alpha-56p: rgb(50 145 255 / 56%);
+  --cmid-palette-rgb-52-149-255-alpha-94p: rgb(52 149 255 / 94%);
+  --cmid-palette-rgb-54-35-17-alpha-22p: rgb(54 35 17 / 22%);
+  --cmid-palette-rgb-55-43-22-alpha-5p: rgb(55 43 22 / 5%);
+  --cmid-palette-rgb-58-41-29-alpha-98p: rgb(58 41 29 / 98%);
+  --cmid-palette-rgb-58-42-15-alpha-4p: rgb(58 42 15 / 4%);
+  --cmid-palette-rgb-60-45-30-alpha-20p: rgb(60 45 30 / 20%);
+  --cmid-palette-rgb-60-45-30-alpha-42p: rgb(60 45 30 / 42%);
+  --cmid-palette-rgb-60-45-30-alpha-6p: rgb(60 45 30 / 6%);
+  --cmid-palette-rgb-61-43-19-alpha-10p: rgb(61 43 19 / 10%);
+  --cmid-palette-rgb-62-43-20-alpha-14p: rgb(62 43 20 / 14%);
+  --cmid-palette-rgb-64-42-12-alpha-16p: rgb(64 42 12 / 16%);
+  --cmid-palette-rgb-64-48-26-alpha-3p: rgb(64 48 26 / 3%);
+  --cmid-palette-rgb-65-42-22-alpha-13p: rgb(65 42 22 / 13%);
+  --cmid-palette-rgb-66-48-21-alpha-18p: rgb(66 48 21 / 18%);
+  --cmid-palette-rgb-68-45-22-alpha-88p: rgb(68 45 22 / 88%);
+  --cmid-palette-rgb-69-43-17-alpha-20p: rgb(69 43 17 / 20%);
+  --cmid-palette-rgb-69-49-18-alpha-7p: rgb(69 49 18 / 7%);
+  --cmid-palette-rgb-7-5-3-alpha-78p: rgb(7 5 3 / 78%);
+  --cmid-palette-rgb-7-5-3-alpha-84p: rgb(7 5 3 / 84%);
+  --cmid-palette-rgb-7-5-3-alpha-91p: rgb(7 5 3 / 91%);
+  --cmid-palette-rgb-7-5-3-alpha-94p: rgb(7 5 3 / 94%);
+  --cmid-palette-rgb-70-158-255-alpha-98p: rgb(70 158 255 / 98%);
+  --cmid-palette-rgb-70-45-22-alpha-15p: rgb(70 45 22 / 15%);
+  --cmid-palette-rgb-70-49-31-alpha-20p: rgb(70 49 31 / 20%);
+  --cmid-palette-rgb-71-47-17-alpha-4p: rgb(71 47 17 / 4%);
+  --cmid-palette-rgb-74-55-25-alpha-16p: rgb(74 55 25 / 16%);
+  --cmid-palette-rgb-75-50-24-alpha-18p: rgb(75 50 24 / 18%);
+  --cmid-palette-rgb-78-78-78-alpha-74p: rgb(78 78 78 / 74%);
+  --cmid-palette-rgb-79-53-28-alpha-14p: rgb(79 53 28 / 14%);
+  --cmid-palette-rgb-8-5-2-alpha-20p: rgb(8 5 2 / 20%);
+  --cmid-palette-rgb-8-5-2-alpha-28p: rgb(8 5 2 / 28%);
+  --cmid-palette-rgb-8-5-3-alpha-62p: rgb(8 5 3 / 62%);
+  --cmid-palette-rgb-8-6-4-alpha-18p: rgb(8 6 4 / 18%);
+  --cmid-palette-rgb-8-6-4-alpha-28p: rgb(8 6 4 / 28%);
+  --cmid-palette-rgb-82-52-24-alpha-7p: rgb(82 52 24 / 7%);
+  --cmid-palette-rgb-82-52-24-alpha-8p: rgb(82 52 24 / 8%);
+  --cmid-palette-rgb-82-61-29-alpha-4p: rgb(82 61 29 / 4%);
+  --cmid-palette-rgb-88-59-25-alpha-13p: rgb(88 59 25 / 13%);
+  --cmid-palette-rgb-9-6-4-alpha-78p: rgb(9 6 4 / 78%);
+  --cmid-palette-rgb-90-57-23-alpha-48p: rgb(90 57 23 / 48%);
+  --cmid-palette-rgb-91-61-25-alpha-10p: rgb(91 61 25 / 10%);
+  --cmid-palette-rgb-91-61-25-alpha-8p: rgb(91 61 25 / 8%);
+  --cmid-palette-rgb-91-63-26-alpha-18p: rgb(91 63 26 / 18%);
+  --cmid-palette-rgb-91-66-47-alpha-98p: rgb(91 66 47 / 98%);
+  --cmid-palette-rgb-94-66-36-alpha-16p: rgb(94 66 36 / 16%);
+}
+
 /* Shared public-site theme. Admin keeps its own operational design system. */
 .app-shell--site:not(.app-shell--home) {
   --site-bg: #0f0b08;
@@ -1174,16 +2322,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .account-page .a
 .app-shell--site:not(.app-shell--home) .khung-dau-trang__button,
 html[data-theme='light'] .app-shell--site:not(.app-shell--home) .khung-dau-trang__button {
   margin-top: 28px;
-  border-color: #d6a34f;
-  color: #fffaf2;
-  background: rgb(198 151 75 / 18%);
-}
-
-.app-shell--site:not(.app-shell--home) .khung-dau-trang__button:hover,
-html[data-theme='light'] .app-shell--site:not(.app-shell--home) .khung-dau-trang__button:hover {
-  border-color: #dda954;
-  color: #fff;
-  background: #b77d2d;
 }
 
 .app-shell--site:not(.app-shell--home) :is(.catalog-hero, .tin-tuc__hero) {
@@ -1323,6 +2461,7 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
   .site-nav__link,
   .menu-toggle
 ) {
+
   color: #30271f;
   text-shadow: 0 1px rgb(255 255 255 / 62%);
 }
@@ -1750,7 +2889,7 @@ html[data-theme='light'] .app-shell--site .color-theme-switch__thumb {
 html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-header__main,
 html[data-theme='light'] .app-shell--site.app-shell--home .site-header__main {
   border-color: rgb(174 122 49 / 38%);
-  background: rgb(255 253 249 / 90%);
+  background: #fffdf9;
   box-shadow: 0 12px 32px rgb(60 45 30 / 11%);
   backdrop-filter: blur(20px) saturate(0.9);
   -webkit-backdrop-filter: blur(20px) saturate(0.9);
@@ -2862,7 +4001,6 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
 
 html[data-theme='light'] .app-shell--site :is(
   .button--gold,
-  .khung-dau-trang__button,
   .product-card__action:not(.product-card__action--quote),
   .catalog-pagination__current,
   .tin-tuc__pagination button.is-active,
@@ -3579,10 +4717,12 @@ html[data-theme='light'] .app-shell--site {
 }
 
 /* Secondary navigation and utility actions use the account navigation hover.
-   Purchase, account-save and payment actions are listed separately so they cannot
-   be overridden by their page-specific solid-gold hover rules. */
+   Public hero CTAs are excluded: they deliberately inherit the dark-glass
+   response from the homepage, in both colour themes. Purchase, account-save
+   and payment actions are listed separately so they cannot be overridden by
+   their page-specific solid-gold hover rules. */
 .app-shell--site :is(
-  .button:not(.button--gold):not(.product-card__action),
+  .button:not(.button--gold):not(.product-card__action):not(.home-hero-glass-button):not(.cmid-hero-action),
   .catalog-filters__reset,
   .catalog-pagination button:not(.catalog-pagination__current),
   .tin-tuc__sidebar nav button:not(.is-active),
@@ -3616,7 +4756,7 @@ html[data-theme='light'] .app-shell--site {
 
 @media (hover: hover) {
   .app-shell--site :is(
-    .button:not(.button--gold):not(.product-card__action),
+    .button:not(.button--gold):not(.product-card__action):not(.home-hero-glass-button):not(.cmid-hero-action),
     .catalog-filters__reset,
     .catalog-pagination button:not(.catalog-pagination__current),
     .tin-tuc__sidebar nav button:not(.is-active),
@@ -3656,14 +4796,6 @@ html[data-theme='light'] .app-shell--site {
 
   .app-shell--site:not(.app-shell--home) .payment-option:not(:has(input:checked)):hover input {
     accent-color: #ffd88d;
-  }
-
-  /* Detail-page hero actions retain the shared gold hover response. */
-  .app-shell--site .khung-dau-trang__button:not(:disabled):hover {
-    border-color: #dbaa55 !important;
-    color: #fffaf2 !important;
-    background-color: #b77d2d !important;
-    box-shadow: inset 14px 0 26px rgb(255 238 202 / 10%);
   }
 
   .app-shell--site:not(.app-shell--home)
@@ -4378,5 +5510,231 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
   ) .khung-dau-trang__noi-dung,
   .app-shell--site.app-shell--hero .trang-tin-tuc .tin-tuc__hero-editorial {
     transform: translateY(clamp(48px, 4.6vw, 72px));
+  }
+}
+
+/*
+   Public CTA language
+   -------------------
+   The "Yêu cầu báo giá" control in the home hero is the reference CTA for
+   CMID: a precise gold outline, softly rounded corners and a quiet warm
+   surface.  Keep the glass version on photography, but give every ordinary
+   customer-facing action the same silhouette and interaction in both themes.
+   This intentionally lives last: older page styles still use .button--gold.
+*/
+.app-shell--site {
+  --cmid-cta-border: #d29a42;
+  --cmid-cta-ink: #fffaf2;
+  --cmid-cta-surface: rgb(22 14 8 / 38%);
+  --cmid-cta-hover-border: var(--cmid-control-hover-border);
+  --cmid-cta-hover-ink: var(--cmid-control-hover-ink);
+  --cmid-cta-hover-surface: var(--cmid-control-hover-surface);
+  --cmid-cta-ring: rgb(210 154 66 / 28%);
+  --cmid-cta-highlight: rgb(255 235 196 / 12%);
+  --cmid-cta-shadow: 0 9px 22px rgb(8 5 2 / 20%);
+}
+
+.app-shell--site :is(
+  .button,
+  .product-card__action:not(.product-card__action--out-of-stock),
+  .product-detail-actions__primary,
+  .product-detail-actions__secondary,
+  .account-profile__button,
+  .order-summary__action
+):not(.home-hero-glass-button):not(:disabled) {
+  border: 1px solid var(--cmid-cta-border) !important;
+  border-radius: 9px;
+  background-image: none !important;
+  backdrop-filter: blur(12px) saturate(1.08);
+  -webkit-backdrop-filter: blur(12px) saturate(1.08);
+}
+
+/* Preserve compact controls while making them recognisably part of the same
+   button family. */
+.app-shell--site .button--small:not(.home-hero-glass-button) {
+  border-radius: 7px;
+}
+
+@media (hover: hover) {
+  .app-shell--site :is(
+    .button,
+    .product-card__action:not(.product-card__action--out-of-stock),
+    .product-detail-actions__primary,
+    .product-detail-actions__secondary,
+    .account-profile__button,
+    .order-summary__action
+  ):not(.home-hero-glass-button):not(:disabled):hover {
+    border-color: var(--cmid-cta-hover-border) !important;
+    color: var(--cmid-cta-hover-ink) !important;
+    background-color: var(--cmid-cta-hover-surface) !important;
+    box-shadow: inset 14px 0 26px var(--cmid-control-hover-tint);
+    transform: translateY(0) !important;
+  }
+}
+
+.app-shell--site :is(
+  .button,
+  .product-card__action:not(.product-card__action--out-of-stock),
+  .product-detail-actions__primary,
+  .product-detail-actions__secondary,
+  .account-profile__button,
+  .order-summary__action
+):not(.home-hero-glass-button):not(:disabled):focus-visible {
+  outline: 2px solid var(--cmid-cta-hover-border);
+  outline-offset: 3px;
+  border-color: var(--cmid-cta-hover-border) !important;
+  box-shadow: 0 0 0 4px var(--cmid-cta-ring);
+}
+
+/* Contact fields retain their quiet neutral border when hovered or focused.
+   The gold focus halo is reserved for actions, not data entry. */
+.app-shell--site:not(.app-shell--home) .contact-form-panel :is(
+  input:not([type='checkbox']),
+  textarea
+):is(:hover, :focus, :focus-visible) {
+  border-color: var(--site-line) !important;
+  box-shadow: none !important;
+}
+
+.app-shell--site:not(.app-shell--home) .contact-form-panel__consent input {
+  pointer-events: auto;
+}
+
+/* The generic light input paint has higher specificity than the form's
+   checked state.  Keep the selected state visible without a gold fill. */
+.app-shell--site:not(.app-shell--home) .contact-form-panel__consent input:checked {
+  border-color: var(--site-muted-soft) !important;
+  background-color: var(--site-field) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 8 3 3 7-7' stroke='%23292521' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+}
+
+.app-shell--site:not(.app-shell--home) .contact-form-panel__consent input:focus-visible {
+  outline: 0;
+  box-shadow: none;
+}
+
+/* A dark field needs a light checkmark; the neutral light-mode glyph above
+   otherwise disappears against the dark consent control. */
+html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .contact-form-panel__consent input:checked {
+  border-color: var(--site-muted-soft) !important;
+  background-color: var(--site-field) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 8 3 3 7-7' stroke='%23f8f3eb' stroke-width='2.35' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-size: 13px 13px !important;
+}
+
+/* Light-mode utility bar: hotline, account, theme, and cart.
+   Both home and inner routes inherit one opaque header surface. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home),
+html[data-theme='light'] .app-shell--site.app-shell--home {
+  --site-topbar: #fffdf9;
+}
+
+html[data-theme='light'] .app-shell--site .topbar {
+  background: var(--site-topbar);
+}
+
+/* Catalog CTA states must remain distinct.  The shared button treatment above
+   also matches these controls through .button, so set their final paint here
+   rather than allowing the three purchase states to inherit one another. */
+.app-shell--site:not(.app-shell--home)
+  .product-card--catalog
+  .product-card__action:not(.product-card__action--quote):not(.product-card__action--out-of-stock) {
+  border-color: var(--site-gold) !important;
+  color: var(--cmid-palette-fff) !important;
+  background-color: var(--site-gold) !important;
+}
+
+.app-shell--site:not(.app-shell--home)
+  .product-card--catalog
+  .product-card__action--quote {
+  border-color: var(--site-quote-action) !important;
+  color: var(--site-quote-action-ink) !important;
+  background-color: var(--site-quote-action-surface) !important;
+  box-shadow: none !important;
+}
+
+/* On the pale catalogue cards, the quote action needs the stronger gold ink.
+   Do this explicitly because the generic CTA rule also targets .button. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .trang-san-pham
+  .product-card--catalog
+  .product-card__action--quote {
+  color: var(--site-gold-strong) !important;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .trang-san-pham
+  .product-card--catalog
+  .product-card__action--quote svg {
+  color: currentColor !important;
+}
+
+/* Secondary product actions sit on a pale surface, so they cannot inherit
+   the white ink of the shared CTA. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .product-detail-actions__secondary {
+  border-color: var(--site-gold) !important;
+  color: var(--site-gold-strong) !important;
+  background-color: var(--site-surface-solid) !important;
+}
+
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .product-detail-actions__secondary svg {
+  color: currentColor !important;
+}
+
+/* Keep the secondary account action legible beside the gold save action. */
+html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+  .account-page
+  .account-profile__button--secondary {
+  border-color: var(--site-gold) !important;
+  color: var(--site-gold-strong) !important;
+  background-color: var(--site-surface-solid) !important;
+}
+
+@media (hover: hover) {
+  html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+    .product-detail-actions__secondary:hover {
+    border-color: var(--site-gold-strong) !important;
+    color: var(--cmid-palette-fff) !important;
+    background-color: var(--site-gold-strong) !important;
+  }
+
+  html[data-theme='light'] .app-shell--site:not(.app-shell--home)
+    .account-page
+    .account-profile__button--secondary:hover {
+    border-color: var(--site-gold) !important;
+    color: var(--site-heading) !important;
+    background-color: var(--site-surface-soft) !important;
+  }
+}
+
+.app-shell--site:not(.app-shell--home)
+  .product-card--catalog
+  .product-card__action--out-of-stock:disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+  border-color: var(--cmid-palette-be4d42) !important;
+  color: var(--cmid-palette-fff) !important;
+  background-color: var(--cmid-palette-be4d42) !important;
+  box-shadow: none;
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .app-shell--site:not(.app-shell--home)
+    .product-card--catalog
+    .product-card__action:not(.product-card__action--quote):not(.product-card__action--out-of-stock):hover {
+    border-color: var(--site-gold-strong) !important;
+    color: var(--cmid-palette-fff) !important;
+    background-color: var(--site-gold-strong) !important;
+  }
+
+  .app-shell--site:not(.app-shell--home)
+    .product-card--catalog
+    .product-card__action--quote:hover {
+    border-color: var(--site-quote-action-hover) !important;
+    color: var(--site-quote-action-hover-ink) !important;
+    background-color: var(--site-quote-action-hover) !important;
   }
 }

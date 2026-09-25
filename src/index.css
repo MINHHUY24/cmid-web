@@ -2,6 +2,7 @@
 @import './styles/layout.css';
 @import './styles/components.css';
 @import './styles/trang-chu.css';
+@import './styles/dau-trang.css';
 @import './styles/trang-san-pham.css';
 @import './styles/trang-chi-tiet-san-pham.css';
 @import './styles/trang-gioi-thieu.css';
@@ -21,3 +22,5 @@
 @import './styles/site-theme.css';
 @import './styles/news-editorial.css';
 @import './styles/mobile-catalog.css';
+@import './styles/hero-actions.css';
+@import './styles/screenshot-button-restore.css';

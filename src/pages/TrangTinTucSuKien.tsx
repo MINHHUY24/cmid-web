@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, MagnifyingGlass } from '@phosphor-icons/react'
+import { ArrowRight, CaretLeft, CaretRight, MagnifyingGlass } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import interiorImage from '../assets/images/hero-tin-tuc-cmid.png'
@@ -12,6 +12,7 @@ import {
 import { useLanguage } from '../contexts/NgonNguContext'
 import { useNewsArticles } from '../hooks/useNewsArticles'
 import { localizeNewsArticle } from '../services/news.service'
+import { getCatalogPaginationItems } from '../utils/catalogPagination'
 
 const PAGE_SIZE = 5
 
@@ -52,11 +53,15 @@ export function TrangTinTucSuKienPage() {
   const regularArticles = featuredArticle
     ? filteredArticles.filter((article) => article.slug !== featuredArticle.slug)
     : filteredArticles
-  const totalPages = Math.ceil(regularArticles.length / PAGE_SIZE)
+  const totalPages = Math.max(1, Math.ceil(regularArticles.length / PAGE_SIZE))
   const safeCurrentPage = Math.min(currentPage, Math.max(1, totalPages))
   const visibleArticles = regularArticles.slice(
     (safeCurrentPage - 1) * PAGE_SIZE,
     safeCurrentPage * PAGE_SIZE,
+  )
+  const paginationItems = useMemo(
+    () => getCatalogPaginationItems(totalPages, safeCurrentPage),
+    [safeCurrentPage, totalPages],
   )
   const showFeatured = safeCurrentPage === 1 ? featuredArticle : undefined
 
@@ -86,7 +91,7 @@ export function TrangTinTucSuKienPage() {
             <span className="tin-tuc__hero-eyebrow">{heroEyebrow}</span>
             <h1>{heroTitle}</h1>
             <p>{news.heroDescription}</p>
-            <a className="tin-tuc__hero-action" href="#danh-sach-bai-viet">
+            <a className="button cmid-hero-action tin-tuc__hero-action" href="#danh-sach-bai-viet">
               {exploreLabel}<ArrowRight size={17} weight="bold" aria-hidden="true" />
             </a>
           </div>
@@ -164,13 +169,28 @@ export function TrangTinTucSuKienPage() {
           <p className="tin-tuc__no-results">{news.noResults}</p>
         ) : null}
 
-        {!isLoading && !errorMessage && totalPages > 1 ? (
+        {!isLoading && !errorMessage && visibleArticles.length > 0 && totalPages > 1 ? (
           <nav className="tin-tuc__pagination" aria-label="News pagination">
-            <button type="button" aria-label={news.previous} disabled={safeCurrentPage === 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}><ArrowLeft size={15} /></button>
-            {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-              <button key={page} className={safeCurrentPage === page ? 'is-active' : ''} type="button" aria-current={safeCurrentPage === page ? 'page' : undefined} onClick={() => setCurrentPage(page)}>{page}</button>
+            <button type="button" aria-label={news.previous} disabled={safeCurrentPage === 1} onClick={() => setCurrentPage(safeCurrentPage - 1)}>
+              <CaretLeft size={18} aria-hidden="true" />
+            </button>
+            {paginationItems.map((item, index) => item === 'ellipsis' ? (
+              <span className="tin-tuc__pagination-ellipsis" aria-hidden="true" key={`ellipsis-${index}`}>…</span>
+            ) : (
+              <button
+                key={item}
+                className={item === safeCurrentPage ? 'is-active' : undefined}
+                type="button"
+                aria-current={item === safeCurrentPage ? 'page' : undefined}
+                aria-label={`Page ${item}`}
+                onClick={() => setCurrentPage(item)}
+              >
+                {item}
+              </button>
             ))}
-            <button type="button" aria-label={news.next} disabled={safeCurrentPage === totalPages} onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}><ArrowRight size={15} /></button>
+            <button type="button" aria-label={news.next} disabled={safeCurrentPage === totalPages} onClick={() => setCurrentPage(safeCurrentPage + 1)}>
+              <CaretRight size={18} aria-hidden="true" />
+            </button>
           </nav>
         ) : null}
       </section>

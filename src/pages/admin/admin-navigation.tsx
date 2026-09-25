@@ -105,7 +105,7 @@ export const adminMenuGroups: Array<{ label: string; items: AdminNavItem[] }> = 
     label: 'Quản lý hệ thống',
     items: [
       { id: 'settings', label: 'Cấu hình', icon: <GearSix size={19} /> },
-      { id: 'users', label: 'Người dùng', icon: <UserGear size={19} /> },
+      { id: 'users', label: 'Nhân viên', icon: <UserGear size={19} /> },
       { id: 'roles', label: 'Phân quyền', icon: <ShieldCheck size={19} /> },
       { id: 'logs', label: 'Nhật ký hoạt động', icon: <ClockCounterClockwise size={19} /> },
     ],
@@ -134,7 +134,7 @@ export const adminViewMeta: Record<AdminView, { label: string; description: stri
   showrooms: { label: 'Showroom', description: 'Quản lý địa chỉ, bản đồ và giờ hoạt động.' },
   reports: { label: 'Báo cáo', description: 'Tổng hợp doanh thu, đơn hàng, khách hàng và sản phẩm.' },
   settings: { label: 'Cấu hình', description: 'Thiết lập thông tin doanh nghiệp và chính sách bán hàng.' },
-  users: { label: 'Người dùng', description: 'Quản lý tài khoản được phép truy cập khu vực admin.' },
+  users: { label: 'Nhân viên', description: 'Quản lý tài khoản nội bộ được phép truy cập khu vực admin.' },
   roles: { label: 'Phân quyền', description: 'Thiết lập vai trò và phạm vi thao tác.' },
   logs: { label: 'Nhật ký hoạt động', description: 'Theo dõi thay đổi và thao tác quản trị.' },
 }

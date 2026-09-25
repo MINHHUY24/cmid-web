@@ -147,6 +147,7 @@ function adminOrderPath(useDemoAccess: boolean, suffix = '') {
 export async function getAdminOrders(useDemoAccess = false): Promise<AdminOrder[]> {
   const orders = await apiFetch<ServerOrder[]>(adminOrderPath(useDemoAccess), {
     headers: adminHeaders(useDemoAccess),
+    authScope: 'admin',
     skipAuth: useDemoAccess,
   })
   return orders.map(toAdminOrder)
@@ -159,6 +160,7 @@ export async function updateAdminOrderStatus(
 ) {
   const order = await apiFetch<ServerOrder>(adminOrderPath(useDemoAccess, `/${encodeURIComponent(orderId)}/status`), {
     method: 'PATCH',
+    authScope: 'admin',
     headers: { 'Content-Type': 'application/json', ...adminHeaders(useDemoAccess) },
     body: JSON.stringify({ status: orderStatusToServer[status] }),
     skipAuth: useDemoAccess,
@@ -173,6 +175,7 @@ export async function updateAdminPaymentStatus(
 ) {
   const order = await apiFetch<ServerOrder>(adminOrderPath(useDemoAccess, `/${encodeURIComponent(orderId)}/payment-status`), {
     method: 'PATCH',
+    authScope: 'admin',
     headers: { 'Content-Type': 'application/json', ...adminHeaders(useDemoAccess) },
     body: JSON.stringify({ status }),
     skipAuth: useDemoAccess,
@@ -187,6 +190,7 @@ export async function createAdminRefund(
 ) {
   const order = await apiFetch<ServerOrder>(adminOrderPath(useDemoAccess, `/${encodeURIComponent(orderId)}/refunds`), {
     method: 'POST',
+    authScope: 'admin',
     headers: { 'Content-Type': 'application/json', ...adminHeaders(useDemoAccess) },
     body: JSON.stringify(input),
     skipAuth: useDemoAccess,
@@ -201,6 +205,7 @@ export async function updateAdminRefundStatus(
 ) {
   const order = await apiFetch<ServerOrder>(adminOrderPath(useDemoAccess, `/refunds/${encodeURIComponent(refundId)}/status`), {
     method: 'PATCH',
+    authScope: 'admin',
     headers: { 'Content-Type': 'application/json', ...adminHeaders(useDemoAccess) },
     body: JSON.stringify({ status: refundStatusToServer[status] }),
     skipAuth: useDemoAccess,

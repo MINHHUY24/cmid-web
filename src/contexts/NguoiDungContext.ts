@@ -31,7 +31,6 @@ export interface UserContextValue {
   isAuthLoading: boolean
   isSigningIn: boolean
   signInWithGoogle: () => Promise<AuthenticatedUser>
-  signInAdminWithPassword: (username: string, password: string) => Promise<AuthenticatedUser>
   updateProfile: (profile: CustomerProfile) => void
   signOut: () => Promise<void>
 }

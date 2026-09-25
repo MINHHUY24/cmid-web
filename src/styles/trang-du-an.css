@@ -8,7 +8,7 @@
   justify-content: space-between;
   gap: 30px;
   padding-bottom: 21px;
-  border-bottom: 1px solid #dfd2be;
+  border-bottom: 1px solid var(--cmid-palette-dfd2be);
 }
 
 .du-an__danh-sach-dau .nhan-noi-dung {
@@ -18,7 +18,7 @@
 .du-an__danh-sach-dau h2,
 .du-an__noi-bat h2 {
   margin: 0;
-  color: #332f2b;
+  color: var(--cmid-palette-332f2b);
   font-family: var(--cmid-font);
   font-size: clamp(2rem, 3.2vw, 3.2rem);
   font-weight: 400;
@@ -39,7 +39,7 @@
 
 .du-an__skeleton-card {
   overflow: hidden;
-  border-bottom: 1px solid #ddc7a4;
+  border-bottom: 1px solid var(--cmid-palette-ddc7a4);
 }
 
 .du-an__skeleton-image {
@@ -89,12 +89,12 @@
   gap: 8px;
   min-height: 112px;
   padding: 18px 20px 20px;
-  border-bottom: 1px solid #ddc7a4;
+  border-bottom: 1px solid var(--cmid-palette-ddc7a4);
 }
 
 .du-an__luoi .project-card h3 {
   margin: 0;
-  color: #443e36;
+  color: var(--cmid-palette-443e36);
   font-family: var(--cmid-font);
   font-size: calc(1.07rem + 2px);
   font-weight: 400;
@@ -103,7 +103,7 @@
 
 .du-an__luoi .project-card p {
   align-self: end;
-  color: #8b8176;
+  color: var(--cmid-palette-8b8176);
   font-size: calc(0.75rem + 2px);
 }
 
@@ -135,7 +135,7 @@
 
 .du-an__noi-bat > div > p:not(.nhan-noi-dung):not(.du-an__dia-diem) {
   margin: 18px 0 24px;
-  color: #71695f;
+  color: var(--cmid-palette-71695f);
   font-size: calc(0.84rem + 2px);
   line-height: 1.7;
   overflow-wrap: anywhere;
@@ -147,8 +147,8 @@
   gap: 7px;
   margin: 0;
   padding-bottom: 16px;
-  border-bottom: 1px solid #dfc9a7;
-  color: #8b6d3e;
+  border-bottom: 1px solid var(--cmid-palette-dfc9a7);
+  color: var(--cmid-palette-8b6d3e);
   font-size: calc(0.76rem + 2px);
 }
 

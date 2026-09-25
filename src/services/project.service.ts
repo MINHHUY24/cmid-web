@@ -72,6 +72,7 @@ export function getProjectBySlug(slug: string): Promise<Project> {
 export function getAdminProjects(useDemoAccess = false): Promise<Project[]> {
   return apiFetch<Project[]>(adminProjectPath(useDemoAccess), {
     headers: adminHeaders(useDemoAccess),
+    authScope: 'admin',
     skipAuth: useDemoAccess,
   })
 }
@@ -79,6 +80,7 @@ export function getAdminProjects(useDemoAccess = false): Promise<Project[]> {
 export function saveProject(input: SaveProjectInput, useDemoAccess = false): Promise<Project> {
   return apiFetch<Project>(adminProjectPath(useDemoAccess), {
     method: 'POST',
+    authScope: 'admin',
     headers: {
       'Content-Type': 'application/json',
       ...adminHeaders(useDemoAccess),
@@ -91,6 +93,7 @@ export function saveProject(input: SaveProjectInput, useDemoAccess = false): Pro
 export function deleteProject(id: string, useDemoAccess = false): Promise<void> {
   return apiFetch<void>(`${adminProjectPath(useDemoAccess)}/${encodeURIComponent(id)}`, {
     method: 'DELETE',
+    authScope: 'admin',
     headers: adminHeaders(useDemoAccess),
     skipAuth: useDemoAccess,
   })

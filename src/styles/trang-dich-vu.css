@@ -2,8 +2,8 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 58px;
-  border-top: 1px solid #dec9a8;
-  border-bottom: 1px solid #dec9a8;
+  border-top: 1px solid var(--cmid-palette-dec9a8);
+  border-bottom: 1px solid var(--cmid-palette-dec9a8);
 }
 
 .dich-vu__danh-sach article {
@@ -12,12 +12,12 @@
 }
 
 .dich-vu__danh-sach article + article {
-  border-left: 1px solid #dec9a8;
+  border-left: 1px solid var(--cmid-palette-dec9a8);
 }
 
 .dich-vu__so {
   margin: 0 0 11px;
-  color: #d5ccbe;
+  color: var(--cmid-palette-d5ccbe);
   font-family: var(--cmid-font);
   font-size: clamp(3rem, 5vw, 4.8rem);
   font-weight: 400;
@@ -30,7 +30,7 @@
 
 .dich-vu__danh-sach h2 {
   margin: 16px 0 13px;
-  color: #37312c;
+  color: var(--cmid-palette-37312c);
   font-family: var(--cmid-font);
   font-size: calc(1.35rem + 2px);
   font-weight: 400;
@@ -38,7 +38,7 @@
 
 .dich-vu__danh-sach article > p:last-child {
   margin: 0;
-  color: #706960;
+  color: var(--cmid-palette-706960);
   font-size: calc(0.77rem + 2px);
   line-height: 1.7;
 }
@@ -48,7 +48,7 @@
   grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
   align-items: stretch;
   margin-top: 74px;
-  background: #f3eee5;
+  background: var(--cmid-palette-f3eee5);
 }
 
 .dich-vu__cam-ket > img {
@@ -76,7 +76,7 @@
 
 .dich-vu__cam-ket p {
   margin: 0;
-  color: #484239;
+  color: var(--cmid-palette-484239);
   font-family: var(--cmid-font);
   font-size: clamp(1.35rem, 2.15vw, 2rem);
   font-style: italic;
@@ -86,7 +86,7 @@
 
 .dich-vu__cam-ket footer {
   margin-top: 22px;
-  color: #9a7742;
+  color: var(--cmid-palette-9a7742);
   font-size: calc(0.72rem + 2px);
   font-style: normal;
   font-weight: 700;
@@ -100,12 +100,12 @@
   }
 
   .dich-vu__danh-sach article:nth-child(3) {
-    border-top: 1px solid #dec9a8;
+    border-top: 1px solid var(--cmid-palette-dec9a8);
     border-left: 0;
   }
 
   .dich-vu__danh-sach article:nth-child(4) {
-    border-top: 1px solid #dec9a8;
+    border-top: 1px solid var(--cmid-palette-dec9a8);
   }
 }
 
@@ -122,7 +122,7 @@
   .dich-vu__danh-sach article,
   .dich-vu__danh-sach article + article {
     min-height: 0;
-    border-top: 1px solid #dec9a8;
+    border-top: 1px solid var(--cmid-palette-dec9a8);
     border-left: 0;
   }
 

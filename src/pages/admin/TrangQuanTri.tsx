@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { KhungXuong } from '../../components/common/KhungXuong'
 import { useProducts } from '../../hooks/useProducts'
-import { useUser, type AuthenticatedUser } from '../../contexts/NguoiDungContext'
+import { type AuthenticatedUser } from '../../contexts/NguoiDungContext'
+import { AdminAuthProvider } from '../../contexts/QuanTriContext'
+import { useAdminAuth } from '../../contexts/useQuanTriAuth'
 import { getCurrentAdmin } from '../../services/auth.service'
 import { deleteProduct, saveProduct } from '../../services/product.service'
 import {
@@ -73,21 +75,29 @@ const operationalViews = new Set<AdminView>([
 ])
 
 export function TrangQuanTriPage() {
-  const { user, isAuthLoading, signOut } = useUser()
-  if (isAuthLoading) {
+  return (
+    <AdminAuthProvider>
+      <TrangQuanTriContent />
+    </AdminAuthProvider>
+  )
+}
+
+function TrangQuanTriContent() {
+  const { adminUser, isAdminAuthLoading, signOutAdmin } = useAdminAuth()
+  if (isAdminAuthLoading) {
     return <AdminSessionSkeleton />
   }
 
-  if (!user) {
+  if (!adminUser) {
     return <TrangDangNhapQuanTri />
   }
 
-  if (!isAdminUser(user)) {
+  if (!isAdminUser(adminUser)) {
     return (
       <AdminAccessState
         message="Tài khoản này chưa được cấp quyền quản trị trên hệ thống."
         onSignOut={() => {
-          void signOut()
+          void signOutAdmin()
         }}
       />
     )
@@ -95,10 +105,10 @@ export function TrangQuanTriPage() {
 
   return (
     <AdminAuthorizationGate
-      key={`${user.id}:${user.role}`}
-      user={user}
+      key={`${adminUser.id}:${adminUser.role}`}
+      user={adminUser}
       onSignOut={() => {
-        void signOut()
+        void signOutAdmin()
       }}
     />
   )

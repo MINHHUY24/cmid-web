@@ -25,6 +25,7 @@ export async function uploadAdminImage(file: File): Promise<string> {
 
   const response = await apiFetch<unknown>('/admin/uploads/images', {
     method: 'POST',
+    authScope: 'admin',
     body: formData,
   })
   const imageUrl = getUploadedImageUrl(response)

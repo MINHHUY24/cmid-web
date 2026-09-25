@@ -1,14 +1,14 @@
 /* Editorial news listing — intentionally loaded after the shared site theme. */
 .app-shell--site .trang-tin-tuc {
-  --news-bg: #0d0a07;
-  --news-surface: #15100c;
-  --news-surface-soft: #1a1410;
-  --news-text: #f6efe5;
-  --news-muted: #b8aa9b;
-  --news-line: rgb(202 151 68 / 42%);
-  --news-line-soft: rgb(202 151 68 / 24%);
-  --news-accent: #d2a14e;
-  --news-accent-strong: #e1b462;
+  --news-bg: var(--cmid-palette-0d0a07);
+  --news-surface: var(--cmid-palette-15100c);
+  --news-surface-soft: var(--cmid-palette-1a1410);
+  --news-text: var(--cmid-palette-f6efe5);
+  --news-muted: var(--cmid-palette-b8aa9b);
+  --news-line: var(--cmid-palette-rgb-202-151-68-alpha-42p);
+  --news-line-soft: var(--cmid-palette-rgb-202-151-68-alpha-24p);
+  --news-accent: var(--cmid-palette-d2a14e);
+  --news-accent-strong: var(--cmid-palette-e1b462);
   min-height: 100vh;
   padding-bottom: clamp(72px, 8vw, 118px);
   color: var(--news-text);
@@ -16,15 +16,15 @@
 }
 
 html[data-theme='light'] .app-shell--site .trang-tin-tuc {
-  --news-bg: #f4efe7;
-  --news-surface: #fffaf3;
-  --news-surface-soft: #ede4d8;
-  --news-text: #29231d;
-  --news-muted: #756a5f;
-  --news-line: rgb(151 104 39 / 38%);
-  --news-line-soft: rgb(112 78 35 / 18%);
-  --news-accent: #9a6926;
-  --news-accent-strong: #784c16;
+  --news-bg: var(--cmid-palette-f4efe7);
+  --news-surface: var(--cmid-palette-fffaf3);
+  --news-surface-soft: var(--cmid-palette-ede4d8);
+  --news-text: var(--cmid-palette-29231d);
+  --news-muted: var(--cmid-palette-756a5f);
+  --news-line: var(--cmid-palette-rgb-151-104-39-alpha-38p);
+  --news-line-soft: var(--cmid-palette-rgb-112-78-35-alpha-18p);
+  --news-accent: var(--cmid-palette-9a6926);
+  --news-accent-strong: var(--cmid-palette-784c16);
 }
 
 .app-shell--site.app-shell--hero .tin-tuc__hero {
@@ -38,7 +38,7 @@ html[data-theme='light'] .app-shell--site .trang-tin-tuc {
   overflow: hidden;
   border: 0;
   border-radius: 0;
-  background-color: #0d0a07;
+  background-color: var(--cmid-palette-0d0a07);
   background-position: center 48%;
   background-size: cover;
 }
@@ -49,7 +49,7 @@ html[data-theme] .app-shell--site.app-shell--hero .tin-tuc__hero-overlay {
   /* Keep the image crisp down to its lower edge.  The vertical layer here
      caused a visible band where the news hero meets the following section.
      This selector intentionally beats the older light-theme hero rule. */
-  background-image: linear-gradient(90deg, rgb(7 5 3 / 91%) 0%, rgb(9 6 4 / 78%) 35%, rgb(8 6 4 / 28%) 74%, rgb(8 6 4 / 18%) 100%) !important;
+  background-image: linear-gradient(90deg, var(--cmid-palette-rgb-7-5-3-alpha-91p) 0%, var(--cmid-palette-rgb-9-6-4-alpha-78p) 35%, var(--cmid-palette-rgb-8-6-4-alpha-28p) 74%, var(--cmid-palette-rgb-8-6-4-alpha-18p) 100%) !important;
 }
 
 .app-shell--site.app-shell--hero .tin-tuc__hero-content {
@@ -71,7 +71,7 @@ html[data-theme] .app-shell--site.app-shell--hero .tin-tuc__hero-overlay {
   padding: 0;
   border: 0;
   border-radius: 0;
-  color: #fff8ef;
+  color: var(--cmid-palette-fff8ef);
   background: transparent;
   box-shadow: none;
   backdrop-filter: none;
@@ -82,7 +82,7 @@ html[data-theme] .app-shell--site.app-shell--hero .tin-tuc__hero-overlay {
   align-items: center;
   gap: 16px;
   margin: 0 0 20px;
-  color: #e2ae55;
+  color: var(--cmid-palette-e2ae55);
   font-size: 0.77rem;
   font-weight: 700;
   letter-spacing: 0.19em;
@@ -101,13 +101,13 @@ html[data-theme] .app-shell--site.app-shell--hero .tin-tuc__hero-overlay {
 html[data-theme='light'] .app-shell--site.app-shell--hero .tin-tuc__hero-content h1 {
   max-width: 720px;
   margin: 0;
-  color: #fff8ef;
+  color: var(--cmid-palette-fff8ef);
   font-family: 'Roboto', Arial, Helvetica, sans-serif;
   font-size: clamp(2.55rem, 3.7vw, 4.15rem);
   font-weight: 400;
   letter-spacing: 0.012em;
   line-height: 1.03;
-  text-shadow: 0 4px 26px rgb(0 0 0 / 32%);
+  text-shadow: 0 4px 26px var(--cmid-palette-rgb-0-0-0-alpha-32p);
   text-transform: uppercase;
 }
 
@@ -115,33 +115,13 @@ html[data-theme='light'] .app-shell--site.app-shell--hero .tin-tuc__hero-content
 html[data-theme='light'] .app-shell--site.app-shell--hero .tin-tuc__hero-content p {
   max-width: 520px;
   margin: 24px 0 0;
-  color: rgb(255 248 239 / 78%);
+  color: var(--cmid-palette-rgb-255-248-239-alpha-78p);
   font-size: 1rem;
   line-height: 1.72;
 }
 
 .app-shell--site .tin-tuc__hero-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 44px;
-  margin-top: 30px;
-  padding: 0 19px;
-  border: 1px solid rgb(226 174 85 / 74%);
-  border-radius: 2px;
-  color: #efbd67;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-decoration: none;
-  text-transform: uppercase;
-  transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease;
-}
-
-.app-shell--site .tin-tuc__hero-action:hover {
-  border-color: #d9a64f;
-  color: #171008;
-  background: #d9a64f;
+  margin-top: 28px;
 }
 
 .app-shell--site .tin-tuc__khung {
@@ -187,13 +167,13 @@ html[data-theme='light'] .app-shell--site.app-shell--hero .tin-tuc__hero-content
 
 .app-shell--site .tin-tuc__categories button.is-active {
   border-color: var(--news-accent);
-  color: #171008;
-  background: #d2a14e;
+  color: var(--cmid-palette-171008);
+  background: var(--cmid-palette-d2a14e);
 }
 
 html[data-theme='light'] .app-shell--site .tin-tuc__categories button.is-active {
-  color: #fffdf9;
-  background: #986624;
+  color: var(--cmid-palette-fffdf9);
+  background: var(--cmid-palette-986624);
 }
 
 .app-shell--site .tin-tuc__search {
@@ -269,8 +249,8 @@ html[data-theme='light'] .app-shell--site .tin-tuc__categories button.is-active 
   top: 22px;
   left: 22px;
   padding: 9px 13px;
-  color: #171008;
-  background: #d8a54f;
+  color: var(--cmid-palette-171008);
+  background: var(--cmid-palette-d8a54f);
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -458,41 +438,52 @@ html[data-theme='light'] .app-shell--site .tin-tuc__categories button.is-active 
 
 .app-shell--site .tin-tuc__pagination {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 30px;
+  gap: 5px;
+  margin: 32px 0 34px;
 }
 
 .app-shell--site .tin-tuc__pagination button {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   place-items: center;
   padding: 0;
-  border: 1px solid var(--news-line-soft);
-  border-radius: 4px;
+  border: 0;
+  border-radius: 50%;
   color: var(--news-muted);
-  background: transparent;
+  background: var(--news-surface);
   cursor: pointer;
   font: inherit;
   font-size: 0.76rem;
+  transition: color 160ms ease, background-color 160ms ease;
 }
 
 .app-shell--site .tin-tuc__pagination button:hover:not(:disabled) {
-  border-color: var(--news-line);
-  color: var(--news-text);
+  color: var(--cmid-palette-fffdf9);
+  background: var(--cmid-palette-c28a32);
 }
 
 .app-shell--site .tin-tuc__pagination button.is-active,
 html[data-theme='light'] .app-shell--site .tin-tuc__pagination button.is-active {
-  border-color: #c9943e;
-  color: #fffdf9 !important;
-  background: #986624;
+  color: var(--cmid-palette-fffdf9) !important;
+  background: var(--cmid-palette-c28a32);
 }
 
 .app-shell--site .tin-tuc__pagination button:disabled {
   cursor: not-allowed;
   opacity: 0.38;
+}
+
+.app-shell--site .tin-tuc__pagination-ellipsis {
+  display: grid;
+  width: 22px;
+  height: 36px;
+  place-items: center;
+  color: var(--news-muted);
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
 /* The skeleton follows the same featured + asymmetric article composition. */

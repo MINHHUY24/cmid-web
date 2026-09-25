@@ -2,8 +2,8 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 46px;
-  border-top: 1px solid #e5d9c7;
-  border-bottom: 1px solid #e5d9c7;
+  border-top: 1px solid var(--cmid-palette-e5d9c7);
+  border-bottom: 1px solid var(--cmid-palette-e5d9c7);
 }
 
 .giai-phap__muc {
@@ -12,7 +12,7 @@
 }
 
 .giai-phap__muc + .giai-phap__muc {
-  border-left: 1px solid #e5d9c7;
+  border-left: 1px solid var(--cmid-palette-e5d9c7);
 }
 
 .giai-phap__bieu-tuong {
@@ -22,7 +22,7 @@
 .giai-phap__muc h2,
 .giai-phap__gioi-thieu h2 {
   margin: 20px 0 10px;
-  color: #35312c;
+  color: var(--cmid-palette-35312c);
   font-family: var(--cmid-font);
   font-size: clamp(1.35rem, 2vw, 1.75rem);
   font-weight: 400;
@@ -32,7 +32,7 @@
 .giai-phap__muc p,
 .giai-phap__gioi-thieu > div > p:not(.nhan-noi-dung) {
   margin: 0;
-  color: #746d64;
+  color: var(--cmid-palette-746d64);
   font-size: calc(0.79rem + 2px);
   line-height: 1.68;
 }
@@ -65,7 +65,7 @@
   gap: 11px;
   margin: 27px 0 0;
   padding: 0;
-  color: #625c53;
+  color: var(--cmid-palette-625c53);
   font-size: calc(0.78rem + 2px);
   line-height: 1.45;
   list-style: none;
@@ -90,11 +90,11 @@
 
   .giai-phap__muc:nth-child(3) {
     border-left: 0;
-    border-top: 1px solid #e5d9c7;
+    border-top: 1px solid var(--cmid-palette-e5d9c7);
   }
 
   .giai-phap__muc:nth-child(4) {
-    border-top: 1px solid #e5d9c7;
+    border-top: 1px solid var(--cmid-palette-e5d9c7);
   }
 }
 
@@ -111,7 +111,7 @@
   .giai-phap__muc,
   .giai-phap__muc + .giai-phap__muc {
     min-height: 0;
-    border-top: 1px solid #e5d9c7;
+    border-top: 1px solid var(--cmid-palette-e5d9c7);
     border-left: 0;
   }
 

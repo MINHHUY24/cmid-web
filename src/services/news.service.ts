@@ -87,6 +87,7 @@ export function getNewsArticleBySlug(slug: string): Promise<NewsArticleRecord> {
 export function getAdminNewsArticles(useDemoAccess = false): Promise<NewsArticleRecord[]> {
   return apiFetch<NewsArticleRecord[]>(newsAdminListPath(useDemoAccess), {
     headers: adminHeaders(useDemoAccess),
+    authScope: 'admin',
     skipAuth: useDemoAccess,
   })
 }
@@ -94,6 +95,7 @@ export function getAdminNewsArticles(useDemoAccess = false): Promise<NewsArticle
 export function saveNewsArticle(input: SaveNewsArticleInput, useDemoAccess = false): Promise<NewsArticleRecord> {
   return apiFetch<NewsArticleRecord>(newsWritePath(useDemoAccess), {
     method: 'POST',
+    authScope: 'admin',
     headers: {
       'Content-Type': 'application/json',
       ...adminHeaders(useDemoAccess),
@@ -106,6 +108,7 @@ export function saveNewsArticle(input: SaveNewsArticleInput, useDemoAccess = fal
 export function deleteNewsArticle(id: string, useDemoAccess = false): Promise<void> {
   return apiFetch<void>(`${newsWritePath(useDemoAccess)}/${encodeURIComponent(id)}`, {
     method: 'DELETE',
+    authScope: 'admin',
     headers: adminHeaders(useDemoAccess),
     skipAuth: useDemoAccess,
   })

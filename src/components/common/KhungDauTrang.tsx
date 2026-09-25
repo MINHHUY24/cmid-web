@@ -27,7 +27,7 @@ export function KhungDauTrang({
         <span className="khung-dau-trang__duong-ke" aria-hidden="true" />
         <p>{description}</p>
         {actionLabel && actionHref ? (
-          <a className="button khung-dau-trang__button" href={actionHref}>
+          <a className="button cmid-hero-action khung-dau-trang__button" href={actionHref}>
             {actionLabel}
             <ArrowRight size={18} weight="bold" aria-hidden="true" />
           </a>

@@ -179,11 +179,11 @@ export function TrangChuPage() {
           </h1>
           <p>{home.heroDescription}</p>
           <div className="trang-chu__hero-actions">
-            <Link className="button button--gold" to="/products">
+            <Link className="button cmid-hero-action home-hero-glass-button" to="/products">
               {home.browseProducts}
               <ArrowRight size={18} weight="bold" aria-hidden="true" />
             </Link>
-            <Link className="button button--outline-light" to="/lien-he">
+            <Link className="button cmid-hero-action home-hero-glass-button" to="/lien-he">
               {home.requestQuote}
             </Link>
           </div>

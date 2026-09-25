@@ -116,8 +116,8 @@
     padding: 0 5px;
     place-items: center;
     border-radius: 999px;
-    color: #fffaf2;
-    background: #98611f;
+    color: var(--cmid-palette-fffaf2);
+    background: var(--cmid-palette-98611f);
     font-size: 0.66rem;
   }
 
@@ -149,7 +149,7 @@
     border-radius: 16px 0 0 16px;
     color: var(--site-text);
     background: var(--site-surface-solid);
-    box-shadow: -18px 0 44px rgb(5 3 2 / 34%);
+    box-shadow: -18px 0 44px var(--cmid-palette-rgb-5-3-2-alpha-34p);
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
@@ -176,7 +176,7 @@
     width: 100%;
     padding: 0;
     border: 0;
-    background: rgb(8 5 3 / 62%);
+    background: var(--cmid-palette-rgb-8-5-3-alpha-62p);
     opacity: 0;
     pointer-events: none;
     transition: opacity 180ms ease;
@@ -283,7 +283,7 @@
     padding: 12px 16px max(12px, env(safe-area-inset-bottom));
     border-top: 1px solid var(--site-line-soft);
     background: var(--site-surface-solid);
-    box-shadow: 0 -10px 24px rgb(5 3 2 / 14%);
+    box-shadow: 0 -10px 24px var(--cmid-palette-rgb-5-3-2-alpha-14p);
   }
 
   #site-modal-root .catalog-filters__mobile-done {
@@ -293,10 +293,10 @@
     width: 100%;
     min-height: 48px;
     margin: 0;
-    border: 1px solid #98611f;
+    border: 1px solid var(--cmid-palette-98611f);
     border-radius: var(--cmid-control-radius);
-    color: #fffaf2;
-    background: #98611f;
+    color: var(--cmid-palette-fffaf2);
+    background: var(--cmid-palette-98611f);
     font-size: 0.8rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -407,8 +407,8 @@
   }
 
   .app-shell--site .trang-san-pham .product-card--catalog .product-card__action:not(.product-card__action--quote) {
-    border-color: #98611f;
-    background: #98611f;
+    border-color: var(--cmid-palette-98611f);
+    background: var(--cmid-palette-98611f);
   }
 
   .app-shell--site .trang-san-pham .catalog-pagination {

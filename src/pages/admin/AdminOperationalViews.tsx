@@ -17,9 +17,21 @@ import { KhungXuong } from '../../components/common/KhungXuong'
 import type { AppLanguage } from '../../content/site-content'
 import { getAdminDataMode } from '../../services/admin.service'
 import {
+  getManagedCustomers,
+  updateManagedCustomer,
+  type ManagedCustomer,
+} from '../../services/admin-customer.service'
+import {
+  deleteManagedInquiry,
+  getManagedInquiries,
+  updateManagedInquiry,
+  type ContactInquiry,
+  type InquiryStatus,
+} from '../../services/inquiry.service'
+import {
   createManagedRole,
   createManagedUser,
-  deactivateManagedUser,
+  deleteManagedUser,
   deleteManagedRole,
   getManagedRoles,
   getManagedUsers,
@@ -324,34 +336,7 @@ export function AdminOperationalView({ view, database, onToast, onNavigate }: Op
   }
 
   if (view === 'customers') {
-    return (
-      <AdminCollectionManager
-        title="Quản lý khách hàng"
-        description="Theo dõi hồ sơ, nhóm thành viên và tổng giá trị giao dịch."
-        singularLabel="khách hàng"
-        rows={editableRows(database.customers)}
-        columns={[
-          { key: 'name', label: 'Khách hàng', render: (row) => <strong>{String(row.name)}</strong> },
-          { key: 'email', label: 'Email' },
-          { key: 'phone', label: 'Điện thoại' },
-          { key: 'orderCount', label: 'Đơn hàng', render: (row) => `${String(row.orderCount)} đơn` },
-          { key: 'totalSpent', label: 'Tổng chi tiêu', render: (row) => <strong className="admin-table__price">{formatCurrency(Number(row.totalSpent))}</strong> },
-          { key: 'status', label: 'Trạng thái', render: (row) => <AdminStatus>{String(row.status)}</AdminStatus> },
-        ]}
-        fields={[
-          { key: 'name', label: 'Họ và tên', required: true },
-          { key: 'email', label: 'Email', type: 'email', required: true },
-          { key: 'phone', label: 'Điện thoại', type: 'tel' },
-          { key: 'company', label: 'Công ty' },
-          { key: 'groupId', label: 'Nhóm khách hàng', type: 'select', options: database.customerGroups.map((group) => ({ value: group.id, label: group.name })) },
-          { key: 'orderCount', label: 'Số đơn', type: 'number' },
-          { key: 'totalSpent', label: 'Tổng chi tiêu', type: 'number' },
-          { key: 'status', label: 'Trạng thái', type: 'select', options: statusOptions },
-        ]}
-        onSave={(record) => { upsertRecord('customers', { ...record, createdAt: String(record.createdAt || new Date().toISOString()) }, 'Khách hàng'); complete('Đã lưu khách hàng.') }}
-        onDelete={(id) => { deleteRecord('customers', id, 'Khách hàng'); complete('Đã xóa khách hàng.') }}
-      />
-    )
+    return <AdminCustomersView onToast={onToast} />
   }
 
   if (view === 'customer-groups') {
@@ -441,32 +426,7 @@ export function AdminOperationalView({ view, database, onToast, onNavigate }: Op
   if (view === 'documents') return <AdminDocumentsView documents={database.documents} onToast={onToast} />
 
   if (view === 'inquiries') {
-    return (
-      <AdminCollectionManager
-        title="Liên hệ và yêu cầu tư vấn"
-        description="Tập trung các yêu cầu từ form liên hệ, showroom và báo giá."
-        singularLabel="yêu cầu liên hệ"
-        rows={editableRows(database.inquiries)}
-        columns={[
-          { key: 'name', label: 'Khách hàng', render: (row) => <strong>{String(row.name)}</strong> },
-          { key: 'subject', label: 'Chủ đề' },
-          { key: 'phone', label: 'Điện thoại' },
-          { key: 'source', label: 'Nguồn' },
-          { key: 'status', label: 'Trạng thái', render: (row) => <AdminStatus>{String(row.status)}</AdminStatus> },
-        ]}
-        fields={[
-          { key: 'name', label: 'Khách hàng', required: true },
-          { key: 'email', label: 'Email', type: 'email' },
-          { key: 'phone', label: 'Điện thoại', type: 'tel' },
-          { key: 'subject', label: 'Chủ đề', required: true },
-          { key: 'message', label: 'Nội dung', type: 'textarea' },
-          { key: 'source', label: 'Nguồn', type: 'select', options: [{ value: 'CONTACT', label: 'Form liên hệ' }, { value: 'QUOTE', label: 'Yêu cầu báo giá' }, { value: 'SHOWROOM', label: 'Đặt lịch showroom' }] },
-          { key: 'status', label: 'Trạng thái', type: 'select', options: ['Mới', 'Đang xử lý', 'Đã phản hồi', 'Đã đóng'].map((value) => ({ value, label: value })) },
-        ]}
-        onSave={(record) => { upsertRecord('inquiries', { ...record, createdAt: String(record.createdAt || new Date().toISOString()) }, 'Liên hệ'); complete('Đã cập nhật yêu cầu liên hệ.') }}
-        onDelete={(id) => { deleteRecord('inquiries', id, 'Liên hệ'); complete('Đã xóa yêu cầu liên hệ.') }}
-      />
-    )
+    return <AdminInquiriesView onToast={onToast} />
   }
 
   if (view === 'showrooms') {
@@ -528,6 +488,203 @@ export function AdminOperationalView({ view, database, onToast, onNavigate }: Op
   return null
 }
 
+function AdminCustomersView({ onToast }: { onToast: (message: string) => void }) {
+  const [customers, setCustomers] = useState<ManagedCustomer[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const reload = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const result = await getManagedCustomers()
+      setCustomers(result.customers)
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Không thể tải danh sách khách hàng.',
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    const initialLoad = window.setTimeout(() => { void reload() }, 0)
+    return () => window.clearTimeout(initialLoad)
+  }, [reload])
+
+  if (isLoading) {
+    return (
+      <div className="admin-access-skeleton" role="status" aria-live="polite" aria-busy="true">
+        <span className="sr-only">Đang tải khách hàng</span>
+        <AdminPageHeading
+          title="Quản lý khách hàng"
+          description="Khách hàng đăng ký qua Google trên website sẽ hiển thị tại đây."
+          action={<KhungXuong className="admin-access-skeleton__action" />}
+        />
+        <AdminPanel className="admin-toolbar"><KhungXuong className="admin-access-skeleton__search" /></AdminPanel>
+        <AdminPanel className="admin-table-panel"><AdminBangKhungXuong columns={7} rows={6} label="Đang tải khách hàng" /></AdminPanel>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <AdminPanel title="Quản lý khách hàng">
+        <p className="admin-form-error">{error}</p>
+        <button className="admin-button" type="button" onClick={() => void reload()}>Thử lại</button>
+      </AdminPanel>
+    )
+  }
+
+  const rows = customers.map((customer) => ({
+    id: customer.id,
+    name: customer.name,
+    email: customer.email,
+    phone: customer.phone ?? '',
+    orderCount: customer.orderCount,
+    totalSpent: customer.totalSpent,
+    status: customer.isActive ? 'ACTIVE' : 'LOCKED',
+  })) as AdminEditableRecord[]
+
+  return (
+    <AdminCollectionManager
+      title="Quản lý khách hàng"
+      description="Hiển thị các tài khoản khách hàng đã đăng ký qua Google trên website."
+      singularLabel="khách hàng"
+      rows={rows}
+      allowCreate={false}
+      allowDelete={false}
+      headingAction={<div className="admin-customer-total"><span>Tổng khách hàng</span><strong>{customers.length}</strong></div>}
+      columns={[
+        { key: 'name', label: 'Khách hàng', render: (row) => <strong>{String(row.name)}</strong> },
+        { key: 'email', label: 'Email' },
+        { key: 'phone', label: 'Điện thoại', render: (row) => String(row.phone || '—') },
+        { key: 'orderCount', label: 'Đơn hàng', render: (row) => `${String(row.orderCount)} đơn` },
+        { key: 'totalSpent', label: 'Tổng chi tiêu', render: (row) => <strong className="admin-table__price">{formatCurrency(Number(row.totalSpent))}</strong> },
+        { key: 'status', label: 'Trạng thái', render: (row) => <AdminStatus>{String(row.status)}</AdminStatus> },
+      ]}
+      fields={[
+        { key: 'name', label: 'Họ và tên', required: true },
+        { key: 'phone', label: 'Điện thoại', type: 'tel' },
+        { key: 'status', label: 'Trạng thái', type: 'select', options: [{ value: 'ACTIVE', label: 'Đang hoạt động' }, { value: 'LOCKED', label: 'Đã khóa' }] },
+      ]}
+      onSave={async (record) => {
+        await updateManagedCustomer(record.id, {
+          fullName: String(record.name),
+          phone: String(record.phone ?? ''),
+          isActive: record.status === 'ACTIVE',
+        })
+        await reload()
+        onToast('Đã cập nhật khách hàng.')
+      }}
+      onDelete={() => undefined}
+    />
+  )
+}
+
+const inquiryStatusOptions: Array<{ value: InquiryStatus; label: string }> = [
+  { value: 'NEW', label: 'Mới' },
+  { value: 'IN_PROGRESS', label: 'Đang xử lý' },
+  { value: 'RESPONDED', label: 'Đã phản hồi' },
+  { value: 'CLOSED', label: 'Đã đóng' },
+]
+
+function getInquiryStatusLabel(status: InquiryStatus) {
+  return inquiryStatusOptions.find((option) => option.value === status)?.label ?? status
+}
+
+function getInquirySourceLabel(source: ContactInquiry['source']) {
+  const labels: Record<ContactInquiry['source'], string> = {
+    CONTACT: 'Form liên hệ',
+    SHOWROOM: 'Đặt lịch showroom',
+    QUOTE: 'Yêu cầu báo giá',
+  }
+  return labels[source]
+}
+
+function AdminInquiriesView({ onToast }: { onToast: (message: string) => void }) {
+  const [inquiries, setInquiries] = useState<ContactInquiry[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const reload = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const result = await getManagedInquiries()
+      setInquiries(result.inquiries)
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Không thể tải yêu cầu liên hệ.',
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    const initialLoad = window.setTimeout(() => { void reload() }, 0)
+    return () => window.clearTimeout(initialLoad)
+  }, [reload])
+
+  if (isLoading) {
+    return (
+      <div className="admin-access-skeleton" role="status" aria-live="polite" aria-busy="true">
+        <span className="sr-only">Đang tải yêu cầu liên hệ</span>
+        <AdminPageHeading title="Liên hệ và yêu cầu tư vấn" description="Tập trung các yêu cầu được gửi từ form liên hệ trên website." action={<KhungXuong className="admin-access-skeleton__action" />} />
+        <AdminPanel className="admin-toolbar"><KhungXuong className="admin-access-skeleton__search" /></AdminPanel>
+        <AdminPanel className="admin-table-panel"><AdminBangKhungXuong columns={6} rows={5} label="Đang tải yêu cầu liên hệ" /></AdminPanel>
+      </div>
+    )
+  }
+
+  if (error) {
+    return <AdminPanel title="Liên hệ và yêu cầu tư vấn"><p className="admin-form-error">{error}</p><button className="admin-button" type="button" onClick={() => void reload()}>Thử lại</button></AdminPanel>
+  }
+
+  const rows = inquiries.map((inquiry) => ({ ...inquiry })) as AdminEditableRecord[]
+  return (
+    <AdminCollectionManager
+      title="Liên hệ và yêu cầu tư vấn"
+      description="Các yêu cầu được gửi từ form liên hệ trên website sẽ xuất hiện tại đây."
+      singularLabel="yêu cầu liên hệ"
+      rows={rows}
+      allowCreate={false}
+      deleteDescription="Yêu cầu liên hệ này sẽ bị xóa vĩnh viễn. Không thể hoàn tác."
+      columns={[
+        { key: 'name', label: 'Khách hàng', render: (row) => <strong>{String(row.name)}</strong> },
+        { key: 'subject', label: 'Chủ đề' },
+        { key: 'phone', label: 'Điện thoại' },
+        { key: 'source', label: 'Nguồn', render: (row) => getInquirySourceLabel(String(row.source) as ContactInquiry['source']) },
+        { key: 'status', label: 'Trạng thái', render: (row) => <AdminStatus>{getInquiryStatusLabel(String(row.status) as InquiryStatus)}</AdminStatus> },
+      ]}
+      fields={[
+        { key: 'name', label: 'Khách hàng', readOnly: true },
+        { key: 'email', label: 'Email', type: 'email', readOnly: true },
+        { key: 'phone', label: 'Điện thoại', type: 'tel', readOnly: true },
+        { key: 'subject', label: 'Chủ đề', readOnly: true },
+        { key: 'message', label: 'Nội dung', type: 'textarea', readOnly: true },
+        { key: 'status', label: 'Trạng thái', type: 'select', options: inquiryStatusOptions },
+      ]}
+      onSave={async (record) => {
+        await updateManagedInquiry(record.id, String(record.status) as InquiryStatus)
+        await reload()
+        onToast('Đã cập nhật trạng thái yêu cầu liên hệ.')
+      }}
+      onDelete={async (id) => {
+        await deleteManagedInquiry(id)
+        await reload()
+        onToast('Đã xóa yêu cầu liên hệ.')
+      }}
+    />
+  )
+}
+
 function AdminAccessManagementView({
   view,
   onToast,
@@ -565,9 +722,10 @@ function AdminAccessManagementView({
   }, [reload])
 
   if (isLoading) return <AdminAccessManagementSkeleton view={view} />
-  if (error) return <AdminPanel title={view === 'users' ? 'Người dùng quản trị' : 'Vai trò và phân quyền'}><p className="admin-form-error">{error}</p><button className="admin-button" type="button" onClick={() => void reload()}>Thử lại</button></AdminPanel>
+  if (error) return <AdminPanel title={view === 'users' ? 'Nhân viên quản trị' : 'Vai trò và phân quyền'}><p className="admin-form-error">{error}</p><button className="admin-button" type="button" onClick={() => void reload()}>Thử lại</button></AdminPanel>
 
   if (view === 'users') {
+    const employeeRoles = roles.filter((role) => role.code !== 'CUSTOMER')
     const rows = users.map((user) => ({
       id: user.id,
       name: user.name,
@@ -578,14 +736,16 @@ function AdminAccessManagementView({
     })) as AdminEditableRecord[]
     return (
       <AdminCollectionManager
-        title="Người dùng quản trị"
-        description="Tài khoản nội bộ được lưu trên Supabase và xác thực bằng mật khẩu riêng."
-        singularLabel="người dùng"
+        title="Nhân viên quản trị"
+        description="Tạo và quản lý tài khoản nội bộ cho nhân viên được phép truy cập khu vực quản trị."
+        singularLabel="nhân viên"
+        addLabel="Thêm nhân viên"
+        deleteDescription="Tài khoản này cùng toàn bộ phiên đăng nhập sẽ bị xóa vĩnh viễn. Không thể hoàn tác."
         rows={rows}
         columns={[
-          { key: 'name', label: 'Người dùng', render: (row) => <strong>{String(row.name)}</strong> },
+          { key: 'name', label: 'Nhân viên', render: (row) => <strong>{String(row.name)}</strong> },
           { key: 'email', label: 'Email' },
-          { key: 'roleCode', label: 'Vai trò', render: (row) => roles.find((role) => role.code === row.roleCode)?.name ?? String(row.roleCode) },
+          { key: 'roleCode', label: 'Vai trò', render: (row) => employeeRoles.find((role) => role.code === row.roleCode)?.name ?? String(row.roleCode) },
           { key: 'lastLogin', label: 'Đăng nhập gần nhất', render: (row) => formatDate(String(row.lastLogin)) },
           { key: 'status', label: 'Trạng thái', render: (row) => <AdminStatus>{String(row.status)}</AdminStatus> },
         ]}
@@ -593,7 +753,7 @@ function AdminAccessManagementView({
           { key: 'name', label: 'Họ và tên', required: true },
           { key: 'email', label: 'Email', required: true, suffix: '@cmid.com.vn' },
           { key: 'password', label: 'Mật khẩu', type: 'password', requiredOnCreate: true, helper: 'Tối thiểu 10 ký tự. Để trống khi không đổi mật khẩu.' },
-          { key: 'roleCode', label: 'Vai trò', type: 'select', options: roles.map((role) => ({ value: role.code, label: role.name })), required: true, action: { label: 'Tạo vai trò mới', onClick: () => onNavigate('roles') } },
+          { key: 'roleCode', label: 'Vai trò', type: 'select', options: employeeRoles.map((role) => ({ value: role.code, label: role.name })), required: true, action: { label: 'Tạo vai trò mới', onClick: () => onNavigate('roles') } },
           { key: 'status', label: 'Trạng thái', type: 'select', options: [{ value: 'ACTIVE', label: 'Đang hoạt động' }, { value: 'LOCKED', label: 'Đã khóa' }] },
         ]}
         onSave={async (record) => {
@@ -607,12 +767,12 @@ function AdminAccessManagementView({
             await createManagedUser({ fullName: String(record.name), username, password: String(record.password ?? ''), roleCode: String(record.roleCode), isActive })
           }
           await reload()
-          onToast(isExisting ? 'Đã cập nhật người dùng.' : 'Đã tạo tài khoản người dùng.')
+          onToast(isExisting ? 'Đã cập nhật nhân viên.' : 'Đã tạo tài khoản nhân viên.')
         }}
         onDelete={async (id) => {
-          await deactivateManagedUser(id)
+          await deleteManagedUser(id)
           await reload()
-          onToast('Đã khóa tài khoản người dùng.')
+          onToast('Đã xóa tài khoản nhân viên.')
         }}
       />
     )
@@ -668,7 +828,7 @@ function AdminAccessManagementView({
 
 function AdminAccessManagementSkeleton({ view }: { view: 'users' | 'roles' }) {
   const isUsersView = view === 'users'
-  const title = isUsersView ? 'Người dùng quản trị' : 'Vai trò và phân quyền'
+  const title = isUsersView ? 'Nhân viên quản trị' : 'Vai trò và phân quyền'
   const description = isUsersView
     ? 'Tài khoản nội bộ được lưu trên Supabase và xác thực bằng mật khẩu riêng.'
     : 'Nhóm quyền được lưu trên Supabase và áp dụng cho cả menu lẫn API.'

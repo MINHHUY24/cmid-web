@@ -18,7 +18,8 @@ export interface AuthSessionResponse {
   user: ServerAuthenticatedUser
 }
 
-let pendingRefresh: Promise<AuthSessionResponse> | null = null
+let pendingCustomerRefresh: Promise<AuthSessionResponse> | null = null
+let pendingAdminRefresh: Promise<AuthSessionResponse> | null = null
 
 export function loginWithGoogleCredential(credential: string) {
   return apiFetch<AuthSessionResponse>('/auth/google', {
@@ -36,17 +37,30 @@ export function loginAdminWithPassword(username: string, password: string) {
   })
 }
 
-export function refreshAuthSession() {
-  if (!pendingRefresh) {
-    pendingRefresh = apiFetch<AuthSessionResponse>('/auth/refresh', {
+export function refreshCustomerAuthSession() {
+  if (!pendingCustomerRefresh) {
+    pendingCustomerRefresh = apiFetch<AuthSessionResponse>('/auth/refresh', {
       method: 'POST',
       skipAuth: true,
     }).finally(() => {
-      pendingRefresh = null
+      pendingCustomerRefresh = null
     })
   }
 
-  return pendingRefresh
+  return pendingCustomerRefresh
+}
+
+export function refreshAdminAuthSession() {
+  if (!pendingAdminRefresh) {
+    pendingAdminRefresh = apiFetch<AuthSessionResponse>('/auth/admin/refresh', {
+      method: 'POST',
+      skipAuth: true,
+    }).finally(() => {
+      pendingAdminRefresh = null
+    })
+  }
+
+  return pendingAdminRefresh
 }
 
 export function getCurrentAuthenticatedUser() {
@@ -54,11 +68,18 @@ export function getCurrentAuthenticatedUser() {
 }
 
 export function getCurrentAdmin() {
-  return apiFetch<{ user: ServerAuthenticatedUser }>('/auth/admin/me')
+  return apiFetch<{ user: ServerAuthenticatedUser }>('/auth/admin/me', { authScope: 'admin' })
 }
 
-export function logoutAuthSession() {
+export function logoutCustomerAuthSession() {
   return apiFetch<void>('/auth/logout', {
+    method: 'POST',
+    skipAuth: true,
+  })
+}
+
+export function logoutAdminAuthSession() {
+  return apiFetch<void>('/auth/admin/logout', {
     method: 'POST',
     skipAuth: true,
   })

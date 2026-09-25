@@ -1,14 +1,18 @@
-let accessToken: string | null = null
+export type AuthTokenScope = 'customer' | 'admin'
 
-export function getAccessToken() {
-  return accessToken
+const accessTokens: Record<AuthTokenScope, string | null> = {
+  customer: null,
+  admin: null,
 }
 
-export function setAccessToken(nextAccessToken: string) {
-  accessToken = nextAccessToken
+export function getAccessToken(scope: AuthTokenScope = 'customer') {
+  return accessTokens[scope]
 }
 
-export function clearAccessToken() {
-  accessToken = null
+export function setAccessToken(nextAccessToken: string, scope: AuthTokenScope = 'customer') {
+  accessTokens[scope] = nextAccessToken
 }
 
+export function clearAccessToken(scope: AuthTokenScope = 'customer') {
+  accessTokens[scope] = null
+}

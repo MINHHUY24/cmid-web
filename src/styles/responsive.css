@@ -74,7 +74,7 @@
     padding: 8px 24px 16px;
     border-top: 1px solid var(--cmid-line);
     background: var(--cmid-panel);
-    box-shadow: 0 10px 18px rgb(44 33 18 / 9%);
+    box-shadow: 0 10px 18px var(--cmid-palette-rgb-44-33-18-alpha-9p);
   }
 
   .site-nav--open {
@@ -101,7 +101,7 @@
   }
 
   .order-option + .order-option {
-    border-top: 1px solid #ded3c2;
+    border-top: 1px solid var(--cmid-palette-ded3c2);
     border-left: 0;
   }
 
@@ -305,7 +305,7 @@
   }
 
   .experience-3d::before {
-    background: linear-gradient(90deg, rgb(25 26 25 / 97%) 0%, rgb(25 26 25 / 76%) 65%, rgb(25 26 25 / 25%));
+    background: linear-gradient(90deg, var(--cmid-palette-rgb-25-26-25-alpha-97p) 0%, var(--cmid-palette-rgb-25-26-25-alpha-76p) 65%, var(--cmid-palette-rgb-25-26-25-alpha-25p));
   }
 
   .experience-3d__content {

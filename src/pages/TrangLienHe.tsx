@@ -1,16 +1,21 @@
 import {
+  CaretDown,
+  Check,
+  CheckCircle,
   Clock,
   EnvelopeSimple,
   MapPin,
   PaperPlaneTilt,
   Phone,
   Storefront,
+  X,
 } from '@phosphor-icons/react'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import heroImage from '../assets/images/hero-lien-he-cmid.png'
 import { CamKetDichVu } from '../components/common/CamKetDichVu'
 import { KhungDauTrang } from '../components/common/KhungDauTrang'
 import { useLanguage } from '../contexts/NgonNguContext'
+import { createContactInquiry } from '../services/inquiry.service'
 
 const showrooms = [
   {
@@ -37,7 +42,12 @@ const showrooms = [
 ]
 
 export function TrangLienHePage() {
-  const [isSent, setIsSent] = useState(false)
+  const [isSubjectMenuOpen, setIsSubjectMenuOpen] = useState(false)
+  const [selectedSubject, setSelectedSubject] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submissionError, setSubmissionError] = useState<string | null>(null)
+  const [successNotice, setSuccessNotice] = useState<string | null>(null)
+  const subjectDropdownRef = useRef<HTMLDivElement>(null)
   const { content } = useLanguage()
   const { contact } = content
   const localizedShowrooms = showrooms.map((showroom, index) => ({
@@ -46,13 +56,74 @@ export function TrangLienHePage() {
     hours: contact.hours[index] ?? showroom.hours,
   }))
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    function closeSubjectMenu(event: MouseEvent) {
+      if (!subjectDropdownRef.current?.contains(event.target as Node)) {
+        setIsSubjectMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', closeSubjectMenu)
+    return () => document.removeEventListener('mousedown', closeSubjectMenu)
+  }, [])
+
+  useEffect(() => {
+    if (!successNotice) return undefined
+    const timeout = window.setTimeout(() => setSuccessNotice(null), 5000)
+    return () => window.clearTimeout(timeout)
+  }, [successNotice])
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setIsSent(true)
+    if (!selectedSubject) {
+      setSubmissionError('Vui lòng chọn chủ đề cần hỗ trợ.')
+      setIsSubjectMenuOpen(true)
+      return
+    }
+
+    const form = event.currentTarget
+    const formData = new FormData(form)
+    setSubmissionError(null)
+    setIsSubmitting(true)
+
+    try {
+      await createContactInquiry({
+        name: String(formData.get('name') ?? ''),
+        phone: String(formData.get('phone') ?? ''),
+        email: String(formData.get('email') ?? ''),
+        subject: selectedSubject,
+        message: String(formData.get('message') ?? ''),
+        consent: formData.get('consent') === 'on',
+      })
+      form.reset()
+      setSelectedSubject('')
+      setSuccessNotice(contact.success)
+    } catch (error) {
+      setSubmissionError(
+        error instanceof Error
+          ? error.message
+          : 'Không thể gửi yêu cầu. Vui lòng thử lại.',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  function selectSubject(subject: string) {
+    setSelectedSubject(subject)
+    setSubmissionError(null)
+    setIsSubjectMenuOpen(false)
   }
 
   return (
     <main className="trang-lien-he trang-noi-dung">
+      {successNotice ? (
+        <div className="contact-submit-toast" role="status" aria-live="polite">
+          <CheckCircle size={22} weight="fill" aria-hidden="true" />
+          <p><strong>Đã gửi yêu cầu</strong><span>{successNotice}</span></p>
+          <button type="button" onClick={() => setSuccessNotice(null)} aria-label="Đóng thông báo"><X size={18} /></button>
+        </div>
+      ) : null}
       <KhungDauTrang
         tone="toi"
         title={contact.title}
@@ -89,11 +160,52 @@ export function TrangLienHePage() {
               <label><span className="form-label-text">{contact.name} <b>*</b></span><input name="name" autoComplete="name" placeholder={contact.namePlaceholder} required /></label>
               <label><span className="form-label-text">{contact.phoneLabel} <b>*</b></span><input name="phone" type="tel" autoComplete="tel" placeholder={contact.phonePlaceholder} required /></label>
               <label><span className="form-label-text">{contact.emailLabel} <b>*</b></span><input name="email" type="email" autoComplete="email" placeholder="name@example.com" required /></label>
-              <label><span className="form-label-text">{contact.subject} <b>*</b></span><select name="subject" defaultValue="" required><option value="" disabled>{contact.subjectPlaceholder}</option>{contact.subjects.map((subject) => <option key={subject}>{subject}</option>)}</select></label>
+              <div className="contact-subject-field">
+                <span className="form-label-text" id="contact-subject-label">{contact.subject} <b>*</b></span>
+                <div className={`contact-subject-dropdown${isSubjectMenuOpen ? ' contact-subject-dropdown--open' : ''}`} ref={subjectDropdownRef}>
+                  <input name="subject" type="hidden" value={selectedSubject} />
+                  <button
+                    aria-controls="contact-subject-options"
+                    aria-expanded={isSubjectMenuOpen}
+                    aria-haspopup="listbox"
+                    aria-labelledby="contact-subject-label"
+                    className="contact-subject-dropdown__trigger"
+                    type="button"
+                    onClick={() => setIsSubjectMenuOpen((isOpen) => !isOpen)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Escape') setIsSubjectMenuOpen(false)
+                      if (event.key === 'ArrowDown') setIsSubjectMenuOpen(true)
+                    }}
+                  >
+                    <span className={selectedSubject ? '' : 'contact-subject-dropdown__placeholder'}>{selectedSubject || contact.subjectPlaceholder}</span>
+                    <CaretDown size={18} weight="bold" aria-hidden="true" />
+                  </button>
+                  {isSubjectMenuOpen ? (
+                    <div className="contact-subject-dropdown__menu" id="contact-subject-options" role="listbox" aria-labelledby="contact-subject-label">
+                      {contact.subjects.map((subject) => {
+                        const isSelected = selectedSubject === subject
+                        return (
+                          <button
+                            aria-selected={isSelected}
+                            className={isSelected ? 'is-selected' : undefined}
+                            key={subject}
+                            role="option"
+                            type="button"
+                            onClick={() => selectSubject(subject)}
+                          >
+                            <span>{subject}</span>
+                            {isSelected ? <Check size={16} weight="bold" aria-hidden="true" /> : null}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
               <label className="contact-form-panel__wide"><span className="form-label-text">{contact.message} <b>*</b></span><textarea name="message" rows={5} placeholder={contact.messagePlaceholder} required /></label>
               <label className="contact-form-panel__consent contact-form-panel__wide"><input type="checkbox" name="consent" required />{contact.consent}</label>
-              <button className="button button--gold contact-form-panel__wide" type="submit"><PaperPlaneTilt size={18} aria-hidden="true" />{contact.submit}</button>
-              {isSent ? <p className="contact-form-panel__success contact-form-panel__wide" role="status">{contact.success}</p> : null}
+              <button className="button button--gold contact-form-panel__wide" type="submit" disabled={isSubmitting}><PaperPlaneTilt size={18} aria-hidden="true" />{isSubmitting ? 'Đang gửi...' : contact.submit}</button>
+              {submissionError ? <p className="contact-form-panel__error contact-form-panel__wide" role="alert">{submissionError}</p> : null}
             </form>
           </section>
 

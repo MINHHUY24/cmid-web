@@ -3,9 +3,8 @@ import type { AuthenticatedUser, CustomerProfile } from './NguoiDungContext'
 import { UserContext } from './NguoiDungContext'
 import {
   loginWithGoogleCredential,
-  loginAdminWithPassword,
-  logoutAuthSession,
-  refreshAuthSession,
+  logoutCustomerAuthSession,
+  refreshCustomerAuthSession,
   type ServerAuthenticatedUser,
 } from '../services/auth.service'
 import {
@@ -221,7 +220,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     window.localStorage.removeItem(LEGACY_USER_STORAGE_KEY)
 
-    void refreshAuthSession()
+    void refreshCustomerAuthSession()
       .then((session) => {
         setAccessToken(session.accessToken)
 
@@ -267,17 +266,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, [applyAuthenticatedUser])
 
-  const signInAdminWithPassword = useCallback(async (username: string, password: string) => {
-    setIsSigningIn(true)
-    try {
-      const session = await loginAdminWithPassword(username, password)
-      setAccessToken(session.accessToken)
-      const authenticatedUser = toAuthenticatedUser(session.user)
-      applyAuthenticatedUser(authenticatedUser)
-      return authenticatedUser
-    } finally { setIsSigningIn(false) }
-  }, [applyAuthenticatedUser])
-
   const updateProfile = useCallback(
     (nextProfile: CustomerProfile) => {
       if (!user) {
@@ -297,7 +285,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setProfile(createEmptyProfile())
 
     try {
-      await logoutAuthSession()
+      await logoutCustomerAuthSession()
     } catch {
       // The browser state is cleared even if the network is unavailable.
     }
@@ -310,11 +298,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
       isAuthLoading,
       isSigningIn,
       signInWithGoogle,
-      signInAdminWithPassword,
       updateProfile,
       signOut,
     }),
-    [isAuthLoading, isSigningIn, profile, signInAdminWithPassword, signInWithGoogle, signOut, updateProfile, user],
+    [isAuthLoading, isSigningIn, profile, signInWithGoogle, signOut, updateProfile, user],
   )
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>

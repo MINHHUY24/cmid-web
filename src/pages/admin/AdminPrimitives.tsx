@@ -327,6 +327,7 @@ export interface AdminFieldConfig {
   permissionGroups?: AdminPermissionGroup[]
   options?: Array<{ value: string; label: string }>
   helper?: string
+  readOnly?: boolean
 }
 
 export interface AdminColumnConfig {
@@ -352,7 +353,11 @@ interface AdminCollectionManagerProps {
   columns: AdminColumnConfig[]
   fields: AdminFieldConfig[]
   onSave: (record: AdminEditableRecord) => void | Promise<void>
-  onDelete: (id: string) => void
+  onDelete: (id: string) => void | Promise<void>
+  allowCreate?: boolean
+  allowDelete?: boolean
+  deleteDescription?: string
+  headingAction?: ReactNode
   searchPlaceholder?: string
   addLabel?: string
   readOnly?: boolean
@@ -368,6 +373,10 @@ export function AdminCollectionManager({
   fields,
   onSave,
   onDelete,
+  allowCreate = true,
+  allowDelete = true,
+  deleteDescription,
+  headingAction,
   searchPlaceholder = 'Tìm kiếm...',
   addLabel,
   readOnly = false,
@@ -378,6 +387,8 @@ export function AdminCollectionManager({
   const [editing, setEditing] = useState<AdminEditableRecord | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState<AdminEditableRecord | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [editorError, setEditorError] = useState<string | null>(null)
   const [inlineStatusError, setInlineStatusError] = useState<string | null>(null)
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
@@ -411,6 +422,26 @@ export function AdminCollectionManager({
     setEditing(record ?? null)
     setEditorError(null)
     setDialogOpen(true)
+  }
+
+  function requestDelete(record: AdminEditableRecord) {
+    setDeleteError(null)
+    setDeleting(record)
+  }
+
+  async function confirmDelete() {
+    if (!deleting || isDeleting) return
+
+    setDeleteError(null)
+    setIsDeleting(true)
+    try {
+      await onDelete(deleting.id)
+      setDeleting(null)
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Không thể xóa dữ liệu.')
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   async function updateInlineStatus(record: AdminEditableRecord, status: string) {
@@ -470,11 +501,11 @@ export function AdminCollectionManager({
       <AdminPageHeading
         title={title}
         description={description}
-        action={!readOnly ? (
+        action={!readOnly && allowCreate ? (
           <button className="admin-button admin-button--primary" type="button" onClick={() => openEditor()}>
             <Plus size={17} weight="bold" /> {addLabel ? t(addLabel) : `${t('Thêm')} ${t(singularLabel)}`}
           </button>
-        ) : undefined}
+        ) : headingAction}
       />
 
       <AdminPanel className="admin-toolbar">
@@ -518,7 +549,7 @@ export function AdminCollectionManager({
                     <td className="admin-table__cell--actions">
                       <div className="admin-row-actions">
                         <button type="button" onClick={() => openEditor(row)} aria-label={`${t('Sửa')} ${t(singularLabel)}`}><PencilSimple size={17} /></button>
-                        <button type="button" className="is-danger" onClick={() => setDeleting(row)} aria-label={`${t('Xóa')} ${t(singularLabel)}`}><Trash size={17} /></button>
+                        {allowDelete ? <button type="button" className="is-danger" onClick={() => requestDelete(row)} aria-label={`${t('Xóa')} ${t(singularLabel)}`}><Trash size={17} /></button> : null}
                       </div>
                     </td>
                   ) : null}
@@ -590,7 +621,7 @@ export function AdminCollectionManager({
                     <label className="admin-field" key={field.key}>
                       <span>{field.label}{field.required || (field.requiredOnCreate && !editing) ? <b>*</b> : null}</span>
                       {field.type === 'textarea' ? (
-                        <textarea name={field.key} defaultValue={String(initialValue ?? '')} placeholder={field.placeholder} required={field.required || (field.requiredOnCreate && !editing)} />
+                        <textarea name={field.key} defaultValue={String(initialValue ?? '')} placeholder={field.placeholder} required={field.required || (field.requiredOnCreate && !editing)} readOnly={field.readOnly} />
                       ) : field.type === 'select' ? (
                         <AdminSelect
                           key={`${field.key}-${String(initialValue ?? field.options?.[0]?.value ?? '')}`}
@@ -598,16 +629,17 @@ export function AdminCollectionManager({
                           defaultValue={String(initialValue ?? field.options?.[0]?.value ?? '')}
                           options={field.options ?? []}
                           required={field.required || (field.requiredOnCreate && !editing)}
+                          disabled={field.readOnly}
                           aria-label={field.label}
                         />
                       ) : (
                         field.suffix ? (
                           <div className="admin-input-suffix">
-                            <input name={field.key} type="text" defaultValue={initialValue} placeholder={field.placeholder} required={field.required || (field.requiredOnCreate && !editing)} />
+                            <input name={field.key} type="text" defaultValue={initialValue} placeholder={field.placeholder} required={field.required || (field.requiredOnCreate && !editing)} readOnly={field.readOnly} />
                             <span>{field.suffix}</span>
                           </div>
                         ) : (
-                          <input name={field.key} type={field.type ?? 'text'} defaultValue={initialValue} placeholder={field.placeholder} required={field.required || (field.requiredOnCreate && !editing)} />
+                          <input name={field.key} type={field.type ?? 'text'} defaultValue={initialValue} placeholder={field.placeholder} required={field.required || (field.requiredOnCreate && !editing)} readOnly={field.readOnly} />
                         )
                       )}
                       {field.helper ? <small>{field.helper}</small> : null}
@@ -623,10 +655,11 @@ export function AdminCollectionManager({
       ) : null}
 
       {deleting ? (
-        <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => setDeleting(null)}>
+        <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => { if (!isDeleting) setDeleting(null) }}>
           <section className="admin-dialog admin-dialog--confirm" role="alertdialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
-            <header><div><h2>{t('Xóa')} {t(singularLabel)}?</h2><p>{t('Dữ liệu này sẽ bị gỡ khỏi bản quản trị cục bộ.')}</p></div></header>
-            <footer><button className="admin-button" type="button" onClick={() => setDeleting(null)}>{t('Giữ lại')}</button><button className="admin-button admin-button--danger" type="button" onClick={() => { onDelete(deleting.id); setDeleting(null) }}>{t('Xóa dữ liệu')}</button></footer>
+            <header><div><h2>{t('Xóa')} {t(singularLabel)}?</h2><p>{t(deleteDescription ?? 'Dữ liệu này sẽ bị gỡ khỏi bản quản trị cục bộ.')}</p></div></header>
+            {deleteError ? <p className="admin-form-error" role="alert">{deleteError}</p> : null}
+            <footer><button className="admin-button" type="button" disabled={isDeleting} onClick={() => setDeleting(null)}>{t('Giữ lại')}</button><button className="admin-button admin-button--danger" type="button" disabled={isDeleting} onClick={() => void confirmDelete()}>{isDeleting ? t('Đang xóa...') : t('Xóa dữ liệu')}</button></footer>
           </section>
         </div>
       ) : null}

@@ -1,4 +1,4 @@
-import { getAccessToken } from './auth-token'
+import { getAccessToken, type AuthTokenScope } from './auth-token'
 
 const apiUrl = import.meta.env.VITE_API_URL
 
@@ -14,6 +14,7 @@ export class ApiError extends Error {
 
 type ApiFetchOptions = RequestInit & {
   skipAuth?: boolean
+  authScope?: AuthTokenScope
 }
 
 function getApiUrl(path: string): string {
@@ -50,8 +51,8 @@ function getErrorMessage(payload: unknown, status: number): string {
 export async function apiFetch<T>(path: string, options?: ApiFetchOptions): Promise<T> {
   let response: Response
 
-  const { skipAuth = false, ...requestOptions } = options ?? {}
-  const accessToken = skipAuth ? null : getAccessToken()
+  const { skipAuth = false, authScope = 'customer', ...requestOptions } = options ?? {}
+  const accessToken = skipAuth ? null : getAccessToken(authScope)
 
   try {
     response = await fetch(getApiUrl(path), {
