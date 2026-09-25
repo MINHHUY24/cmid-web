@@ -43,13 +43,13 @@ html[data-theme='light'] .app-shell--site .trang-tin-tuc {
   background-size: cover;
 }
 
-.app-shell--site .tin-tuc__hero-overlay,
-html[data-theme='light'] .app-shell--site .tin-tuc__hero-overlay {
+html[data-theme] .app-shell--site.app-shell--hero .tin-tuc__hero-overlay {
   position: absolute;
   inset: 0;
   /* Keep the image crisp down to its lower edge.  The vertical layer here
-     caused a visible band where the news hero meets the following section. */
-  background: linear-gradient(90deg, rgb(7 5 3 / 91%) 0%, rgb(9 6 4 / 78%) 35%, rgb(8 6 4 / 28%) 74%, rgb(8 6 4 / 18%) 100%);
+     caused a visible band where the news hero meets the following section.
+     This selector intentionally beats the older light-theme hero rule. */
+  background-image: linear-gradient(90deg, rgb(7 5 3 / 91%) 0%, rgb(9 6 4 / 78%) 35%, rgb(8 6 4 / 28%) 74%, rgb(8 6 4 / 18%) 100%) !important;
 }
 
 .app-shell--site.app-shell--hero .tin-tuc__hero-content {
