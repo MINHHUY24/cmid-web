@@ -208,8 +208,9 @@ export function AdminSelect({
 
   useEffect(() => {
     if (!isOpen) return undefined
-    const closeOnOutsideClick = (event: PointerEvent) => {
-      const target = event.target as Node
+    const closeOnOutsideInteraction = (event: Event) => {
+      const target = event.target
+      if (!(target instanceof Node)) return
       if (!rootRef.current?.contains(target) && !menuRef.current?.contains(target)) setIsOpen(false)
     }
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -224,12 +225,18 @@ export function AdminSelect({
       if (menuRef.current?.contains(event.target as Node)) return
       updateMenuPosition()
     }
-    document.addEventListener('pointerdown', closeOnOutsideClick, true)
+    // `pointerdown` covers modern browsers; the mouse/touch fallbacks also
+    // close portal-rendered menus in embedded and older browser contexts.
+    document.addEventListener('pointerdown', closeOnOutsideInteraction, true)
+    document.addEventListener('mousedown', closeOnOutsideInteraction, true)
+    document.addEventListener('touchstart', closeOnOutsideInteraction, true)
     document.addEventListener('keydown', closeOnEscape)
     window.addEventListener('resize', updateMenuPosition)
     window.addEventListener('scroll', updatePositionOnViewportScroll, true)
     return () => {
-      document.removeEventListener('pointerdown', closeOnOutsideClick, true)
+      document.removeEventListener('pointerdown', closeOnOutsideInteraction, true)
+      document.removeEventListener('mousedown', closeOnOutsideInteraction, true)
+      document.removeEventListener('touchstart', closeOnOutsideInteraction, true)
       document.removeEventListener('keydown', closeOnEscape)
       window.removeEventListener('resize', updateMenuPosition)
       window.removeEventListener('scroll', updatePositionOnViewportScroll, true)

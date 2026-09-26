@@ -5600,6 +5600,12 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
   pointer-events: auto;
 }
 
+.app-shell--site:not(.app-shell--home) .site-main .contact-form-panel__consent input:is(:hover, :focus, :focus-visible) {
+  border-color: var(--site-muted-soft) !important;
+  outline: 0;
+  box-shadow: none !important;
+}
+
 /* The generic light input paint has higher specificity than the form's
    checked state.  Keep the selected state visible without a gold fill. */
 .app-shell--site:not(.app-shell--home) .contact-form-panel__consent input:checked {
@@ -5620,6 +5626,16 @@ html[data-theme='dark'] .app-shell--site:not(.app-shell--home) .contact-form-pan
   background-color: var(--site-field) !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 8 3 3 7-7' stroke='%23f8f3eb' stroke-width='2.35' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
   background-size: 13px 13px !important;
+}
+
+/* The contact form submit action stays visually steady on hover. */
+@media (hover: hover) {
+  .app-shell--site:not(.app-shell--home) .contact-form-panel .contact-form-panel__wide.button:not(:disabled):hover {
+    border-color: var(--cmid-cta-border) !important;
+    color: var(--cmid-cta-ink) !important;
+    background-color: var(--cmid-gold) !important;
+    box-shadow: none !important;
+  }
 }
 
 /* Light-mode utility bar: hotline, account, theme, and cart.

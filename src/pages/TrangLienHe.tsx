@@ -16,30 +16,31 @@ import { CamKetDichVu } from '../components/common/CamKetDichVu'
 import { KhungDauTrang } from '../components/common/KhungDauTrang'
 import { useLanguage } from '../contexts/NgonNguContext'
 import { createContactInquiry } from '../services/inquiry.service'
+import {
+  ADMIN_DATABASE_UPDATED_EVENT,
+  getAdminDatabase,
+  type AdminShowroom,
+} from './admin/admin-database'
 
-const showrooms = [
-  {
-    name: 'Showroom chính TP. Hồ Chí Minh',
-    address: '620 Tô Ngọc Vân, Phường Linh Đông, TP. Thủ Đức, TP. Hồ Chí Minh',
-    phone: '028 3838 6173',
-    email: 'info@cmid.vn',
-    hours: '08:00 - 18:00, Thứ 2 - Chủ nhật',
-  },
-  {
-    name: 'Showroom Quận 7',
-    address: 'Số 123 Đường Nguyễn Văn Linh, Phường Tân Phú, Quận 7, TP. Hồ Chí Minh',
-    phone: '028 5410 6173',
-    email: 'q7@cmid.vn',
-    hours: '08:30 - 17:30, Thứ 2 - Thứ 7',
-  },
-  {
-    name: 'Showroom Bình Dương',
-    address: 'Số 789 Đại lộ Bình Dương, Phường Phú Hòa, TP. Thủ Dầu Một, Bình Dương',
-    phone: '0274 730 6173',
-    email: 'binhduong@cmid.vn',
-    hours: '08:00 - 17:30, Thứ 2 - Thứ 7',
-  },
-]
+function getActiveShowrooms() {
+  return getAdminDatabase().showrooms.filter((showroom) => showroom.status === 'ACTIVE')
+}
+
+function getDirectionsUrl(showroom: AdminShowroom) {
+  const configuredMapUrl = showroom.mapUrl.trim()
+  const isGenericMapsHome = /^https?:\/\/(?:www\.)?maps\.google\.com\/?$/i.test(configuredMapUrl)
+
+  if (configuredMapUrl && !isGenericMapsHome) {
+    try {
+      const parsedUrl = new URL(configuredMapUrl)
+      if (parsedUrl.protocol === 'https:' || parsedUrl.protocol === 'http:') return parsedUrl.href
+    } catch {
+      // Fall through to a directions link generated from the managed address.
+    }
+  }
+
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(showroom.address)}`
+}
 
 export function TrangLienHePage() {
   const [isSubjectMenuOpen, setIsSubjectMenuOpen] = useState(false)
@@ -47,14 +48,11 @@ export function TrangLienHePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submissionError, setSubmissionError] = useState<string | null>(null)
   const [successNotice, setSuccessNotice] = useState<string | null>(null)
+  const [showrooms, setShowrooms] = useState(getActiveShowrooms)
   const subjectDropdownRef = useRef<HTMLDivElement>(null)
   const { content } = useLanguage()
   const { contact } = content
-  const localizedShowrooms = showrooms.map((showroom, index) => ({
-    ...showroom,
-    name: contact.showroomNames[index] ?? showroom.name,
-    hours: contact.hours[index] ?? showroom.hours,
-  }))
+  const primaryShowroom = showrooms[0]
 
   useEffect(() => {
     function closeSubjectMenu(event: MouseEvent) {
@@ -65,6 +63,17 @@ export function TrangLienHePage() {
 
     document.addEventListener('mousedown', closeSubjectMenu)
     return () => document.removeEventListener('mousedown', closeSubjectMenu)
+  }, [])
+
+  useEffect(() => {
+    const syncShowrooms = () => setShowrooms(getActiveShowrooms())
+
+    window.addEventListener(ADMIN_DATABASE_UPDATED_EVENT, syncShowrooms)
+    window.addEventListener('storage', syncShowrooms)
+    return () => {
+      window.removeEventListener(ADMIN_DATABASE_UPDATED_EVENT, syncShowrooms)
+      window.removeEventListener('storage', syncShowrooms)
+    }
   }, [])
 
   useEffect(() => {
@@ -144,11 +153,11 @@ export function TrangLienHePage() {
           </article>
           <article>
             <MapPin size={31} weight="thin" aria-hidden="true" />
-            <div><h2>{contact.mainShowroom}</h2><p>620 Tô Ngọc Vân, TP. Thủ Đức</p><p>TP. Hồ Chí Minh</p></div>
+            <div><h2>{contact.mainShowroom}</h2><p>{primaryShowroom?.address ?? 'Chưa có showroom đang hoạt động'}</p></div>
           </article>
           <article>
             <Clock size={31} weight="thin" aria-hidden="true" />
-            <div><h2>{contact.openingHours}</h2><p>{contact.hours[0]}</p><p>{contact.openingHoursDescription}</p></div>
+            <div><h2>{contact.openingHours}</h2><p>{primaryShowroom?.hours ?? contact.hours[0]}</p><p>{contact.openingHoursDescription}</p></div>
           </article>
         </section>
 
@@ -209,30 +218,38 @@ export function TrangLienHePage() {
             </form>
           </section>
 
-          <section className="contact-map" aria-labelledby="contact-map-title">
-            <h2 id="contact-map-title">{contact.mapTitle}</h2>
-            <iframe
-              title={contact.mapFrameTitle}
-              src="https://www.google.com/maps?q=620%20To%20Ngoc%20Van%2C%20Thu%20Duc%2C%20Ho%20Chi%20Minh&output=embed"
-              loading="lazy"
-            />
-            <article>
-              <MapPin size={26} weight="fill" aria-hidden="true" />
-              <h3>CMID Showroom</h3>
-              <p>{localizedShowrooms[0].address}</p>
-              <a href="https://maps.google.com/?q=620+To+Ngoc+Van,+Thu+Duc,+Ho+Chi+Minh" target="_blank" rel="noreferrer">{contact.directions}</a>
-            </article>
-          </section>
+          {primaryShowroom ? (
+            <section className="contact-map" aria-labelledby="contact-map-title">
+              <h2 id="contact-map-title">{contact.mapTitle}</h2>
+              <iframe
+                title={contact.mapFrameTitle}
+                src={`https://www.google.com/maps?q=${encodeURIComponent(primaryShowroom.address)}&output=embed`}
+                loading="lazy"
+              />
+              <article>
+                <MapPin size={26} weight="fill" aria-hidden="true" />
+                <h3>{primaryShowroom.name}</h3>
+                <p>{primaryShowroom.address}</p>
+                <a href={getDirectionsUrl(primaryShowroom)} target="_blank" rel="noreferrer">{contact.directions}</a>
+              </article>
+            </section>
+          ) : null}
         </section>
 
         <section className="contact-showrooms" aria-labelledby="contact-showroom-title">
-          <div className="contact-showrooms__heading"><h2 id="contact-showroom-title">{contact.showroomTitle}</h2><p>{contact.showroomDescription}</p></div>
+          <h2 id="contact-showroom-title">{contact.showroomTitle}</h2>
           <div className="contact-showrooms__list">
-            {localizedShowrooms.map((showroom) => (
-              <article key={showroom.name}>
+            {showrooms.map((showroom) => (
+              <article key={showroom.id}>
                 <Storefront size={28} weight="thin" aria-hidden="true" />
-                <div><h3>{showroom.name}</h3><p>{showroom.address}</p></div>
-                <a href={`tel:${showroom.phone.replaceAll(' ', '')}`}>{showroom.phone}</a>
+                <div className="contact-showrooms__details">
+                  <h3>{showroom.name}</h3>
+                  <p>{showroom.address}</p>
+                  <div className="contact-showrooms__actions">
+                    {showroom.phone ? <a href={`tel:${showroom.phone.replaceAll(' ', '')}`}>{showroom.phone}</a> : null}
+                    <a href={getDirectionsUrl(showroom)} target="_blank" rel="noreferrer"><MapPin size={15} weight="fill" aria-hidden="true" />{contact.directions}</a>
+                  </div>
+                </div>
               </article>
             ))}
           </div>

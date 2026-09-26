@@ -1105,7 +1105,7 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       success: "CMID đã nhận yêu cầu của bạn. Chúng tôi sẽ liên hệ sớm nhất.",
       mapTitle: "Bản đồ showroom",
       mapFrameTitle: "Bản đồ showroom chính CMID",
-      directions: "Mở chỉ đường",
+      directions: "Chỉ đường",
       showroomTitle: "Hệ thống showroom",
       showroomDescription:
         "Ghé thăm CMID để xem trực tiếp vật liệu, mẫu hoàn thiện và không gian trưng bày.",

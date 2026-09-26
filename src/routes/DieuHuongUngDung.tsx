@@ -32,6 +32,10 @@ import {
   ADMIN_DATABASE_UPDATED_EVENT,
   getAdminDatabase,
 } from "../pages/admin/admin-database";
+import {
+  getSharedMaintenanceMode,
+  usesSharedMaintenanceMode,
+} from "../services/maintenance-mode.service";
 
 export function AppRouter() {
   return (
@@ -52,11 +56,11 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/admin" element={<TrangQuanTriPage />} />
-      <Route path="products/:id/3d" element={<TrangTraiNghiem3D />} />
       <Route element={<PublicWebsiteGate />}>
         <Route index element={<TrangChuPage />} />
         <Route path="products" element={<TrangSanPhamPage />} />
         <Route path="products/:id" element={<TrangChiTietSanPham />} />
+        <Route path="products/:id/3d" element={<TrangTraiNghiem3D />} />
         <Route path="gio-hang" element={<TrangGioHangPage />} />
         <Route path="thanh-toan" element={<TrangThanhToanPage />} />
         <Route path="dang-nhap" element={<TrangDangNhapPage />} />
@@ -83,25 +87,55 @@ function AppRoutes() {
 }
 
 function PublicWebsiteGate() {
+  const usesSharedMode = usesSharedMaintenanceMode();
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(
     () => getAdminDatabase().settings.maintenanceMode,
   );
+  const [isMaintenanceModeReady, setIsMaintenanceModeReady] = useState(
+    () => !usesSharedMode,
+  );
 
   useEffect(() => {
-    const syncMaintenanceMode = () =>
-      setIsMaintenanceMode(getAdminDatabase().settings.maintenanceMode);
+    let isCurrent = true;
+    const syncMaintenanceMode = () => {
+      if (!usesSharedMode) {
+        setIsMaintenanceMode(getAdminDatabase().settings.maintenanceMode);
+        setIsMaintenanceModeReady(true);
+        return;
+      }
+
+      void getSharedMaintenanceMode()
+        .then((maintenanceMode) => {
+          if (isCurrent) setIsMaintenanceMode(maintenanceMode);
+        })
+        .catch(() => {
+          if (isCurrent) {
+            setIsMaintenanceMode(getAdminDatabase().settings.maintenanceMode);
+          }
+        })
+        .finally(() => {
+          if (isCurrent) setIsMaintenanceModeReady(true);
+        });
+    };
 
     window.addEventListener(ADMIN_DATABASE_UPDATED_EVENT, syncMaintenanceMode);
     window.addEventListener("storage", syncMaintenanceMode);
+    syncMaintenanceMode();
+    const refreshInterval = usesSharedMode
+      ? window.setInterval(syncMaintenanceMode, 30_000)
+      : undefined;
     return () => {
+      isCurrent = false;
       window.removeEventListener(
         ADMIN_DATABASE_UPDATED_EVENT,
         syncMaintenanceMode,
       );
       window.removeEventListener("storage", syncMaintenanceMode);
+      if (refreshInterval) window.clearInterval(refreshInterval);
     };
-  }, []);
+  }, [usesSharedMode]);
 
+  if (!isMaintenanceModeReady) return null;
   return isMaintenanceMode ? <TrangBaoTriPage /> : <AppLayout />;
 }
 

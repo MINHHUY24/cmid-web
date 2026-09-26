@@ -1150,6 +1150,10 @@ html[data-theme='light'] .product-detail-loading {
   opacity: 0.38;
 }
 
+.product-image-viewer__close {
+  border-radius: 50%;
+}
+
 .product-image-viewer__toolbar button:focus-visible,
 .product-image-viewer__navigation:focus-visible {
   outline: 2px solid var(--cmid-gold);

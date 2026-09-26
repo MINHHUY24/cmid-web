@@ -1,4 +1,5 @@
 import { EnvelopeSimple, Phone, Wrench } from "@phosphor-icons/react";
+import logoImage from "../assets/images/logo.webp";
 import { useLanguage } from "../contexts/NgonNguContext";
 import { useColorTheme } from "../hooks/useColorTheme";
 import maintenanceImage from "../assets/images/khong-gian-trung-bay-vat-lieu.jpg";
@@ -37,11 +38,8 @@ export function TrangBaoTriPage() {
       <div className="maintenance-page__scrim" />
 
       <div className="maintenance-page__content">
-        <div
-          className="maintenance-page__brand"
-          aria-label="CMID Stone and Interior"
-        >
-          <strong>CMID</strong>
+        <div className="maintenance-page__brand">
+          <img src={logoImage} alt="CMID Stone & Interior" />
           <span>Stone &amp; Interior</span>
         </div>
 

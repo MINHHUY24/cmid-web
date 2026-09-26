@@ -17,6 +17,11 @@ import { KhungXuong } from '../../components/common/KhungXuong'
 import type { AppLanguage } from '../../content/site-content'
 import { getAdminDataMode } from '../../services/admin.service'
 import {
+  getSharedMaintenanceMode,
+  updateSharedMaintenanceMode,
+  usesSharedMaintenanceMode,
+} from '../../services/maintenance-mode.service'
+import {
   getManagedCustomers,
   updateManagedCustomer,
   type ManagedCustomer,
@@ -1026,7 +1031,9 @@ function AdminSettingsView({ settings, onToast }: { settings: AdminSettings; onT
   const [tab, setTab] = useState<AdminSettingsTab>('business')
   const [languageQuery, setLanguageQuery] = useState('')
   const [selectedLanguage, setSelectedLanguage] = useState<AppLanguage>(settings.adminLanguage)
+  const [isSavingMaintenance, setIsSavingMaintenance] = useState(false)
   const keepDraftOnSettingsSync = useRef(false)
+  const usesSharedMode = usesSharedMaintenanceMode()
 
   useEffect(() => {
     const shouldKeepDraft = keepDraftOnSettingsSync.current
@@ -1036,6 +1043,21 @@ function AdminSettingsView({ settings, onToast }: { settings: AdminSettings; onT
       setSelectedLanguage(settings.adminLanguage)
     }
   }, [settings])
+
+  useEffect(() => {
+    if (!usesSharedMode) return undefined
+
+    let isCurrent = true
+    void getSharedMaintenanceMode()
+      .then((maintenanceMode) => {
+        if (isCurrent) setForm((current) => ({ ...current, maintenanceMode }))
+      })
+      .catch(() => undefined)
+
+    return () => {
+      isCurrent = false
+    }
+  }, [usesSharedMode])
 
   const filteredLanguages = useMemo(() => {
     const query = normalizeAdminSearch(languageQuery)
@@ -1051,13 +1073,34 @@ function AdminSettingsView({ settings, onToast }: { settings: AdminSettings; onT
     setForm((current) => ({ ...current, [key]: value }))
   }
 
-  function saveSettingsSection() {
+  async function saveSettingsSection() {
     if (tab === 'language' || tab === 'security') return
 
     const action = adminSettingsSaveActions[tab]
     const sectionSettings = Object.fromEntries(
       action.fields.map((field) => [field, form[field]]),
     ) as Partial<AdminSettings>
+
+    if (tab === 'maintenance' && usesSharedMode) {
+      setIsSavingMaintenance(true)
+      try {
+        const maintenanceMode = await updateSharedMaintenanceMode(form.maintenanceMode)
+        const nextSettings = { ...sectionSettings, maintenanceMode }
+        keepDraftOnSettingsSync.current = true
+        setForm((current) => ({ ...current, maintenanceMode }))
+        mutateAdminDatabase(
+          (database) => ({ ...database, settings: { ...database.settings, ...nextSettings } }),
+          action.activity,
+          'Cấu hình',
+        )
+        onToast(action.toast)
+      } catch {
+        onToast(t('Không thể lưu chế độ bảo trì. Vui lòng thử lại.'))
+      } finally {
+        setIsSavingMaintenance(false)
+      }
+      return
+    }
 
     keepDraftOnSettingsSync.current = true
     mutateAdminDatabase(
@@ -1135,7 +1178,7 @@ function AdminSettingsView({ settings, onToast }: { settings: AdminSettings; onT
                 </label>
                 <div className="admin-settings-note">
                   <WarningCircle size={20} />
-                  <p>{t('Bản demo hiện lưu trạng thái trên trình duyệt này. Khi triển khai thật, backend cần đồng bộ cờ bảo trì để áp dụng cho mọi khách truy cập.')}</p>
+                  <p>{t(usesSharedMode ? 'Chế độ bảo trì được lưu trên máy chủ và áp dụng cho mọi khách truy cập.' : 'Bản demo hiện lưu trạng thái trên trình duyệt này. Khi triển khai thật, backend cần đồng bộ cờ bảo trì để áp dụng cho mọi khách truy cập.')}</p>
                 </div>
               </>
             ) : null}
@@ -1171,7 +1214,7 @@ function AdminSettingsView({ settings, onToast }: { settings: AdminSettings; onT
             {tab === 'security' ? <div className="admin-security-summary"><span><LockKey size={23} /></span><div><strong>{t('Chế độ dữ liệu hiện tại')}: {getAdminDataMode() === 'backend' ? t('API quản trị') : t('bản demo cục bộ')}</strong><p>{t('Phiên đăng nhập hiện là bảo vệ giao diện phía trình duyệt. Cần JWT, phân quyền và API backend trước khi dùng trong môi trường thật.')}</p></div></div> : null}
             {saveAction ? (
               <div className="admin-settings-section-actions">
-                <button className="admin-button admin-button--primary" type="button" onClick={saveSettingsSection}>
+                <button className="admin-button admin-button--primary" type="button" onClick={saveSettingsSection} disabled={tab === 'maintenance' && isSavingMaintenance}>
                   <FloppyDisk size={17} />
                   {t(saveAction.label)}
                 </button>
