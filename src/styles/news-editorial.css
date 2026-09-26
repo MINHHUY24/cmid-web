@@ -150,7 +150,7 @@ html[data-theme='light'] .app-shell--site.app-shell--hero .tin-tuc__hero-content
   min-height: 38px;
   padding: 0 18px;
   border: 1px solid var(--news-line-soft);
-  border-radius: 999px;
+  border-radius: var(--cmid-control-radius);
   color: var(--news-muted);
   background: transparent;
   cursor: pointer;
@@ -167,7 +167,7 @@ html[data-theme='light'] .app-shell--site.app-shell--hero .tin-tuc__hero-content
 
 .app-shell--site .tin-tuc__categories button.is-active {
   border-color: var(--news-accent);
-  color: var(--cmid-palette-171008);
+  color: var(--cmid-palette-fffdf9);
   background: var(--cmid-palette-d2a14e);
 }
 
@@ -184,7 +184,7 @@ html[data-theme='light'] .app-shell--site .tin-tuc__categories button.is-active 
   height: 42px;
   padding: 0 15px;
   border: 1px solid var(--news-line-soft);
-  border-radius: 999px;
+  border-radius: var(--cmid-control-radius);
   color: var(--news-muted);
   background: transparent;
 }
@@ -249,7 +249,8 @@ html[data-theme='light'] .app-shell--site .tin-tuc__categories button.is-active 
   top: 22px;
   left: 22px;
   padding: 9px 13px;
-  color: var(--cmid-palette-171008);
+  border-radius: var(--cmid-control-radius);
+  color: var(--cmid-palette-fffdf9);
   background: var(--cmid-palette-d8a54f);
   font-size: 0.68rem;
   font-weight: 800;
