@@ -1781,7 +1781,7 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
   .auth-google-button:hover:not(:disabled),
   .tin-tuc__sidebar nav button,
   .tin-tuc__tags button,
-  .tin-tuc__pagination button:not(:disabled),
+  .tin-tuc__pagination button:not(:disabled):not(.is-active),
   .account-nav__item,
   .button--ghost
 ):hover {
@@ -1898,6 +1898,7 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
   .payment-option small,
   .payment-option span,
   .contact-form-panel label,
+  .contact-subject-field,
   .contact-info-strip p,
   .contact-form-panel__intro,
   .contact-map article p,
@@ -2611,7 +2612,7 @@ html[data-theme='light'] .app-shell--site.app-shell--home .site-footer .brand--f
 }
 
 .app-shell--site:not(.app-shell--home) .cart-toast {
-  z-index: 45;
+  z-index: 70;
   border-color: var(--site-line);
   color: var(--site-text);
   background: var(--site-surface-solid);

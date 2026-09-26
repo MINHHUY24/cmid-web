@@ -47,6 +47,7 @@ export function AppLayout() {
         <CartToast />
         <FloatingActions />
         <LanguageWelcomeDialog />
+        <div id="site-toast-root" />
         <div id="site-modal-root" />
       </div>
     </CartProvider>

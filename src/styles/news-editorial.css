@@ -460,7 +460,7 @@ html[data-theme='light'] .app-shell--site .tin-tuc__categories button.is-active 
   transition: color 160ms ease, background-color 160ms ease;
 }
 
-.app-shell--site .tin-tuc__pagination button:hover:not(:disabled) {
+.app-shell--site .tin-tuc__pagination button:not(.is-active):hover:not(:disabled) {
   color: var(--cmid-palette-fffdf9);
   background: var(--cmid-palette-c28a32);
 }

@@ -370,7 +370,7 @@
 
 .contact-submit-toast {
   position: fixed;
-  z-index: 80;
+  z-index: 70;
   right: 24px;
   bottom: 24px;
   display: grid;
@@ -415,6 +415,7 @@
   border-radius: 50%;
   color: var(--site-muted, var(--cmid-palette-756e64));
   background: transparent;
+  cursor: pointer;
 }
 
 .contact-submit-toast button:hover,
@@ -582,15 +583,15 @@
     padding-bottom: 44px;
   }
 
-  .contact-info-strip,
   .contact-showrooms__list {
     grid-template-columns: 1fr;
   }
 
-  .contact-info-strip article,
-  .contact-info-strip article + article,
-  .contact-info-strip article:nth-child(3),
-  .contact-info-strip article:nth-child(4),
+  .contact-info-strip article {
+    min-height: 0;
+    padding: 18px 14px;
+  }
+
   .contact-showrooms article + article {
     border-top: 1px solid var(--cmid-palette-e5dfd6);
     border-left: 0;

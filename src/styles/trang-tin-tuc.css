@@ -380,7 +380,7 @@
   font-size: calc(0.65rem + 2px);
 }
 
-.tin-tuc__pagination button:hover,
+.tin-tuc__pagination button:not(.is-active):hover,
 .tin-tuc__pagination button.is-active {
   border-color: var(--cmid-gold);
   color: var(--cmid-palette-fff);

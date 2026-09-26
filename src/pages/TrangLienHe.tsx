@@ -11,6 +11,7 @@ import {
   X,
 } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { createPortal } from 'react-dom'
 import heroImage from '../assets/images/hero-lien-he-cmid.png'
 import { CamKetDichVu } from '../components/common/CamKetDichVu'
 import { KhungDauTrang } from '../components/common/KhungDauTrang'
@@ -53,6 +54,9 @@ export function TrangLienHePage() {
   const { content } = useLanguage()
   const { contact } = content
   const primaryShowroom = showrooms[0]
+  const siteToastRoot = typeof document !== 'undefined'
+    ? document.getElementById('site-toast-root')
+    : null
 
   useEffect(() => {
     function closeSubjectMenu(event: MouseEvent) {
@@ -126,12 +130,13 @@ export function TrangLienHePage() {
 
   return (
     <main className="trang-lien-he trang-noi-dung">
-      {successNotice ? (
+      {successNotice && siteToastRoot ? createPortal(
         <div className="contact-submit-toast" role="status" aria-live="polite">
           <CheckCircle size={22} weight="fill" aria-hidden="true" />
           <p><strong>Đã gửi yêu cầu</strong><span>{successNotice}</span></p>
           <button type="button" onClick={() => setSuccessNotice(null)} aria-label="Đóng thông báo"><X size={18} /></button>
-        </div>
+        </div>,
+        siteToastRoot,
       ) : null}
       <KhungDauTrang
         tone="toi"

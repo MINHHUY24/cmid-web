@@ -1,5 +1,6 @@
 import { Bank, CaretDown, Check, CheckCircle, CreditCard, MagnifyingGlass, Truck, Wallet, WarningCircle, X } from '@phosphor-icons/react'
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useSearchParams } from 'react-router-dom'
 import { DonHangTomTat } from '../components/cart/DonHangTomTat'
 import { KhungXuong } from '../components/common/KhungXuong'
@@ -154,6 +155,9 @@ export function TrangThanhToanPage() {
   }))
   const [locationError, setLocationError] = useState('')
   const momoOrderId = searchParams.get('momoOrderId')
+  const siteToastRoot = typeof document !== 'undefined'
+    ? document.getElementById('site-toast-root')
+    : null
 
   useEffect(() => {
     const syncPaymentTimeout = () => setPaymentTimeoutSeconds(getPaymentQrTimeoutSeconds())
@@ -793,7 +797,7 @@ export function TrangThanhToanPage() {
           </section>
         </div>
       ) : null}
-      {paymentNotice ? (
+      {paymentNotice && siteToastRoot ? createPortal(
         <div className="checkout-payment-toast" role="status" aria-live="polite">
           <span className="checkout-payment-toast__icon" aria-hidden="true">
             <WarningCircle size={27} weight="fill" />
@@ -804,7 +808,8 @@ export function TrangThanhToanPage() {
           <button type="button" aria-label={content.cart.closeNotification} onClick={() => setPaymentNotice('')}>
             <X size={22} weight="bold" aria-hidden="true" />
           </button>
-        </div>
+        </div>,
+        siteToastRoot,
       ) : null}
     </main>
   )

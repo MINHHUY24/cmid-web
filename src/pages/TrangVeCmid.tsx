@@ -10,6 +10,7 @@ import {
   Storefront,
   SquaresFour,
 } from '@phosphor-icons/react'
+import { useEffect, useRef, useState } from 'react'
 import showroomImage from '../assets/images/khong-gian-trung-bay-vat-lieu.jpg'
 import heroImage from '../assets/images/hero-ve-cmid.png'
 import projectCityImage from '../assets/images/du-an-khu-do-thi-xanh.jpg'
@@ -33,11 +34,14 @@ const coreValueIcons = [
 ]
 
 const metrics = [
-  { value: '15+', icon: <Medal weight="thin" /> },
-  { value: '1.200+', icon: <Handshake weight="thin" /> },
-  { value: '50+', icon: <Diamond weight="thin" /> },
-  { value: '1.500+', icon: <Buildings weight="thin" /> },
+  { value: 15, suffix: '+', icon: <Medal weight="thin" /> },
+  { value: 1200, suffix: '+', icon: <Handshake weight="thin" /> },
+  { value: 50, suffix: '+', icon: <Diamond weight="thin" /> },
+  { value: 1500, suffix: '+', icon: <Buildings weight="thin" /> },
 ]
+
+const metricTargets = metrics.map(({ value }) => value)
+const reachMetricTargets = [2, 63, 100]
 
 const categories = [
   { icon: <SquaresFour weight="thin" /> }, { icon: <Bathtub weight="thin" /> }, { icon: <Diamond weight="thin" /> }, { icon: <PaintBrush weight="thin" /> }, { icon: <Armchair weight="thin" /> }, { icon: <Storefront weight="thin" /> },
@@ -52,6 +56,8 @@ const milestones = [
 export function TrangVeCmidPage() {
   const { content } = useLanguage()
   const { about } = content
+  const [metricsRef, animatedMetrics] = useCountUpOnView(metricTargets)
+  const [reachMetricsRef, animatedReachMetrics] = useCountUpOnView(reachMetricTargets)
 
   return (
     <main className="trang-ve-cmid trang-noi-dung">
@@ -84,11 +90,11 @@ export function TrangVeCmidPage() {
         ))}
       </section>
 
-      <section className="about-metrics khung-noi-dung" aria-label="CMID metrics">
+      <section ref={metricsRef} className="about-metrics khung-noi-dung" aria-label="CMID metrics">
         {metrics.map((item, index) => (
           <article key={about.metrics[index]}>
             <span aria-hidden="true">{item.icon}</span>
-            <strong>{item.value}</strong>
+            <strong>{formatMetricValue(animatedMetrics[index], item.suffix)}</strong>
             <p>{about.metrics[index]}</p>
           </article>
         ))}
@@ -130,14 +136,14 @@ export function TrangVeCmidPage() {
         </div>
       </section>
 
-      <section className="about-reach khung-noi-dung">
+      <section ref={reachMetricsRef} className="about-reach khung-noi-dung">
         <article>
           <h2>{about.reachTitle}</h2>
           <p>{about.reachDescription}</p>
           <dl>
-            <div><dt>03</dt><dd>{about.reachMetrics[0]}</dd></div>
-            <div><dt>63</dt><dd>{about.reachMetrics[1]}</dd></div>
-            <div><dt>100+</dt><dd>{about.reachMetrics[2]}</dd></div>
+            <div><dt>{formatMetricValue(animatedReachMetrics[0], '', 2)}</dt><dd>{about.reachMetrics[0]}</dd></div>
+            <div><dt>{formatMetricValue(animatedReachMetrics[1])}</dt><dd>{about.reachMetrics[1]}</dd></div>
+            <div><dt>{formatMetricValue(animatedReachMetrics[2], '+')}</dt><dd>{about.reachMetrics[2]}</dd></div>
           </dl>
         </article>
         <article className="about-timeline">
@@ -164,4 +170,70 @@ export function TrangVeCmidPage() {
       </section>
     </main>
   )
+}
+
+function useCountUpOnView(targets: readonly number[]) {
+  const sectionRef = useRef<HTMLElement | null>(null)
+  const animationFrameRef = useRef<number | null>(null)
+  const [values, setValues] = useState(() => targets.map(() => 0))
+
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+
+    const showFinalValues = () => setValues([...targets])
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    const startAnimation = () => {
+      if (animationFrameRef.current !== null) {
+        window.cancelAnimationFrame(animationFrameRef.current)
+      }
+
+      if (prefersReducedMotion) {
+        showFinalValues()
+        return
+      }
+
+      const startTime = performance.now()
+      const duration = 1400
+      setValues(targets.map(() => 1))
+
+      const animate = (currentTime: number) => {
+        const progress = Math.min((currentTime - startTime) / duration, 1)
+        const easedProgress = 1 - (1 - progress) ** 3
+
+        setValues(targets.map((target) => Math.round(1 + (target - 1) * easedProgress)))
+
+        if (progress < 1) {
+          animationFrameRef.current = window.requestAnimationFrame(animate)
+        } else {
+          animationFrameRef.current = null
+        }
+      }
+
+      animationFrameRef.current = window.requestAnimationFrame(animate)
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) startAnimation()
+      },
+      { threshold: 0.3 },
+    )
+
+    observer.observe(section)
+
+    return () => {
+      observer.disconnect()
+      if (animationFrameRef.current !== null) {
+        window.cancelAnimationFrame(animationFrameRef.current)
+      }
+    }
+  }, [targets])
+
+  return [sectionRef, values] as const
+}
+
+function formatMetricValue(value: number | undefined, suffix = '', minimumIntegerDigits = 1) {
+  return new Intl.NumberFormat('vi-VN', { minimumIntegerDigits }).format(value ?? 0) + suffix
 }

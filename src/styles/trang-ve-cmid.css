@@ -115,6 +115,7 @@
   font-family: var(--cmid-font);
   font-size: calc(1.85rem + 2px);
   font-weight: 400;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
@@ -268,6 +269,7 @@
 .about-reach {
   display: grid;
   grid-template-columns: minmax(260px, 0.42fr) minmax(0, 1fr);
+  align-items: center;
   gap: 50px;
   padding: clamp(26px, 3vw, 36px);
   border: 1px solid var(--cmid-palette-e8e2d9);
@@ -291,6 +293,7 @@
   color: var(--cmid-gold-dark);
   font-family: var(--cmid-font);
   font-size: calc(1.6rem + 2px);
+  font-variant-numeric: tabular-nums;
 }
 
 .about-reach dd {

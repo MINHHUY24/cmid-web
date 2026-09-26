@@ -845,7 +845,7 @@
 .checkout-payment-toast {
   --checkout-payment-toast-alert: var(--cmid-palette-d46c61);
   position: fixed;
-  z-index: 45;
+  z-index: 70;
   right: clamp(16px, 2.5vw, 24px);
   bottom: clamp(16px, 2.5vw, 24px);
   display: grid;

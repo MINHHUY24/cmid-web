@@ -282,7 +282,7 @@
 
 .cart-toast {
   position: fixed;
-  z-index: 10;
+  z-index: 70;
   right: 24px;
   bottom: 24px;
   display: grid;

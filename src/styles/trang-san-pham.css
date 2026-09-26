@@ -937,7 +937,7 @@ html[data-theme='light'] .catalog-loading {
   font-size: calc(0.76rem + 2px);
 }
 
-.catalog-pagination button:not(:disabled):hover,
+.catalog-pagination button:not(:disabled):not(.catalog-pagination__current):hover,
 .catalog-pagination__current {
   color: var(--cmid-palette-fff) !important;
   background: var(--cmid-gold) !important;
