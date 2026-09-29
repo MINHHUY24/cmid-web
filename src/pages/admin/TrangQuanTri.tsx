@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import '../../styles/admin-styles/trang-quan-tri.css'
 import { KhungXuong } from '../../components/common/KhungXuong'
 import { useProducts } from '../../hooks/useProducts'
 import { type AuthenticatedUser } from '../../contexts/NguoiDungContext'

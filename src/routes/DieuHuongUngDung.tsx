@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -27,7 +27,6 @@ import { TrangDangNhapPage } from "../pages/TrangDangNhap";
 import { TrangTaiKhoanPage } from "../pages/TrangTaiKhoan";
 import { TrangBaoTriPage } from "../pages/TrangBaoTri";
 import { TrangKhongTimThayPage } from "../pages/TrangKhongTimThay";
-import { TrangQuanTriPage } from "../pages/admin/TrangQuanTri";
 import {
   ADMIN_DATABASE_UPDATED_EVENT,
   getAdminDatabase,
@@ -36,6 +35,12 @@ import {
   getSharedMaintenanceMode,
   usesSharedMaintenanceMode,
 } from "../services/maintenance-mode.service";
+
+const TrangQuanTriPage = lazy(() =>
+  import("../pages/admin/TrangQuanTri").then(({ TrangQuanTriPage }) => ({
+    default: TrangQuanTriPage,
+  })),
+);
 
 export function AppRouter() {
   return (
@@ -55,7 +60,14 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/admin" element={<TrangQuanTriPage />} />
+      <Route
+        path="/admin"
+        element={
+          <Suspense fallback={<AdminRouteFallback />}>
+            <TrangQuanTriPage />
+          </Suspense>
+        }
+      />
       <Route element={<PublicWebsiteGate />}>
         <Route index element={<TrangChuPage />} />
         <Route path="products" element={<TrangSanPhamPage />} />
@@ -83,6 +95,25 @@ function AppRoutes() {
         <Route path="*" element={<TrangKhongTimThayPage />} />
       </Route>
     </Routes>
+  );
+}
+
+function AdminRouteFallback() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        display: "grid",
+        minHeight: "100dvh",
+        placeItems: "center",
+        background: "var(--cmid-palette-f4f1eb, #f4f1eb)",
+        color: "var(--cmid-palette-25231f, #25231f)",
+        fontFamily: "var(--cmid-font, system-ui)",
+      }}
+    >
+      Đang tải trang quản trị…
+    </div>
   );
 }
 
