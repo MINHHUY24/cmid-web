@@ -516,6 +516,23 @@
   line-height: 1.82;
 }
 
+.news-article__body :is(h2, h3) {
+  margin: 13px 0 -2px;
+  color: var(--cmid-palette-302c27);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.news-article__body h2 {
+  font-size: clamp(1.38rem, 2.25vw, 1.82rem);
+  line-height: 1.25;
+}
+
+.news-article__body h3 {
+  font-size: clamp(1.1rem, 1.7vw, 1.3rem);
+  line-height: 1.4;
+}
+
 .news-article__highlights {
   align-self: start;
   padding: 22px;

@@ -1,8 +1,10 @@
 import {
   ArrowRight,
+  Eye,
+  EyeSlash,
   ShieldCheck,
 } from '@phosphor-icons/react'
-import { useState, type FormEvent } from 'react'
+import { useId, useState, type FormEvent } from 'react'
 import interiorImage from '../../assets/images/khong-gian-trung-bay-vat-lieu.jpg'
 import logoImage from '../../assets/images/logo.webp'
 import { useAdminAuth } from '../../contexts/useQuanTriAuth'
@@ -10,6 +12,8 @@ import { useAdminAuth } from '../../contexts/useQuanTriAuth'
 export function TrangDangNhapQuanTri() {
   const { isAdminSigningIn, signInAdminWithPassword } = useAdminAuth()
   const [error, setError] = useState<string | null>(null)
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const passwordId = useId()
 
   async function handlePasswordSignIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -52,7 +56,30 @@ export function TrangDangNhapQuanTri() {
           </div>
           <form onSubmit={handlePasswordSignIn}>
             <label className="admin-field"><span>Email</span><div className="admin-login-email"><input name="username" autoComplete="username" required /><span>@cmid.com.vn</span></div></label>
-            <label className="admin-field"><span>Mật khẩu</span><input name="password" type="password" autoComplete="current-password" required /></label>
+            <div className="admin-field">
+              <label htmlFor={passwordId}>Mật khẩu</label>
+              <div className="admin-login-password">
+                <input
+                  id={passwordId}
+                  name="password"
+                  type={isPasswordVisible ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                />
+                <button
+                  className="admin-login-password__toggle"
+                  type="button"
+                  aria-controls={passwordId}
+                  aria-pressed={isPasswordVisible}
+                  aria-label={isPasswordVisible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  onClick={() => setIsPasswordVisible((isVisible) => !isVisible)}
+                >
+                  {isPasswordVisible
+                    ? <Eye size={19} aria-hidden="true" />
+                    : <EyeSlash size={19} aria-hidden="true" />}
+                </button>
+              </div>
+            </div>
             <button className="admin-login-form__submit" type="submit" disabled={isAdminSigningIn}><span>{isAdminSigningIn ? 'Đang xác thực...' : 'Đăng nhập'}</span><ArrowRight size={18} /></button>
           </form>
 

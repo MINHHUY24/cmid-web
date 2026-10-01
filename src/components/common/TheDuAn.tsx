@@ -10,7 +10,7 @@ interface ProjectCardProps {
 export function ProjectCard({ image, location, title, slug }: ProjectCardProps) {
   const content = (
     <>
-      <img src={image} alt={`${title} — ${location}`} loading="lazy" decoding="async" />
+      <img src={image} alt={`${title}, ${location}`} loading="lazy" decoding="async" />
       <div className="project-card__body">
         <h3>{title}</h3>
         <p>{location}</p>

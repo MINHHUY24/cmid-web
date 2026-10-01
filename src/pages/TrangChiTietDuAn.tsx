@@ -5,6 +5,7 @@ import { KhungXuong, TrangDangTaiKhungXuong } from '../components/common/KhungXu
 import { Seo } from '../components/common/Seo'
 import { StatusPanel } from '../components/common/KhunTranThai'
 import { useLanguage } from '../contexts/NgonNguContext'
+import { getAbsoluteUrl } from '../utils/seo'
 import {
   getProjectBySlug,
   localizeProject,
@@ -32,7 +33,8 @@ function ChiTietDuAnKhungXuong({ label }: { label: string }) {
           <KhungXuong className="du-an-chi-tiet__skeleton-image" />
         </section>
         <section className="du-an-chi-tiet__content du-an-chi-tiet__content--skeleton" aria-hidden="true">
-          <div>
+          <KhungXuong className="du-an-chi-tiet__skeleton-aside" />
+          <div className="du-an-chi-tiet__body">
             <KhungXuong className="du-an-chi-tiet__skeleton-eyebrow" />
             <KhungXuong className="du-an-chi-tiet__skeleton-paragraph" />
             <KhungXuong className="du-an-chi-tiet__skeleton-paragraph" />
@@ -106,6 +108,32 @@ export function TrangChiTietDuAnPage() {
   const localizedProject = localizeProject(project, language)
   const paragraphs = localizedProject.content.split(/\n\s*\n/).map((item) => item.trim()).filter(Boolean)
   const canonicalPath = `/du-an/${localizedProject.slug}`
+  const projectStructuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CreativeWork',
+        '@id': `${getAbsoluteUrl(canonicalPath)}#project`,
+        name: localizedProject.title,
+        description: localizedProject.description,
+        image: [localizedProject.image, ...localizedProject.gallery.map((item) => item.image)].map(getAbsoluteUrl),
+        url: getAbsoluteUrl(canonicalPath),
+        inLanguage: language === 'vi' ? 'vi-VN' : 'en-US',
+        mainEntityOfPage: getAbsoluteUrl(canonicalPath),
+        author: { '@type': 'Organization', name: 'CMID' },
+        publisher: { '@type': 'Organization', name: 'CMID' },
+        spatialCoverage: { '@type': 'Place', name: localizedProject.location },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: content.common.home, item: getAbsoluteUrl('/') },
+          { '@type': 'ListItem', position: 2, name: content.header.projects, item: getAbsoluteUrl('/du-an') },
+          { '@type': 'ListItem', position: 3, name: localizedProject.title, item: getAbsoluteUrl(canonicalPath) },
+        ],
+      },
+    ],
+  }
 
   return (
     <main className="trang-chi-tiet-du-an trang-noi-dung">
@@ -116,6 +144,8 @@ export function TrangChiTietDuAnPage() {
         canonicalPath={canonicalPath}
         image={localizedProject.image}
         imageAlt={localizedProject.title}
+        type="article"
+        structuredData={projectStructuredData}
       />
 
       <article className="du-an-chi-tiet khung-noi-dung">
@@ -138,16 +168,67 @@ export function TrangChiTietDuAnPage() {
         </header>
 
         <section className="du-an-chi-tiet__content" aria-label={language === 'vi' ? 'Nội dung dự án' : 'Project details'}>
-          <div>
+          <aside className="du-an-chi-tiet__aside" aria-label={language === 'vi' ? 'Thông tin dự án' : 'Project information'}>
+            <figure>
+              <div className="du-an-chi-tiet__aside-media">
+                <img src={localizedProject.image} alt="" loading="lazy" decoding="async" />
+              </div>
+              <figcaption className="du-an-chi-tiet__aside-caption">
+                <span className="du-an-chi-tiet__aside-label">
+                  {localizedProject.featured ? content.projects.featureEyebrow : content.header.projects}
+                </span>
+                <span className="du-an-chi-tiet__aside-location">
+                  <MapPin size={16} weight="fill" aria-hidden="true" />
+                  {localizedProject.location}
+                </span>
+              </figcaption>
+            </figure>
+          </aside>
+          <div className="du-an-chi-tiet__body">
             <p className="nhan-noi-dung">{language === 'vi' ? 'Câu chuyện dự án' : 'Project story'}</p>
-            {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            {paragraphs.map((paragraph, index) => <ProjectContentBlock key={`${index}-${paragraph}`} block={paragraph} />)}
+            <footer className="du-an-chi-tiet__footer">
+              <Link className="text-link" to="/du-an"><ArrowLeft size={16} weight="bold" aria-hidden="true" />{language === 'vi' ? 'Quay lại dự án' : 'Back to projects'}</Link>
+            </footer>
           </div>
         </section>
 
-        <footer className="du-an-chi-tiet__footer">
-          <Link className="text-link" to="/du-an"><ArrowLeft size={16} weight="bold" aria-hidden="true" />{language === 'vi' ? 'Quay lại dự án' : 'Back to projects'}</Link>
-        </footer>
+        {localizedProject.gallery.length > 0 ? (
+          <section className="du-an-chi-tiet__gallery-section" aria-labelledby="du-an-chi-tiet-gallery-heading">
+            <h2 id="du-an-chi-tiet-gallery-heading">
+              {language === 'vi' ? 'Không gian đã thiết kế' : 'Designed interiors'}
+            </h2>
+            <div className="du-an-chi-tiet__gallery">
+              {localizedProject.gallery.map((item) => (
+                <figure key={item.image}>
+                  <img
+                    src={item.image}
+                    alt={item.alt}
+                    width={1672}
+                    height={941}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </figure>
+              ))}
+            </div>
+          </section>
+        ) : null}
       </article>
     </main>
   )
+}
+
+function ProjectContentBlock({ block }: { block: string }) {
+  const content = block.trim()
+
+  if (content.startsWith('### ')) {
+    return <h3>{content.slice(4)}</h3>
+  }
+
+  if (content.startsWith('## ')) {
+    return <h2>{content.slice(3)}</h2>
+  }
+
+  return <p>{content}</p>
 }

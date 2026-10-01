@@ -61,6 +61,7 @@ describe('news service', () => {
     }, false)
 
     expect(apiFetch).toHaveBeenCalledWith('/news/admin', {
+      authScope: 'admin',
       headers: undefined,
       skipAuth: false,
     })

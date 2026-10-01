@@ -21,7 +21,7 @@ import {
   type ArticleCategoryKey,
 } from '../../content/news-articles'
 import { AdminImageUpload } from './AdminImageUpload'
-import { AdminBangKhungXuong, AdminPageHeading, AdminPanel, AdminSelect, AdminStatus } from './AdminPrimitives'
+import { AdminBangKhungXuong, AdminPageHeading, AdminPanel, AdminSelect } from './AdminPrimitives'
 import { isAdminDemoEnabled } from './admin-demo-auth'
 import {
   deleteProject,
@@ -135,7 +135,7 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
   const [articles, setArticles] = useState<NewsArticleRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
+  const [updatingArticleId, setUpdatingArticleId] = useState<string | null>(null)
 
   const loadNews = useCallback(async () => {
     setIsLoading(true)
@@ -255,10 +255,14 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
     }
   }
 
-  async function updateArticleStatus(article: NewsArticleRecord, status: AdminPublishStatus) {
-    if (article.status === status || updatingStatusId) return
+  async function updateArticleInline(
+    article: NewsArticleRecord,
+    updates: Pick<NewsArticleRecord, 'status' | 'isFeatured'>,
+    successMessage: string,
+  ) {
+    if (updatingArticleId) return
 
-    setUpdatingStatusId(article.id)
+    setUpdatingArticleId(article.id)
     try {
       await saveNewsArticle({
         id: article.id,
@@ -276,18 +280,36 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
         category: toArticleCategory(article.category),
         imageUrl: article.imageUrl,
         readingMinutes: article.readingMinutes,
-        isFeatured: article.isFeatured,
-        status,
+        isFeatured: updates.isFeatured,
+        status: updates.status,
         publishedAt: article.publishedAt,
         sortOrder: article.sortOrder,
       }, isAdminDemoEnabled)
       await loadNews()
-      onToast(`Đã cập nhật trạng thái bài viết “${article.title}”.`)
+      onToast(successMessage)
     } catch (error: unknown) {
-      onToast(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái bài viết.')
+      onToast(error instanceof Error ? error.message : 'Không thể cập nhật bài viết.')
     } finally {
-      setUpdatingStatusId(null)
+      setUpdatingArticleId(null)
     }
+  }
+
+  async function updateArticleStatus(article: NewsArticleRecord, status: AdminPublishStatus) {
+    if (article.status === status) return
+    await updateArticleInline(
+      article,
+      { status, isFeatured: article.isFeatured },
+      `Đã cập nhật trạng thái bài viết “${article.title}”.`,
+    )
+  }
+
+  async function updateArticleFeatured(article: NewsArticleRecord, isFeatured: boolean) {
+    if (article.isFeatured === isFeatured) return
+    await updateArticleInline(
+      article,
+      { status: article.status, isFeatured },
+      `Đã chuyển bài viết “${article.title}” thành ${isFeatured ? 'nổi bật' : 'thông thường'}.`,
+    )
   }
 
   return (
@@ -306,8 +328,8 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
         value={search}
         onChange={setSearch}
         placeholder="Tìm theo tiêu đề, nội dung hoặc chuyên mục..."
-        count={isLoading ? undefined : filteredArticles.length}
-        unit="bài viết"
+        totalCount={isLoading ? undefined : articles.length}
+        totalLabel="Tổng số bài viết"
       />
 
       <AdminPanel className="admin-table-panel">
@@ -341,11 +363,20 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
                       value={article.status}
                       onChange={(value) => void updateArticleStatus(article, value as AdminPublishStatus)}
                       options={inlinePublishStatusOptions}
-                      disabled={updatingStatusId === article.id}
+                      disabled={updatingArticleId !== null}
                       aria-label={`Cập nhật trạng thái ${article.title}`}
                     />
                   </td>
-                  <td className="admin-table__cell--center"><AdminStatus>{article.isFeatured ? 'Nổi bật' : 'Thông thường'}</AdminStatus></td>
+                  <td className="admin-table__cell--center">
+                    <AdminSelect
+                      className="admin-inline-select admin-featured-select"
+                      value={article.isFeatured ? 'FEATURED' : 'STANDARD'}
+                      onChange={(value) => void updateArticleFeatured(article, value === 'FEATURED')}
+                      options={inlineFeaturedOptions}
+                      disabled={updatingArticleId !== null}
+                      aria-label={`Cập nhật hiển thị ${article.title}`}
+                    />
+                  </td>
                   <td className="admin-table__cell--actions">
                     <RowActions
                       label={article.title}
@@ -381,8 +412,8 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
                 <TextAreaField label="Summary (EN)" value={form.summaryEn} onChange={(value) => update('summaryEn', value)} />
               </div>
               <div className="admin-form-grid admin-form-grid--two">
-                <TextAreaField label="Nội dung bài viết (VI)" value={form.body} onChange={(value) => update('body', value)} helper="Mỗi dòng là một đoạn nội dung." required />
-                <TextAreaField label="Article content (EN)" value={form.bodyEn} onChange={(value) => update('bodyEn', value)} helper="Each line becomes one paragraph." />
+                <TextAreaField label="Nội dung bài viết (VI)" value={form.body} onChange={(value) => update('body', value)} helper="Mỗi dòng là một đoạn. Dùng ## hoặc ### ở đầu dòng để tạo tiêu đề mục." required />
+                <TextAreaField label="Article content (EN)" value={form.bodyEn} onChange={(value) => update('bodyEn', value)} helper="Each line becomes one paragraph. Start a line with ## or ### for a section heading." />
               </div>
               <div className="admin-form-grid admin-form-grid--two">
                 <TextAreaField label="Điểm nổi bật (VI)" value={form.highlights} onChange={(value) => update('highlights', value)} helper="Nhập mỗi ý trên một dòng." />
@@ -456,7 +487,7 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
+  const [updatingProjectId, setUpdatingProjectId] = useState<string | null>(null)
 
   const loadProjects = useCallback(async () => {
     setIsLoading(true)
@@ -526,10 +557,12 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
       return
     }
 
+    const existingProject = projects.find((project) => project.id === editingId)
+
     try {
       await saveProject({
         id: editingId ?? undefined,
-        slug: createProjectSlug(form.title),
+        slug: existingProject?.slug ?? createProjectSlug(form.title),
         title: form.title.trim(),
         titleEn: form.titleEn.trim() || form.title.trim(),
         location: form.location.trim(),
@@ -541,6 +574,7 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
         imageUrl: form.image,
         status: form.status,
         isFeatured: form.featured,
+        sortOrder: existingProject?.sortOrder ?? projects.length + 1,
       }, isAdminDemoEnabled)
 
       await loadProjects()
@@ -564,10 +598,14 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
     }
   }
 
-  async function updateProjectStatus(project: Project, status: AdminPublishStatus) {
-    if (project.status === status || updatingStatusId) return
+  async function updateProjectInline(
+    project: Project,
+    updates: Pick<Project, 'status' | 'isFeatured'>,
+    successMessage: string,
+  ) {
+    if (updatingProjectId) return
 
-    setUpdatingStatusId(project.id)
+    setUpdatingProjectId(project.id)
     try {
       await saveProject({
         id: project.id,
@@ -581,17 +619,35 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
         content: project.content,
         contentEn: project.contentEn,
         imageUrl: project.imageUrl,
-        status,
-        isFeatured: project.isFeatured,
+        status: updates.status,
+        isFeatured: updates.isFeatured,
         sortOrder: project.sortOrder,
       }, isAdminDemoEnabled)
       await loadProjects()
-      onToast(`Đã cập nhật trạng thái dự án “${project.title}”.`)
+      onToast(successMessage)
     } catch (error: unknown) {
-      onToast(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái dự án.')
+      onToast(error instanceof Error ? error.message : 'Không thể cập nhật dự án.')
     } finally {
-      setUpdatingStatusId(null)
+      setUpdatingProjectId(null)
     }
+  }
+
+  async function updateProjectStatus(project: Project, status: AdminPublishStatus) {
+    if (project.status === status) return
+    await updateProjectInline(
+      project,
+      { status, isFeatured: project.isFeatured },
+      `Đã cập nhật trạng thái dự án “${project.title}”.`,
+    )
+  }
+
+  async function updateProjectFeatured(project: Project, isFeatured: boolean) {
+    if (project.isFeatured === isFeatured) return
+    await updateProjectInline(
+      project,
+      { status: project.status, isFeatured },
+      `Đã chuyển dự án “${project.title}” thành ${isFeatured ? 'nổi bật' : 'thông thường'}.`,
+    )
   }
 
   return (
@@ -610,6 +666,8 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
         value={search}
         onChange={setSearch}
         placeholder="Tìm theo tên, địa điểm hoặc mô tả dự án..."
+        totalCount={isLoading ? undefined : projects.length}
+        totalLabel="Tổng số dự án"
       />
 
       <AdminPanel className="admin-table-panel">
@@ -641,11 +699,20 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
                         value={project.status}
                         onChange={(value) => void updateProjectStatus(project, value as AdminPublishStatus)}
                         options={inlinePublishStatusOptions}
-                        disabled={updatingStatusId === project.id}
+                        disabled={updatingProjectId !== null}
                         aria-label={`Cập nhật trạng thái ${project.title}`}
                       />
                     </td>
-                    <td className="admin-table__cell--center"><AdminStatus>{project.isFeatured ? 'Nổi bật' : 'Thông thường'}</AdminStatus></td>
+                    <td className="admin-table__cell--center">
+                      <AdminSelect
+                        className="admin-inline-select admin-featured-select"
+                        value={project.isFeatured ? 'FEATURED' : 'STANDARD'}
+                        onChange={(value) => void updateProjectFeatured(project, value === 'FEATURED')}
+                        options={inlineFeaturedOptions}
+                        disabled={updatingProjectId !== null}
+                        aria-label={`Cập nhật hiển thị ${project.title}`}
+                      />
+                    </td>
                     <td className="admin-table__cell--actions">
                       <RowActions
                         label={project.title}
@@ -688,8 +755,8 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
                 <TextAreaField label="Project description (EN)" value={form.descriptionEn} onChange={(value) => update('descriptionEn', value)} />
               </div>
               <div className="admin-form-grid admin-form-grid--two">
-                <TextAreaField label="Nội dung chi tiết (VI)" value={form.content} onChange={(value) => update('content', value)} helper="Tách các đoạn bằng một dòng trống." required />
-                <TextAreaField label="Project details (EN)" value={form.contentEn} onChange={(value) => update('contentEn', value)} helper="Separate paragraphs with a blank line." />
+                <TextAreaField label="Nội dung chi tiết (VI)" value={form.content} onChange={(value) => update('content', value)} helper="Tách các đoạn bằng một dòng trống. Dùng ## hoặc ### để tạo tiêu đề mục." required />
+                <TextAreaField label="Project details (EN)" value={form.contentEn} onChange={(value) => update('contentEn', value)} helper="Separate paragraphs with a blank line. Use ## or ### for section headings." />
               </div>
               <div className="admin-form-grid admin-form-grid--two">
                 <SelectField
@@ -742,26 +809,37 @@ const inlinePublishStatusOptions = [
   { value: 'PUBLISHED', label: 'Đã xuất bản' },
 ]
 
+const inlineFeaturedOptions = [
+  { value: 'FEATURED', label: 'Nổi bật' },
+  { value: 'STANDARD', label: 'Thông thường' },
+]
+
 function ContentToolbar({
   value,
   onChange,
   placeholder,
   count,
   unit,
+  totalCount,
+  totalLabel,
 }: {
   value: string
   onChange: (value: string) => void
   placeholder: string
   count?: number
   unit?: string
+  totalCount?: number
+  totalLabel?: string
 }) {
+  const hasTotal = typeof totalCount === 'number' && Boolean(totalLabel)
+
   return (
-    <AdminPanel className="admin-toolbar">
-      <label>
+    <AdminPanel className={`admin-toolbar${hasTotal ? ' admin-content-toolbar' : ''}`}>
+      <label className={hasTotal ? 'admin-content-toolbar__search' : undefined}>
         <MagnifyingGlass size={17} />
         <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} />
       </label>
-      {typeof count === 'number' && unit ? <span>{count} {unit}</span> : null}
+      {hasTotal ? <span className="admin-content-toolbar__total" aria-live="polite">{totalLabel}: <strong>{totalCount}</strong></span> : typeof count === 'number' && unit ? <span>{count} {unit}</span> : null}
     </AdminPanel>
   )
 }

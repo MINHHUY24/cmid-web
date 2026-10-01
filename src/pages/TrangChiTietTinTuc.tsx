@@ -129,7 +129,7 @@ export function TrangChiTietTinTucPage() {
 
           <div className="news-article__body">
             <div>
-              {article.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              {article.body.map((block, index) => <ArticleBodyBlock key={`${index}-${block}`} block={block} />)}
             </div>
             {article.highlights.length > 0 ? (
               <aside className="news-article__highlights">
@@ -172,6 +172,20 @@ export function TrangChiTietTinTucPage() {
       </div>
     </main>
   )
+}
+
+function ArticleBodyBlock({ block }: { block: string }) {
+  const content = block.trim()
+
+  if (content.startsWith('### ')) {
+    return <h3>{content.slice(4)}</h3>
+  }
+
+  if (content.startsWith('## ')) {
+    return <h2>{content.slice(3)}</h2>
+  }
+
+  return <p>{content}</p>
 }
 
 function NewsDetailSkeleton({ label }: { label: string }) {

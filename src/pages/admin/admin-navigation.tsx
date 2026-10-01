@@ -5,14 +5,12 @@ import {
   ChatsCircle,
   ClockCounterClockwise,
   Cube,
-  FileText,
   GearSix,
   Gift,
   ImageSquare,
   ListBullets,
   Newspaper,
   Package,
-  Quotes,
   ShieldCheck,
   ShoppingCartSimple,
   Storefront,
@@ -32,7 +30,6 @@ export type AdminView =
   | 'materials'
   | 'suppliers'
   | 'orders'
-  | 'quotes'
   | 'returns'
   | 'customers'
   | 'customer-groups'
@@ -40,7 +37,6 @@ export type AdminView =
   | 'news'
   | 'projects'
   | 'banners'
-  | 'documents'
   | 'inquiries'
   | 'showrooms'
   | 'reports'
@@ -78,7 +74,6 @@ export const adminMenuGroups: Array<{ label: string; items: AdminNavItem[] }> = 
     label: 'Quản lý đơn hàng',
     items: [
       { id: 'orders', label: 'Đơn hàng', icon: <ShoppingCartSimple size={19} />, badge: 5 },
-      { id: 'quotes', label: 'Yêu cầu báo giá', icon: <Quotes size={19} /> },
       { id: 'returns', label: 'Trả hàng / Hoàn tiền', icon: <ArrowsCounterClockwise size={19} /> },
     ],
   },
@@ -86,6 +81,7 @@ export const adminMenuGroups: Array<{ label: string; items: AdminNavItem[] }> = 
     label: 'Quản lý khách hàng',
     items: [
       { id: 'customers', label: 'Khách hàng', icon: <UsersThree size={19} /> },
+      { id: 'inquiries', label: 'Liên hệ & Báo giá', icon: <ChatsCircle size={19} /> },
       { id: 'customer-groups', label: 'Nhóm khách hàng', icon: <UserList size={19} /> },
       { id: 'gifts', label: 'Quà tặng & ưu đãi', icon: <Gift size={19} /> },
     ],
@@ -96,8 +92,6 @@ export const adminMenuGroups: Array<{ label: string; items: AdminNavItem[] }> = 
       { id: 'news', label: 'Tin tức', icon: <Newspaper size={19} /> },
       { id: 'projects', label: 'Dự án', icon: <Buildings size={19} /> },
       { id: 'banners', label: 'Banner', icon: <ImageSquare size={19} /> },
-      { id: 'documents', label: 'Tài liệu', icon: <FileText size={19} /> },
-      { id: 'inquiries', label: 'Liên hệ & Báo giá', icon: <ChatsCircle size={19} /> },
       { id: 'showrooms', label: 'Showroom', icon: <Buildings size={19} weight="duotone" /> },
     ],
   },
@@ -121,7 +115,6 @@ export const adminViewMeta: Record<AdminView, { label: string; description: stri
   materials: { label: 'Vật liệu', description: 'Khai báo đặc tính, xuất xứ và ứng dụng vật liệu.' },
   suppliers: { label: 'Nhà cung cấp', description: 'Lưu thông tin liên hệ và nguồn cung sản phẩm.' },
   orders: { label: 'Đơn hàng', description: 'Tiếp nhận và xử lý đơn được gửi từ website.' },
-  quotes: { label: 'Yêu cầu báo giá', description: 'Theo dõi nhu cầu tư vấn và báo giá dự án.' },
   returns: { label: 'Trả hàng / Hoàn tiền', description: 'Duyệt yêu cầu đổi trả và theo dõi hoàn tiền.' },
   customers: { label: 'Khách hàng', description: 'Quản lý hồ sơ, lịch sử mua và trạng thái tài khoản.' },
   'customer-groups': { label: 'Nhóm khách hàng', description: 'Thiết lập nhóm, quyền lợi và mức chiết khấu.' },
@@ -129,7 +122,6 @@ export const adminViewMeta: Record<AdminView, { label: string; description: stri
   news: { label: 'Tin tức', description: 'Biên tập bài viết song ngữ và ảnh đại diện.' },
   projects: { label: 'Dự án', description: 'Quản lý dự án nổi bật hiển thị trên website.' },
   banners: { label: 'Banner', description: 'Điều khiển hình ảnh và liên kết ở các khu vực hero.' },
-  documents: { label: 'Tài liệu', description: 'Quản lý hồ sơ năng lực, catalogue và tài liệu nội bộ.' },
   inquiries: { label: 'Liên hệ & Báo giá', description: 'Tiếp nhận, phân công và phản hồi yêu cầu khách hàng.' },
   showrooms: { label: 'Showroom', description: 'Quản lý địa chỉ, bản đồ và giờ hoạt động.' },
   reports: { label: 'Báo cáo', description: 'Tổng hợp doanh thu, đơn hàng, khách hàng và sản phẩm.' },

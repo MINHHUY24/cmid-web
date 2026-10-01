@@ -72,20 +72,22 @@ export function AdminBangKhungXuong({
   columns = 6,
   rows = 5,
   label = 'Đang tải dữ liệu',
+  minWidth,
 }: {
   columns?: number
   rows?: number
   label?: string
+  minWidth?: number
 }) {
   const rowStyle = {
     gridTemplateColumns: `repeat(${columns}, minmax(86px, 1fr))`,
   }
-  const minWidth = `${Math.max(720, columns * 126)}px`
+  const tableMinWidth = `${minWidth ?? Math.max(720, columns * 126)}px`
 
   return (
     <div className="admin-table-skeleton" role="status" aria-live="polite" aria-busy="true">
       <span className="sr-only">{label}</span>
-      <div className="admin-table-skeleton__inner" aria-hidden="true" style={{ minWidth }}>
+      <div className="admin-table-skeleton__inner" aria-hidden="true" style={{ minWidth: tableMinWidth }}>
         <div className="admin-table-skeleton__row admin-table-skeleton__row--heading" style={rowStyle}>
           {Array.from({ length: columns }, (_, index) => <KhungXuong key={index} />)}
         </div>

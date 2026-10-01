@@ -1,4 +1,76 @@
 {
+  "redirects": [
+    {
+      "source": "/du-an/can-ho-anh-duong-riverside",
+      "destination": "/du-an/can-ho-ven-song-thao-dien",
+      "permanent": true
+    },
+    {
+      "source": "/du-an/nha-pho-vuon-an-phu",
+      "destination": "/du-an/nha-pho-san-trong-an-phu",
+      "permanent": true
+    },
+    {
+      "source": "/du-an/trung-tam-trai-nghiem-vat-lieu-cmid",
+      "destination": "/du-an/showroom-vat-lieu-cmid-quan-7",
+      "permanent": true
+    },
+    {
+      "source": "/du-an/khu-do-thi-xanh-binh-an",
+      "destination": "/du-an/biet-thu-vuon-binh-chanh",
+      "permanent": true
+    },
+    {
+      "source": "/tin-tuc-su-kien/xu-huong-vat-lieu-2025-tu-nhien-ben-vung-va-tinh-te",
+      "destination": "/tin-tuc-su-kien/chon-vat-lieu-hoan-thien-nha-o-2026",
+      "permanent": true
+    },
+    {
+      "source": "/tin-tuc-su-kien/khong-gian-bep-hien-dai-voi-da-tu-nhien",
+      "destination": "/tin-tuc-su-kien/da-nung-ket-lam-mat-bep-cach-chon",
+      "permanent": true
+    },
+    {
+      "source": "/tin-tuc-su-kien/phong-khach-hien-dai-voi-gach-kho-lon",
+      "destination": "/tin-tuc-su-kien/gach-kho-lon-cho-nha-pho-cach-chon",
+      "permanent": true
+    },
+    {
+      "source": "/tin-tuc-su-kien/giai-phap-be-mat-cao-cap-cho-khong-gian-song",
+      "destination": "/tin-tuc-su-kien/thiet-ke-phong-khach-nho-chon-vat-lieu",
+      "permanent": true
+    },
+    {
+      "source": "/tin-tuc-su-kien/cmid-khai-truong-khong-gian-trung-bay-moi-tai-da-nang",
+      "destination": "/tin-tuc-su-kien",
+      "permanent": true
+    },
+    {
+      "source": "/tin-tuc-su-kien/chon-gach-san-vuon-chong-tron-va-ben-vung",
+      "destination": "/tin-tuc-su-kien/gach-ngoai-troi-cho-ban-cong-chong-tron",
+      "permanent": true
+    },
+    {
+      "source": "/tin-tuc-su-kien/can-ho-the-skyline-residence-va-nhung-lop-vat-lieu-am",
+      "destination": "/tin-tuc-su-kien/thiet-ke-phong-khach-nho-chon-vat-lieu",
+      "permanent": true
+    },
+    {
+      "source": "/tin-tuc-su-kien/phong-tam-toi-gian-voi-thiet-bi-dong-bo",
+      "destination": "/tin-tuc-su-kien/chon-thiet-bi-ve-sinh-dong-bo",
+      "permanent": true
+    },
+    {
+      "source": "/tin-tuc-su-kien/son-noi-that-chon-mau-theo-anh-sang",
+      "destination": "/tin-tuc-su-kien/chon-son-noi-that-theo-anh-sang",
+      "permanent": true
+    },
+    {
+      "source": "/tin-tuc-su-kien/da-marble-trong-sanh-don-tiep",
+      "destination": "/tin-tuc-su-kien/da-marble-cho-sanh-don-tiep",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

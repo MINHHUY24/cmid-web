@@ -1,18 +1,13 @@
 import {
-  ArrowDown,
   CheckCircle,
-  DownloadSimple,
-  FileText,
   FloppyDisk,
   GlobeHemisphereWest,
   LockKey,
   MagnifyingGlass,
-  Trash,
-  UploadSimple,
   WarningCircle,
   Wrench,
 } from '@phosphor-icons/react'
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { KhungXuong } from '../../components/common/KhungXuong'
 import type { AppLanguage } from '../../content/site-content'
 import { getAdminDataMode } from '../../services/admin.service'
@@ -52,16 +47,13 @@ import {
   AdminBangKhungXuong,
   AdminPageHeading,
   AdminPanel,
-  AdminSelect,
   AdminStatus,
   type AdminEditableRecord,
 } from './AdminPrimitives'
 import {
-  createAdminId,
   mutateAdminDatabase,
   type AdminDatabase,
   type AdminDatabaseCollection,
-  type AdminDocument,
   type AdminSettings,
 } from './admin-database'
 import type { AdminView } from './admin-navigation'
@@ -282,36 +274,6 @@ export function AdminOperationalView({ view, database, onToast, onNavigate }: Op
     )
   }
 
-  if (view === 'quotes') {
-    return (
-      <AdminCollectionManager
-        title="Yêu cầu báo giá"
-        description="Tiếp nhận nhu cầu dự án, ngân sách và tiến độ tư vấn của khách hàng."
-        singularLabel="yêu cầu báo giá"
-        rows={editableRows(database.quotes)}
-        columns={[
-          { key: 'id', label: 'Mã yêu cầu', render: (row) => <strong>{String(row.id)}</strong> },
-          { key: 'customer', label: 'Khách hàng' },
-          { key: 'product', label: 'Nhu cầu' },
-          { key: 'budget', label: 'Ngân sách' },
-          { key: 'status', label: 'Trạng thái', render: (row) => <AdminStatus>{String(row.status)}</AdminStatus> },
-        ]}
-        fields={[
-          { key: 'customer', label: 'Khách hàng', required: true },
-          { key: 'email', label: 'Email', type: 'email' },
-          { key: 'phone', label: 'Điện thoại', type: 'tel' },
-          { key: 'product', label: 'Sản phẩm hoặc nhu cầu', type: 'textarea', required: true },
-          { key: 'projectType', label: 'Loại công trình' },
-          { key: 'budget', label: 'Ngân sách dự kiến' },
-          { key: 'note', label: 'Ghi chú tư vấn', type: 'textarea' },
-          { key: 'status', label: 'Trạng thái', type: 'select', options: ['Mới', 'Đang tư vấn', 'Đã gửi báo giá', 'Đã chốt', 'Đã đóng'].map((value) => ({ value, label: value })) },
-        ]}
-        onSave={(record) => { upsertRecord('quotes', { ...record, createdAt: String(record.createdAt || new Date().toISOString()) }, 'Báo giá'); complete('Đã lưu yêu cầu báo giá.') }}
-        onDelete={(id) => { deleteRecord('quotes', id, 'Báo giá'); complete('Đã xóa yêu cầu báo giá.') }}
-      />
-    )
-  }
-
   if (view === 'returns') {
     return (
       <AdminCollectionManager
@@ -427,8 +389,6 @@ export function AdminOperationalView({ view, database, onToast, onNavigate }: Op
       />
     )
   }
-
-  if (view === 'documents') return <AdminDocumentsView documents={database.documents} onToast={onToast} />
 
   if (view === 'inquiries') {
     return <AdminInquiriesView onToast={onToast} />
@@ -864,88 +824,6 @@ function createRoleCode(name: string) {
   const normalized = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   const slug = normalized.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '')
   return `CUSTOM_${slug || Date.now().toString()}`.slice(0, 64)
-}
-
-function AdminDocumentsView({ documents, onToast }: { documents: AdminDocument[]; onToast: (message: string) => void }) {
-  const fileRef = useRef<HTMLInputElement>(null)
-  const [file, setFile] = useState<{ name: string; data: string } | null>(null)
-  const [title, setTitle] = useState('')
-  const [category, setCategory] = useState('Catalogue')
-  const [visibility, setVisibility] = useState<AdminDocument['visibility']>('PUBLIC')
-  const [error, setError] = useState('')
-
-  function selectFile(event: ChangeEvent<HTMLInputElement>) {
-    const selected = event.target.files?.[0]
-    event.target.value = ''
-    if (!selected) return
-    if (selected.size > 2 * 1024 * 1024) {
-      setError('Tệp không được vượt quá 2 MB trong bản demo cục bộ.')
-      return
-    }
-    const reader = new FileReader()
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setFile({ name: selected.name, data: reader.result })
-        setTitle((current) => current || selected.name.replace(/\.[^.]+$/, ''))
-        setError('')
-      }
-    }
-    reader.onerror = () => setError('Không thể đọc tệp đã chọn.')
-    reader.readAsDataURL(selected)
-  }
-
-  function saveDocument(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!file) {
-      setError('Vui lòng chọn tệp từ thiết bị.')
-      return
-    }
-    const documentRecord: AdminDocument = {
-      id: createAdminId('document'),
-      title: title.trim(),
-      category,
-      fileName: file.name,
-      fileData: file.data,
-      visibility,
-      updatedAt: new Date().toISOString(),
-    }
-    upsertRecord('documents', { ...documentRecord }, 'Tài liệu')
-    setTitle('')
-    setFile(null)
-    onToast('Đã tải và lưu tài liệu.')
-  }
-
-  return (
-    <>
-      <AdminPageHeading title="Quản lý tài liệu" description="Lưu hồ sơ năng lực, catalogue, bảng giá và tài liệu vận hành." />
-      <div className="admin-content-layout">
-        <AdminPanel title="Kho tài liệu">
-          <div className="admin-document-list">
-            {documents.map((document) => (
-              <article key={document.id}>
-                <span><FileText size={22} /></span>
-                <div><strong>{document.title}</strong><small>{document.fileName} · {document.category}</small></div>
-                <AdminStatus>{document.visibility === 'PUBLIC' ? 'ACTIVE' : 'INTERNAL'}</AdminStatus>
-                {document.fileData ? <a href={document.fileData} download={document.fileName} aria-label={`Tải ${document.title}`}><DownloadSimple size={18} /></a> : <button type="button" disabled aria-label="Tệp chưa được tải lên"><ArrowDown size={18} /></button>}
-                <button type="button" className="is-danger" onClick={() => { deleteRecord('documents', document.id, 'Tài liệu'); onToast('Đã xóa tài liệu.') }} aria-label={`Xóa ${document.title}`}><Trash size={18} /></button>
-              </article>
-            ))}
-          </div>
-        </AdminPanel>
-        <AdminPanel title="Tải tài liệu mới">
-          <form className="admin-compact-form" onSubmit={saveDocument}>
-            <label className="admin-field"><span>Tên tài liệu <b>*</b></span><input value={title} onChange={(event) => setTitle(event.target.value)} required /></label>
-            <label className="admin-field"><span>Phân loại</span><AdminSelect value={category} onChange={setCategory} aria-label="Phân loại tài liệu" options={['Catalogue', 'Hồ sơ năng lực', 'Bảng giá', 'Hướng dẫn'].map((value) => ({ value, label: value }))} /></label>
-            <label className="admin-field"><span>Phạm vi</span><AdminSelect value={visibility} onChange={(value) => setVisibility(value as AdminDocument['visibility'])} aria-label="Phạm vi tài liệu" options={[{ value: 'PUBLIC', label: 'Công khai' }, { value: 'INTERNAL', label: 'Nội bộ' }]} /></label>
-            <button className="admin-file-picker" type="button" onClick={() => fileRef.current?.click()}><UploadSimple size={23} /><span><strong>{file?.name ?? 'Chọn tệp từ thiết bị'}</strong><small>PDF, DOCX, XLSX hoặc tài liệu có dung lượng tối đa 2 MB</small></span></button>
-            <input ref={fileRef} className="sr-only" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" onChange={selectFile} />
-            {error ? <p className="admin-form-error" role="alert">{error}</p> : null}
-            <button className="admin-button admin-button--primary" type="submit"><FloppyDisk size={17} />Lưu tài liệu</button>
-          </form>
-        </AdminPanel>
-      </div>
-    </>
-  )
 }
 
 type AdminSettingsTab = 'business' | 'commerce' | 'notifications' | 'security' | 'maintenance' | 'language'

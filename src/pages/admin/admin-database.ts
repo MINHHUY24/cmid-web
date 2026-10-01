@@ -10,13 +10,11 @@ export type AdminDatabaseCollection =
   | 'materials'
   | 'suppliers'
   | 'orders'
-  | 'quotes'
   | 'returns'
   | 'customers'
   | 'customerGroups'
   | 'gifts'
   | 'banners'
-  | 'documents'
   | 'inquiries'
   | 'showrooms'
   | 'users'
@@ -103,19 +101,6 @@ export interface AdminOrderStatusHistory {
   createdAt: string
 }
 
-export interface AdminQuote {
-  id: string
-  customer: string
-  email: string
-  phone: string
-  product: string
-  projectType: string
-  budget: string
-  note: string
-  status: 'Mới' | 'Đang tư vấn' | 'Đã gửi báo giá' | 'Đã chốt' | 'Đã đóng'
-  createdAt: string
-}
-
 export interface AdminCustomer {
   id: string
   name: string
@@ -153,16 +138,6 @@ export interface AdminBanner {
   image: string
   link: string
   status: 'ACTIVE' | 'INACTIVE'
-  updatedAt: string
-}
-
-export interface AdminDocument {
-  id: string
-  title: string
-  category: string
-  fileName: string
-  fileData: string
-  visibility: 'PUBLIC' | 'INTERNAL'
   updatedAt: string
 }
 
@@ -236,13 +211,11 @@ export interface AdminDatabase {
   materials: AdminMaterial[]
   suppliers: AdminSupplier[]
   orders: AdminOrder[]
-  quotes: AdminQuote[]
   returns: AdminReturn[]
   customers: AdminCustomer[]
   customerGroups: AdminCustomerGroup[]
   gifts: AdminGift[]
   banners: AdminBanner[]
-  documents: AdminDocument[]
   inquiries: AdminInquiry[]
   showrooms: AdminShowroom[]
   users: AdminUser[]
@@ -290,32 +263,6 @@ const seedDatabase: AdminDatabase = {
     order('CMID-1021', 'KTS. Phạm Gia Khánh', 'Bộ bàn ăn gỗ sồi 6 ghế', 19500000, 'Đang giao', 'Đã thanh toán', '2026-08-14T08:40:00.000Z'),
     order('CMID-1020', 'Nguyễn Minh Thư', 'Lavabo đặt bàn TOTO LTS548', 3250000, 'Hoàn thành', 'Đã thanh toán', '2026-08-13T16:20:00.000Z'),
   ],
-  quotes: [
-    {
-      id: 'BG-2026-0814',
-      customer: 'KTS. Hoàng Minh Lâm',
-      email: 'lam@lp-architects.vn',
-      phone: '090 382 11xx',
-      product: 'Đá Marble Calacatta cho sảnh biệt thự',
-      projectType: 'Biệt thự',
-      budget: '250 đến 400 triệu đồng',
-      note: 'Cần tư vấn ghép vân và khảo sát trong tuần.',
-      status: 'Đang tư vấn',
-      createdAt: '2026-08-14T08:35:00.000Z',
-    },
-    {
-      id: 'BG-2026-0813',
-      customer: 'Công ty Nội thất Sala',
-      email: 'project@sala-interior.vn',
-      phone: '028 7300 28xx',
-      product: 'Thiết bị vệ sinh cho 12 căn hộ mẫu',
-      projectType: 'Căn hộ mẫu',
-      budget: 'Theo khối lượng thực tế',
-      note: 'Ưu tiên TOTO và tiến độ giao trong tháng 9.',
-      status: 'Mới',
-      createdAt: '2026-08-13T10:15:00.000Z',
-    },
-  ],
   returns: [
     { id: 'RT-0015', orderId: 'CMID-1014', customer: 'Lê Thanh Tùng', reason: 'Sản phẩm trầy xước khi nhận', amount: 4250000, status: 'Chờ duyệt', createdAt: '2026-08-12T10:20:00.000Z' },
     { id: 'RT-0014', orderId: 'CMID-1008', customer: 'Nguyễn Thị Lan', reason: 'Đổi mẫu gạch khác', amount: 8400000, status: 'Đang hoàn tiền', createdAt: '2026-08-09T15:45:00.000Z' },
@@ -340,10 +287,6 @@ const seedDatabase: AdminDatabase = {
     { id: 'banner-home', title: 'Giải pháp vật liệu xây dựng & nội thất cao cấp', titleEn: 'Premium building materials & interior solutions', placement: 'HOME_HERO', image: '', link: '/products', status: 'ACTIVE', updatedAt: now },
     { id: 'banner-products', title: 'Sản phẩm CMID', titleEn: 'CMID products', placement: 'PRODUCT_HERO', image: '', link: '/products', status: 'ACTIVE', updatedAt: now },
   ],
-  documents: [
-    { id: 'doc-1', title: 'Hồ sơ năng lực CMID 2026', category: 'Hồ sơ năng lực', fileName: 'cmid-company-profile-2026.pdf', fileData: '', visibility: 'PUBLIC', updatedAt: now },
-    { id: 'doc-2', title: 'Bảng giá dự án tháng 08/2026', category: 'Bảng giá', fileName: 'bang-gia-du-an-08-2026.xlsx', fileData: '', visibility: 'INTERNAL', updatedAt: now },
-  ],
   inquiries: [
     { id: 'contact-1', name: 'Nguyễn Thu Hà', email: 'thuha@gmail.com', phone: '091 445 22xx', subject: 'Tư vấn vật liệu phòng bếp', message: 'Tôi muốn đặt lịch xem mẫu đá tự nhiên vào cuối tuần.', source: 'CONTACT', status: 'Mới', createdAt: '2026-08-14T07:50:00.000Z' },
     { id: 'contact-2', name: 'KTS. Lê Minh', email: 'minh@mlstudio.vn', phone: '090 772 18xx', subject: 'Đặt lịch showroom', message: 'Đoàn 4 người cần xem mẫu gạch khổ lớn vào chiều thứ Sáu.', source: 'SHOWROOM', status: 'Đang xử lý', createdAt: '2026-08-13T13:20:00.000Z' },
@@ -359,7 +302,7 @@ const seedDatabase: AdminDatabase = {
   ],
   roles: [
     { id: 'role-super-admin', name: 'Quản trị cao nhất', description: 'Toàn quyền trên hệ thống quản trị.', permissions: ['*'], userCount: 1 },
-    { id: 'role-editor', name: 'Biên tập nội dung', description: 'Quản lý tin tức, dự án, banner và tài liệu.', permissions: ['news.*', 'projects.*', 'banners.*', 'documents.*'], userCount: 1 },
+    { id: 'role-editor', name: 'Biên tập nội dung', description: 'Quản lý tin tức, dự án và banner.', permissions: ['news.*', 'projects.*', 'banners.*'], userCount: 1 },
     { id: 'role-sales', name: 'Kinh doanh', description: 'Quản lý khách hàng, đơn hàng và báo giá.', permissions: ['orders.*', 'customers.*'], userCount: 1 },
   ],
   activities: [
@@ -452,7 +395,31 @@ export function getAdminDatabase(): AdminDatabase {
   try {
     const saved = window.localStorage.getItem(ADMIN_DATABASE_KEY)
     if (!saved) return cloneSeed()
-    const parsed = JSON.parse(saved) as Partial<AdminDatabase>
+    const parsed = JSON.parse(saved) as Partial<AdminDatabase> & {
+      documents?: unknown
+      quotes?: unknown
+    }
+    let hasRemovedFeatureData = false
+    if ('documents' in parsed) {
+      delete parsed.documents
+      hasRemovedFeatureData = true
+    }
+    if ('quotes' in parsed) {
+      delete parsed.quotes
+      hasRemovedFeatureData = true
+    }
+    if (parsed.activities) {
+      const retainedActivities = parsed.activities.filter((activity) => (
+        activity.module !== 'Tài liệu' && activity.module !== 'Báo giá'
+      ))
+      if (retainedActivities.length !== parsed.activities.length) {
+        parsed.activities = retainedActivities
+        hasRemovedFeatureData = true
+      }
+    }
+    if (hasRemovedFeatureData) {
+      window.localStorage.setItem(ADMIN_DATABASE_KEY, JSON.stringify(parsed))
+    }
     const seed = cloneSeed()
     return {
       ...seed,

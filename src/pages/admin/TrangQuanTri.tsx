@@ -60,13 +60,11 @@ const operationalViews = new Set<AdminView>([
   'brands',
   'materials',
   'suppliers',
-  'quotes',
   'returns',
   'customers',
   'customer-groups',
   'gifts',
   'banners',
-  'documents',
   'inquiries',
   'showrooms',
   'settings',
@@ -438,7 +436,6 @@ function AuthenticatedAdmin({
         onSignOut={signOut}
         badges={{
           orders: database.orders.filter((order) => order.status === 'Chờ xác nhận').length,
-          quotes: database.quotes.filter((quote) => quote.status === 'Mới').length,
           returns: database.returns.filter((item) => item.status === 'Chờ duyệt').length,
           inquiries: database.inquiries.filter((inquiry) => inquiry.status === 'Mới').length,
         }}

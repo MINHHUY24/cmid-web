@@ -41,6 +41,7 @@ describe('project service', () => {
     void getAdminProjects(false)
 
     expect(apiFetch).toHaveBeenCalledWith('/projects/admin', {
+      authScope: 'admin',
       headers: undefined,
       skipAuth: false,
     })
@@ -59,5 +60,25 @@ describe('project service', () => {
       featured: true,
     })
     expect(localized.image).toContain('du-an-thap-do-thi')
+  })
+
+  it('supplies six curated detail images for every published 2026 project', () => {
+    const projectSlugs = [
+      'can-ho-ven-song-thao-dien',
+      'nha-pho-san-trong-an-phu',
+      'biet-thu-vuon-binh-chanh',
+      'showroom-vat-lieu-cmid-quan-7',
+      'van-phong-sang-tao-nam-sai-gon',
+      'khach-san-boutique-hoi-an',
+      'can-ho-nghi-duong-ho-tram',
+      'nha-vuon-da-lat',
+    ]
+
+    for (const slug of projectSlugs) {
+      const localized = localizeProject({ ...project, slug }, 'vi')
+
+      expect(localized.gallery).toHaveLength(6)
+      expect(localized.gallery.every(({ image, alt }) => image.length > 0 && alt.length > 0)).toBe(true)
+    }
   })
 })

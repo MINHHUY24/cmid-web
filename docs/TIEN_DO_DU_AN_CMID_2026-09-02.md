@@ -44,7 +44,7 @@ Website có UI/catalogue, giỏ hàng, checkout, nội dung, SEO cơ bản và a
 | 2. Báo giá | Form báo giá có prefill sản phẩm, lưu QuoteRequest/QuoteItem, workflow trạng thái và thông báo. | Chưa bắt đầu | Sales tiếp nhận/xử lý báo giá từ dữ liệu dùng chung. |
 | 3. Đơn hàng & thanh toán | Cart/checkout gọi API, quản lý trạng thái/tồn kho/lịch sử đơn; tích hợp payment callback theo phương án đã chọn. | Đang thực hiện một phần | MoMo create/IPN/status đã có code; cần cấu hình sandbox, áp dụng migration, test E2E, lịch sử đơn và đồng bộ admin. |
 | 4. Trải nghiệm 3D | Upload/host GLB, viewer 3D, xoay/zoom, fallback poster và kiểm tra mobile. | Chưa bắt đầu | Người dùng tương tác được với mô hình 3D thật. |
-| 5. Đồng bộ admin/public | CRUD backend cho catalogue/CMS/showroom/banner/tài liệu; public site đọc từ API. | Chưa bắt đầu | Dữ liệu admin phản ánh ra website công khai. |
+| 5. Đồng bộ admin/public | CRUD backend cho catalogue/CMS/showroom/banner; public site đọc từ API. | Chưa bắt đầu | Dữ liệu admin phản ánh ra website công khai. |
 | 6. QA & release | Unit/integration/E2E, test env, Swagger, security/rate limit, tối ưu bundle/ảnh, CI/CD. | Chưa bắt đầu | Các luồng cốt lõi pass trước release. |
 
 ## Việc nên làm ngay tiếp theo

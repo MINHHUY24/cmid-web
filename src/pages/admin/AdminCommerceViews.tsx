@@ -223,7 +223,7 @@ export function AdminDashboardView({
             <ArrowRight size={15} />
           </button>
           <button type="button" onClick={() => onNavigate('inquiries')}>
-            <span><UsersThree size={18} /> Kiểm tra liên hệ và yêu cầu báo giá</span>
+            <span><UsersThree size={18} /> Kiểm tra liên hệ và yêu cầu tư vấn</span>
             <ArrowRight size={15} />
           </button>
         </AdminPanel>
@@ -1021,7 +1021,8 @@ export function AdminReportsView({ products, database, isLoading }: AdminReports
 
 function AdminTongQuanKhungXuong({ onNavigate }: { onNavigate: (view: AdminView) => void }) {
   return (
-    <>
+    <div className="admin-dashboard-skeleton" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">Đang tải tổng quan</span>
       <AdminPageHeading
         title="Xin chào, Admin"
         description="Tổng hợp nhanh hoạt động thương mại và nội dung đang vận hành trên website CMID."
@@ -1033,15 +1034,87 @@ function AdminTongQuanKhungXuong({ onNavigate }: { onNavigate: (view: AdminView)
       />
       <AdminChiSoKhungXuong label="Đang tải số liệu tổng quan" />
       <div className="admin-dashboard-grid">
-        <AdminPanel title="Doanh thu gần đây" className="admin-table-panel"><AdminBangKhungXuong columns={5} rows={3} label="Đang tải biểu đồ doanh thu" /></AdminPanel>
-        <AdminPanel title="Việc cần xử lý" className="admin-table-panel"><AdminBangKhungXuong columns={2} rows={4} label="Đang tải việc cần xử lý" /></AdminPanel>
+        <AdminRevenueLineChartKhungXuong />
+        <AdminTasksKhungXuong />
       </div>
       <div className="admin-dashboard-grid">
-        <AdminPanel title="Đơn hàng gần đây" className="admin-table-panel"><AdminBangKhungXuong columns={4} rows={4} label="Đang tải đơn hàng gần đây" /></AdminPanel>
-        <AdminPanel title="Sản phẩm cập nhật gần đây" className="admin-table-panel"><AdminBangKhungXuong columns={3} rows={4} label="Đang tải sản phẩm cập nhật" /></AdminPanel>
+        <AdminPanel title="Đơn hàng gần đây" className="admin-table-panel"><AdminBangKhungXuong columns={4} rows={5} minWidth={900} label="Đang tải đơn hàng gần đây" /></AdminPanel>
+        <AdminRecentProductsKhungXuong />
       </div>
-      <AdminPanel title="Nhật ký hoạt động" className="admin-table-panel"><AdminBangKhungXuong columns={3} rows={4} label="Đang tải nhật ký hoạt động" /></AdminPanel>
-    </>
+      <AdminActivityKhungXuong />
+    </div>
+  )
+}
+
+function AdminRevenueLineChartKhungXuong() {
+  return (
+    <AdminPanel className="admin-revenue-line-chart-panel admin-dashboard-skeleton__chart-panel">
+      <header aria-hidden="true">
+        <KhungXuong className="admin-dashboard-skeleton__chart-title" />
+        <KhungXuong className="admin-dashboard-skeleton__chart-select" />
+      </header>
+      <div className="admin-dashboard-skeleton__line-chart" aria-hidden="true">
+        <div className="admin-dashboard-skeleton__chart-axis">
+          {Array.from({ length: 5 }, (_, index) => <KhungXuong key={index} />)}
+        </div>
+        <div className="admin-dashboard-skeleton__chart-plot">
+          <div className="admin-dashboard-skeleton__chart-grid">
+            {Array.from({ length: 5 }, (_, index) => <span key={index} />)}
+          </div>
+          <KhungXuong className="admin-dashboard-skeleton__chart-trace" />
+          <div className="admin-dashboard-skeleton__chart-labels">
+            {Array.from({ length: 6 }, (_, index) => <KhungXuong key={index} />)}
+          </div>
+        </div>
+      </div>
+    </AdminPanel>
+  )
+}
+
+function AdminTasksKhungXuong() {
+  return (
+    <AdminPanel title="Việc cần xử lý" className="admin-panel--tasks admin-dashboard-skeleton__tasks">
+      {Array.from({ length: 4 }, (_, index) => (
+        <div className="admin-dashboard-skeleton__task-row" key={index} aria-hidden="true">
+          <KhungXuong className="admin-dashboard-skeleton__task-icon" />
+          <KhungXuong className="admin-dashboard-skeleton__task-copy" />
+          <KhungXuong className="admin-dashboard-skeleton__task-action" />
+        </div>
+      ))}
+    </AdminPanel>
+  )
+}
+
+function AdminRecentProductsKhungXuong() {
+  return (
+    <AdminPanel title="Sản phẩm cập nhật gần đây" className="admin-panel--recent admin-dashboard-skeleton__recent">
+      {Array.from({ length: 5 }, (_, index) => (
+        <div className="admin-dashboard-skeleton__recent-row" key={index} aria-hidden="true">
+          <KhungXuong className="admin-dashboard-skeleton__recent-thumbnail" />
+          <div className="admin-dashboard-skeleton__recent-copy">
+            <KhungXuong />
+            <KhungXuong />
+          </div>
+          <KhungXuong className="admin-dashboard-skeleton__recent-price" />
+        </div>
+      ))}
+    </AdminPanel>
+  )
+}
+
+function AdminActivityKhungXuong() {
+  return (
+    <AdminPanel title="Nhật ký hoạt động" className="admin-activity admin-dashboard-skeleton__activity">
+      {Array.from({ length: 6 }, (_, index) => (
+        <div key={index} aria-hidden="true">
+          <KhungXuong className="admin-dashboard-skeleton__activity-icon" />
+          <div className="admin-dashboard-skeleton__activity-copy">
+            <KhungXuong />
+            <KhungXuong />
+          </div>
+        </div>
+      ))}
+    </AdminPanel>
   )
 }
 
@@ -1074,7 +1147,7 @@ function MetricCard({
 }) {
   return (
     <article className={`admin-metric${highlighted ? ' admin-metric--gold' : ''}`}>
-      <span>{icon}</span>
+      <span className="admin-metric__icon">{icon}</span>
       <p>{label}</p>
       <strong>{value}</strong>
       <small>{helper}</small>
