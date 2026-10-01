@@ -11,7 +11,11 @@ interface UseProductsResult {
   removeProduct: (productId: number) => void
 }
 
-export function useProducts(): UseProductsResult {
+interface UseProductsOptions {
+  includeModels?: boolean
+}
+
+export function useProducts({ includeModels = false }: UseProductsOptions = {}): UseProductsResult {
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -25,7 +29,7 @@ export function useProducts(): UseProductsResult {
       setErrorMessage(null)
 
       try {
-        const response = await getProducts()
+        const response = await getProducts({ includeModels })
 
         if (isCurrentRequest) {
           setProducts(mergeAdminProducts(response))
@@ -55,7 +59,7 @@ export function useProducts(): UseProductsResult {
     return () => {
       isCurrentRequest = false
     }
-  }, [reloadKey])
+  }, [includeModels, reloadKey])
 
   useEffect(() => {
     function syncCustomProducts() {

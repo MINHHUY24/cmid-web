@@ -5,9 +5,9 @@ import { LanguageProvider } from '../src/contexts/NgonNguProvider'
 import { TrangTraiNghiem3D } from '../src/pages/TrangTraiNghiem3D'
 import type { Product } from '../src/types/product'
 
-const useProducts = vi.fn()
+const useProduct = vi.fn()
 
-vi.mock('../src/hooks/useProducts', () => ({ useProducts: () => useProducts() }))
+vi.mock('../src/hooks/useProduct', () => ({ useProduct: () => useProduct() }))
 vi.mock('@google/model-viewer', () => ({}))
 
 const product: Product = {
@@ -32,7 +32,7 @@ function page() {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  useProducts.mockReturnValue({ products: [product], isLoading: false, errorMessage: null, retry: vi.fn() })
+  useProduct.mockReturnValue({ product, isLoading: false, errorMessage: null, retry: vi.fn() })
 })
 afterEach(cleanup)
 
@@ -54,7 +54,7 @@ describe('dedicated 3D experience', () => {
   })
 
   it('shows a clear empty state when a product has no 3D model', () => {
-    useProducts.mockReturnValue({ products: [{ ...product, models3D: [] }], isLoading: false, errorMessage: null, retry: vi.fn() })
+    useProduct.mockReturnValue({ product: { ...product, models3D: [] }, isLoading: false, errorMessage: null, retry: vi.fn() })
     page()
     expect(screen.getByText('Sản phẩm chưa có mô hình 3D')).toBeTruthy()
     expect(document.querySelector('model-viewer')).toBeNull()

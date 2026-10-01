@@ -280,7 +280,7 @@ export function TrangSanPhamPage() {
                 ? "OUT_OF_STOCK"
                 : "ORDER",
           );
-        const modelMatches = !only3D || product.models3D.length > 0;
+        const modelMatches = !only3D || product.has3DModel || product.models3D.some((model) => model.isActive && Boolean(model.modelUrl));
 
         return (
           categoryMatches &&

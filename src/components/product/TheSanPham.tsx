@@ -51,7 +51,7 @@ export function ProductCard({ product, variant = 'catalog', className = '' }: Pr
   const brandName = getBrandName(product.brand, language)
   const primaryImage =
     product.images.find((image) => image.isPrimary) ?? product.images[0]
-  const has3DModel = product.models3D.length > 0
+  const has3DModel = product.has3DModel ?? product.models3D.some((model) => model.isActive && Boolean(model.modelUrl))
   const canAddToCart = product.saleType === 'DIRECT_ORDER' && product.status === 'ACTIVE'
   const isOutOfStock = product.status === 'OUT_OF_STOCK'
   const isQuoteOnly = product.saleType === 'REQUEST_QUOTE'

@@ -22,6 +22,7 @@ import { ThuVienAnhSanPham } from "../components/product/ThuVienAnhSanPham";
 import { chiNhanhCmid } from "../constants/chi-nhanh";
 import { useCart } from "../contexts/GioHangContext";
 import { useLanguage } from "../contexts/NgonNguContext";
+import { useProduct } from "../hooks/useProduct";
 import { useProducts } from "../hooks/useProducts";
 import type { Product } from "../types/product";
 import { formatCurrency } from "../utils/formatCurrency";
@@ -239,7 +240,9 @@ function StoreAvailabilitySelect({
 export function TrangChiTietSanPham() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { products, isLoading, errorMessage, retry } = useProducts();
+  const productId = Number(id);
+  const { products } = useProducts();
+  const { product, isLoading, errorMessage, retry } = useProduct(productId);
   const [activeTab, setActiveTab] = useState<TabChiTiet>("mo-ta");
   const [quantity, setQuantity] = useState(1);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
@@ -251,10 +254,6 @@ export function TrangChiTietSanPham() {
   const { productDetail } = content;
   const requestedProductPath = id ? `/products/${id}` : "/products";
 
-  const productId = Number(id);
-  const product = products.find(
-    (currentProduct) => currentProduct.id === productId,
-  );
   const relatedProducts = useMemo(
     () => (product ? getRelatedProducts(products, product) : []),
     [product, products],

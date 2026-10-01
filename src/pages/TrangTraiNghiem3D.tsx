@@ -6,7 +6,7 @@ import { StatusPanel } from '../components/common/KhunTranThai'
 import { Seo } from '../components/common/Seo'
 import { PRODUCT_MODEL_CAMERA_LIMITS } from '../components/product/model-viewer-config'
 import { useLanguage } from '../contexts/NgonNguContext'
-import { useProducts } from '../hooks/useProducts'
+import { useProduct } from '../hooks/useProduct'
 import { getProductName } from '../utils/localizeProduct'
 
 type ModelViewerWithAR = HTMLElement & {
@@ -36,14 +36,13 @@ function TraiNghiem3DKhungXuong() {
 
 export function TrangTraiNghiem3D() {
   const { id } = useParams()
-  const { products, isLoading, errorMessage, retry } = useProducts()
+  const productId = Number(id)
+  const { product, isLoading, errorMessage, retry } = useProduct(productId)
   const { language } = useLanguage()
   const [viewerReady, setViewerReady] = useState(false)
   const [viewerError, setViewerError] = useState<string | null>(null)
   const [isOpeningAR, setIsOpeningAR] = useState(false)
   const viewerRef = useRef<HTMLElement>(null)
-  const productId = Number(id)
-  const product = products.find((item) => item.id === productId)
   const model = product?.models3D.find((item) => item.isActive && item.modelUrl)
   const productName = product ? getProductName(product, language) : ''
   const productPath = Number.isSafeInteger(productId) ? `/products/${productId}` : '/products'

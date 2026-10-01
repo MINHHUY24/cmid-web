@@ -221,7 +221,7 @@ function AuthenticatedAdmin({
   session: AdminSession
   onSignOut: () => void
 }) {
-  const { products, isLoading, errorMessage, retry, removeProduct: removeProductFromList } = useProducts()
+  const { products, isLoading, errorMessage, retry, removeProduct: removeProductFromList } = useProducts({ includeModels: true })
   const [searchParams, setSearchParams] = useSearchParams()
   const [database, setDatabase] = useState<AdminDatabase>(() => {
     const localDatabase = getAdminDatabase()

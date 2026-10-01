@@ -75,4 +75,7 @@ export interface Product {
   brand: ProductBrand | null
   images: ProductImage[]
   models3D: ProductModel3D[]
+  // Present on the lightweight public catalogue response. The full product
+  // response still carries `models3D` when a visitor opens its detail page.
+  has3DModel?: boolean
 }
