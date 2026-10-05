@@ -6,8 +6,9 @@ import {
   MagnifyingGlass,
   WarningCircle,
   Wrench,
+  X,
 } from '@phosphor-icons/react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { KhungXuong } from '../../components/common/KhungXuong'
 import type { AppLanguage } from '../../content/site-content'
 import { getAdminDataMode } from '../../services/admin.service'
@@ -50,6 +51,7 @@ import {
   AdminStatus,
   type AdminEditableRecord,
 } from './AdminPrimitives'
+import { getLocalizedAdminError } from './admin-error-message'
 import {
   mutateAdminDatabase,
   type AdminDatabase,
@@ -57,13 +59,14 @@ import {
   type AdminSettings,
 } from './admin-database'
 import type { AdminView } from './admin-navigation'
+import { hasPermission } from './admin-permissions'
 import { useAdminCopy } from './admin-language-context'
+import { useAdminAuth } from '../../contexts/useQuanTriAuth'
 
 interface OperationalViewProps {
   view: AdminView
   database: AdminDatabase
   onToast: (message: string) => void
-  onNavigate: (view: AdminView) => void
 }
 
 function editableRows(records: Array<{ id: string }>) {
@@ -149,6 +152,8 @@ const rolePermissionGroups = [
       { value: 'payment.view', label: 'Xem thanh toán' },
       { value: 'payment.update', label: 'Cập nhật thanh toán' },
       { value: 'settings.manage', label: 'Cấu hình hệ thống' },
+      { value: 'helpdesk.access', label: 'Truy cập Hỗ trợ IT' },
+      { value: 'helpdesk.manage', label: 'Quản lý Hỗ trợ IT' },
       { value: 'user.manage', label: 'Quản lý người dùng' },
       { value: 'role.manage', label: 'Quản lý vai trò' },
       { value: 'permission.manage', label: 'Quản lý phân quyền' },
@@ -160,7 +165,7 @@ const rolePermissionGroups = [
   },
 ]
 
-export function AdminOperationalView({ view, database, onToast, onNavigate }: OperationalViewProps) {
+export function AdminOperationalView({ view, database, onToast }: OperationalViewProps) {
   const complete = (message: string) => onToast(message)
 
   if (view === 'categories') {
@@ -426,7 +431,7 @@ export function AdminOperationalView({ view, database, onToast, onNavigate }: Op
 
   if (view === 'settings') return <AdminSettingsView settings={database.settings} onToast={onToast} />
 
-  if (view === 'users' || view === 'roles') return <AdminAccessManagementView view={view} onToast={onToast} onNavigate={onNavigate} />
+  if (view === 'users' || view === 'roles') return <AdminAccessManagementView view={view} onToast={onToast} />
 
   if (view === 'logs') {
     return (
@@ -653,16 +658,22 @@ function AdminInquiriesView({ onToast }: { onToast: (message: string) => void })
 function AdminAccessManagementView({
   view,
   onToast,
-  onNavigate,
 }: {
   view: 'users' | 'roles'
   onToast: (message: string) => void
-  onNavigate: (view: AdminView) => void
 }) {
+  const { adminUser } = useAdminAuth()
   const [users, setUsers] = useState<ManagedAdminUser[]>([])
   const [roles, setRoles] = useState<ManagedRole[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isRoleCreatorOpen, setIsRoleCreatorOpen] = useState(false)
+  const roleSelectionRef = useRef<((roleCode: string) => void) | null>(null)
+  const canCreateRoles = Boolean(
+    adminUser
+    && hasPermission(adminUser.permissions, 'role.manage')
+    && hasPermission(adminUser.permissions, 'permission.manage'),
+  )
 
   const reload = useCallback(async () => {
     setIsLoading(true)
@@ -691,6 +702,21 @@ function AdminAccessManagementView({
 
   if (view === 'users') {
     const employeeRoles = roles.filter((role) => role.code !== 'CUSTOMER')
+    const openRoleCreator = (setRoleCode: (roleCode: string) => void) => {
+      roleSelectionRef.current = setRoleCode
+      setIsRoleCreatorOpen(true)
+    }
+    const closeRoleCreator = () => {
+      roleSelectionRef.current = null
+      setIsRoleCreatorOpen(false)
+    }
+    const handleRoleCreated = (role: ManagedRole) => {
+      setRoles((current) => [...current.filter((item) => item.id !== role.id), role]
+        .sort((first, second) => first.name.localeCompare(second.name, 'vi')))
+      roleSelectionRef.current?.(role.code)
+      closeRoleCreator()
+      onToast('Đã tạo vai trò mới và chọn cho nhân viên.')
+    }
     const rows = users.map((user) => ({
       id: user.id,
       name: user.name,
@@ -700,6 +726,7 @@ function AdminAccessManagementView({
       status: user.isActive ? 'ACTIVE' : 'LOCKED',
     })) as AdminEditableRecord[]
     return (
+      <>
       <AdminCollectionManager
         title="Nhân viên quản trị"
         description="Tạo và quản lý tài khoản nội bộ cho nhân viên được phép truy cập khu vực quản trị."
@@ -718,7 +745,14 @@ function AdminAccessManagementView({
           { key: 'name', label: 'Họ và tên', required: true },
           { key: 'email', label: 'Email', required: true, suffix: '@cmid.com.vn' },
           { key: 'password', label: 'Mật khẩu', type: 'password', requiredOnCreate: true, helper: 'Tối thiểu 10 ký tự. Để trống khi không đổi mật khẩu.' },
-          { key: 'roleCode', label: 'Vai trò', type: 'select', options: employeeRoles.map((role) => ({ value: role.code, label: role.name })), required: true, action: { label: 'Tạo vai trò mới', onClick: () => onNavigate('roles') } },
+          {
+            key: 'roleCode',
+            label: 'Vai trò',
+            type: 'select',
+            options: employeeRoles.map((role) => ({ value: role.code, label: role.name })),
+            required: true,
+            action: canCreateRoles ? { label: 'Tạo vai trò mới', onClick: openRoleCreator } : undefined,
+          },
           { key: 'status', label: 'Trạng thái', type: 'select', options: [{ value: 'ACTIVE', label: 'Đang hoạt động' }, { value: 'LOCKED', label: 'Đã khóa' }] },
         ]}
         onSave={async (record) => {
@@ -740,6 +774,10 @@ function AdminAccessManagementView({
           onToast('Đã xóa tài khoản nhân viên.')
         }}
       />
+      {isRoleCreatorOpen ? (
+        <AdminNewRoleDialog onClose={closeRoleCreator} onCreated={handleRoleCreated} />
+      ) : null}
+      </>
     )
   }
 
@@ -788,6 +826,136 @@ function AdminAccessManagementView({
         onToast('Đã xóa vai trò.')
       }}
     />
+  )
+}
+
+function AdminNewRoleDialog({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void
+  onCreated: (role: ManagedRole) => void
+}) {
+  const { t, language } = useAdminCopy()
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [permissionCodes, setPermissionCodes] = useState<string[]>([])
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  function togglePermission(code: string, checked: boolean) {
+    setPermissionCodes((current) => {
+      if (checked) return current.includes(code) ? current : [...current, code]
+      return current.filter((item) => item !== code)
+    })
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (isSaving) return
+
+    const roleName = name.trim()
+    if (roleName.length < 2) {
+      setError('Tên vai trò cần có ít nhất 2 ký tự.')
+      return
+    }
+
+    setError(null)
+    setIsSaving(true)
+    try {
+      const { role } = await createManagedRole({
+        code: createRoleCode(roleName),
+        name: roleName,
+        description: description.trim(),
+        permissionCodes,
+      })
+      onCreated(role)
+    } catch (requestError) {
+      setError(getLocalizedAdminError(requestError, language, t('Không thể tạo vai trò mới.')))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <div
+      className="admin-dialog-backdrop admin-dialog-backdrop--nested"
+      role="presentation"
+      onMouseDown={() => { if (!isSaving) onClose() }}
+    >
+      <section
+        className="admin-dialog admin-dialog--wide"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="admin-new-role-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <header>
+          <div>
+            <h2 id="admin-new-role-title">{t('Tạo vai trò mới')}</h2>
+            <p>{t('Thiết lập tên, mô tả và các chức năng mà vai trò này được phép sử dụng.')}</p>
+          </div>
+          <button type="button" onClick={onClose} disabled={isSaving} aria-label={t('Đóng')}><X size={19} /></button>
+        </header>
+        <form onSubmit={(event) => void submit(event)}>
+          <div className="admin-dialog__body">
+            {error ? <p className="admin-form-error" role="alert">{t(error)}</p> : null}
+            <label className="admin-field">
+              <span>{t('Tên vai trò')}<b>*</b></span>
+              <input
+                autoFocus
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                maxLength={100}
+                required
+                disabled={isSaving}
+                placeholder={t('Ví dụ: Quản lý showroom')}
+              />
+              <small>{t('Mã vai trò được tạo tự động từ tên và không thể thay đổi sau khi lưu.')}</small>
+            </label>
+            <label className="admin-field">
+              <span>{t('Mô tả')}</span>
+              <textarea
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                maxLength={500}
+                disabled={isSaving}
+                placeholder={t('Mô tả phạm vi công việc của vai trò này')}
+              />
+            </label>
+            <section className="admin-field admin-field--permissions">
+              <span>{t('Chức năng được phép')}</span>
+              <div className="admin-permission-groups">
+                {rolePermissionGroups.map((group) => (
+                  <fieldset key={group.label} disabled={isSaving}>
+                    <legend>{t(group.label)}</legend>
+                    <div>
+                      {group.permissions.map((permission) => (
+                        <label className="admin-checkbox" key={permission.value}>
+                          <input
+                            type="checkbox"
+                            value={permission.value}
+                            checked={permissionCodes.includes(permission.value)}
+                            onChange={(event) => togglePermission(permission.value, event.target.checked)}
+                          />
+                          <span>{t(permission.label)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                ))}
+              </div>
+            </section>
+          </div>
+          <footer>
+            <button className="admin-button" type="button" disabled={isSaving} onClick={onClose}>{t('Hủy')}</button>
+            <button className="admin-button admin-button--primary" type="submit" disabled={isSaving}>
+              {isSaving ? t('Đang tạo...') : t('Tạo vai trò')}
+            </button>
+          </footer>
+        </form>
+      </section>
+    </div>
   )
 }
 

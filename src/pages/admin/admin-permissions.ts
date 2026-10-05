@@ -29,6 +29,7 @@ const viewPermissions: Record<AdminView, string> = {
   reports: 'report.view',
   settings: 'settings.manage',
   users: 'user.manage',
+  helpdesk: 'helpdesk.access',
   roles: 'role.manage',
   logs: 'audit.view',
 }

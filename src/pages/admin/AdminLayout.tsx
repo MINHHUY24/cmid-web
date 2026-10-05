@@ -1,4 +1,5 @@
 import {
+  CaretLeft,
   ArrowRight,
   Bell,
   CaretRight,
@@ -6,13 +7,25 @@ import {
   SignOut,
   X,
 } from '@phosphor-icons/react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type FocusEvent, type MouseEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import logoImage from '../../assets/images/logo.webp'
 import type { AdminSession } from './admin-auth'
 import { adminMenuGroups, adminViewMeta, type AdminView } from './admin-navigation'
 import { canAccessAdminView } from './admin-permissions'
 import type { AdminActivity } from './admin-database'
 import { useAdminCopy } from './admin-language-context'
+
+const SIDEBAR_COLLAPSED_STORAGE_KEY = 'cmid-admin-sidebar-collapsed'
+
+function getStoredSidebarCollapsed() {
+  if (typeof window === 'undefined') return false
+  try {
+    return window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
 
 interface AdminLayoutProps {
   session: AdminSession
@@ -34,12 +47,21 @@ export function AdminLayout({
   children,
 }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(getStoredSidebarCollapsed)
+  const [sidebarTooltip, setSidebarTooltip] = useState<{ label: string; left: number; top: number } | null>(null)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const { language, t } = useAdminCopy()
 
   function navigate(view: AdminView) {
     onNavigate(view)
     setSidebarOpen(false)
+    setSidebarTooltip(null)
+  }
+
+  function showSidebarTooltip(event: MouseEvent<HTMLElement> | FocusEvent<HTMLElement>, label: string) {
+    if (!sidebarCollapsed || typeof window === 'undefined' || !window.matchMedia('(min-width: 1221px)').matches) return
+    const { right, top, height } = event.currentTarget.getBoundingClientRect()
+    setSidebarTooltip({ label, left: right + 10, top: top + height / 2 })
   }
 
   useEffect(() => {
@@ -56,15 +78,43 @@ export function AdminLayout({
     }
   }, [notificationsOpen])
 
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(sidebarCollapsed))
+    } catch {
+      // Private browsing or storage restrictions should not prevent admin navigation.
+    }
+  }, [sidebarCollapsed])
+
   return (
-    <div className="admin-shell" lang={language}>
-      <aside className={`admin-sidebar${sidebarOpen ? ' is-open' : ''}`} aria-label={t('Mở điều hướng')}>
+    <div className={`admin-shell${sidebarCollapsed ? ' admin-shell--sidebar-collapsed' : ''}`} lang={language}>
+      <aside className={`admin-sidebar${sidebarOpen ? ' is-open' : ''}${sidebarCollapsed ? ' is-collapsed' : ''}`} aria-label={t('Mở điều hướng')}>
         <div className="admin-sidebar__brand">
-          <Link to="/" className="admin-brand" aria-label={t('Về website CMID')}>
-            <strong>CMID</strong>
-            <span>STONE &amp; INTERIOR</span>
-          </Link>
-          <b>{t('QUẢN TRỊ')}</b>
+          <div className="admin-brand">
+            <img className="admin-brand__mark" src={logoImage} alt="" aria-hidden="true" />
+            <span className="admin-brand__copy">
+              <strong>CMID</strong>
+              <span>STONE &amp; INTERIOR</span>
+              <small>{t('QUẢN TRỊ')}</small>
+            </span>
+          </div>
+          <button
+            className="admin-sidebar__collapse-toggle"
+            type="button"
+            onClick={() => {
+              setSidebarTooltip(null)
+              setSidebarCollapsed((current) => !current)
+            }}
+            onMouseEnter={(event) => showSidebarTooltip(event, t(sidebarCollapsed ? 'Mở rộng thanh điều hướng' : 'Thu gọn thanh điều hướng'))}
+            onMouseLeave={() => setSidebarTooltip(null)}
+            onFocus={(event) => showSidebarTooltip(event, t(sidebarCollapsed ? 'Mở rộng thanh điều hướng' : 'Thu gọn thanh điều hướng'))}
+            onBlur={() => setSidebarTooltip(null)}
+            aria-label={t(sidebarCollapsed ? 'Mở rộng thanh điều hướng' : 'Thu gọn thanh điều hướng')}
+            aria-pressed={sidebarCollapsed}
+            title={t(sidebarCollapsed ? 'Mở rộng thanh điều hướng' : 'Thu gọn thanh điều hướng')}
+          >
+            {sidebarCollapsed ? <CaretRight size={16} weight="bold" /> : <CaretLeft size={16} weight="bold" />}
+          </button>
         </div>
 
         <nav className="admin-sidebar__nav">
@@ -83,6 +133,12 @@ export function AdminLayout({
                     key={item.id}
                     type="button"
                     onClick={() => navigate(item.id)}
+                    onMouseEnter={(event) => showSidebarTooltip(event, t(item.label))}
+                    onMouseLeave={() => setSidebarTooltip(null)}
+                    onFocus={(event) => showSidebarTooltip(event, t(item.label))}
+                    onBlur={() => setSidebarTooltip(null)}
+                    aria-label={t(item.label)}
+                    data-tooltip={t(item.label)}
                   >
                     {item.icon}
                     <span>{t(item.label)}</span>
@@ -97,16 +153,43 @@ export function AdminLayout({
         </nav>
 
         <div className="admin-sidebar__profile">
-          <span className="admin-sidebar__avatar">A</span>
+          <span
+            className="admin-sidebar__avatar"
+            onMouseEnter={(event) => showSidebarTooltip(event, `${session.name} · ${t('Quản trị viên')}`)}
+            onMouseLeave={() => setSidebarTooltip(null)}
+          >
+            A
+          </span>
           <div>
             <strong>{session.name}</strong>
             <small>{t('Quản trị viên')}</small>
           </div>
-          <button type="button" onClick={onSignOut} aria-label={t('Đăng xuất')}>
+          <button
+            type="button"
+            onClick={() => {
+              setSidebarTooltip(null)
+              onSignOut()
+            }}
+            onMouseEnter={(event) => showSidebarTooltip(event, t('Đăng xuất'))}
+            onMouseLeave={() => setSidebarTooltip(null)}
+            onFocus={(event) => showSidebarTooltip(event, t('Đăng xuất'))}
+            onBlur={() => setSidebarTooltip(null)}
+            aria-label={t('Đăng xuất')}
+          >
             <SignOut size={19} />
           </button>
         </div>
       </aside>
+
+      {sidebarCollapsed && sidebarTooltip ? (
+        <span
+          className="admin-sidebar-tooltip"
+          role="tooltip"
+          style={{ left: sidebarTooltip.left, top: sidebarTooltip.top }}
+        >
+          {sidebarTooltip.label}
+        </span>
+      ) : null}
 
       <div className="admin-workspace">
         <header className="admin-topbar">

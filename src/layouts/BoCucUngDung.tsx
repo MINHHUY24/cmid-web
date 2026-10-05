@@ -22,12 +22,14 @@ const heroPagePaths = new Set([
 export function AppLayout() {
   const { pathname } = useLocation()
   const isHomePage = pathname === '/'
+  const isAccountPage = pathname === '/tai-khoan'
   const isProductDetailPage = /^\/products\/[^/]+$/.test(pathname)
   const isHeroPage = heroPagePaths.has(pathname) || isProductDetailPage
   const shellClassName = [
     'app-shell',
     'app-shell--site',
     isHomePage ? 'app-shell--home' : '',
+    isAccountPage ? 'app-shell--account' : '',
     isHeroPage ? 'app-shell--hero' : '',
     isProductDetailPage ? 'app-shell--product-detail' : '',
   ]

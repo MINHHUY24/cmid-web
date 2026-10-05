@@ -175,7 +175,8 @@ const SCROLL_POSITION_PREFIX = "cmid-scroll-position:";
 function ScrollRestoration() {
   const location = useLocation();
   const navigationType = useNavigationType();
-  const isFirstRender = useRef(true);
+  const lastHandledLocationKey = useRef<string | null>(null);
+  const previousPathname = useRef(location.pathname);
   const restoringUrl = useRef<string | null>(null);
   const locationUrl = `${location.pathname}${location.search}`;
 
@@ -226,8 +227,16 @@ function ScrollRestoration() {
   }, [locationUrl]);
 
   useEffect(() => {
-    const firstRender = isFirstRender.current;
-    isFirstRender.current = false;
+    const isInitialLocation = lastHandledLocationKey.current === null;
+    const isNewLocation = lastHandledLocationKey.current !== location.key;
+
+    // Effects run twice in development Strict Mode. Only react once for each
+    // router location so the initial `POP` does not get mistaken for Back.
+    if (!isNewLocation) return;
+
+    const pathnameBeforeNavigation = previousPathname.current;
+    lastHandledLocationKey.current = location.key;
+    previousPathname.current = location.pathname;
 
     if (location.hash) {
       const frame = window.requestAnimationFrame(() => {
@@ -236,9 +245,17 @@ function ScrollRestoration() {
       return () => window.cancelAnimationFrame(frame);
     }
 
-    const shouldRestore = firstRender
-      ? isPageReload()
-      : navigationType === "POP" || location.state?.restoreScroll === true;
+    // A page opened directly, or reached through a normal route link, starts
+    // at the beginning. Back/Forward and an explicit opt-in can still restore
+    // the saved position. Search-param changes on the same page deliberately
+    // do nothing, which keeps account tabs and filters at their current scroll.
+    if (isInitialLocation) {
+      restoringUrl.current = null;
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      return;
+    }
+
+    const shouldRestore = navigationType === "POP" || location.state?.restoreScroll === true;
 
     if (shouldRestore) {
       restoringUrl.current = locationUrl;
@@ -248,15 +265,12 @@ function ScrollRestoration() {
     }
 
     restoringUrl.current = null;
-    if (!firstRender) window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [location.hash, locationUrl, navigationType]);
+    if (pathnameBeforeNavigation !== location.pathname) {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
+  }, [location.hash, location.key, location.pathname, location.state, locationUrl, navigationType]);
 
   return null;
-}
-
-function isPageReload() {
-  const [navigationEntry] = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
-  return navigationEntry?.type === "reload";
 }
 
 function readScrollPosition(url: string) {

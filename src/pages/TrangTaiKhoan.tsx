@@ -4,7 +4,6 @@ import {
   Camera,
   CaretDown,
   Check,
-  ClockCounterClockwise,
   Coins,
   EnvelopeSimple,
   GenderFemale,
@@ -23,12 +22,29 @@ import {
   User,
 } from '@phosphor-icons/react'
 import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { KhungXuong } from '../components/common/KhungXuong'
+import type { AppLanguage, SiteContent } from '../content/site-content'
 import { useLanguage } from '../contexts/NgonNguContext'
 import { type CustomerProfile, useUser } from '../contexts/NguoiDungContext'
+import type { AdminOrder } from './admin/admin-database'
+import { getCustomerOrders } from '../services/order.service'
+import { formatCurrency } from '../utils/formatCurrency'
 
-type AccountSection = 'overview' | 'information' | 'orders' | 'history' | 'gifts'
+type AccountSection = 'overview' | 'information' | 'orders' | 'gifts'
+type AccountOrderFilter = 'all' | 'pending-confirmation' | 'awaiting-pickup' | 'awaiting-delivery' | 'delivered' | 'returned' | 'cancelled'
+
+const ACCOUNT_SECTION_IDS = ['overview', 'information', 'orders', 'gifts'] as const satisfies readonly AccountSection[]
+const ACCOUNT_ORDER_FILTER_IDS = ['all', 'pending-confirmation', 'awaiting-pickup', 'awaiting-delivery', 'delivered', 'returned', 'cancelled'] as const satisfies readonly AccountOrderFilter[]
+
+const ORDER_FILTER_STATUSES: Record<Exclude<AccountOrderFilter, 'all'>, readonly AdminOrder['status'][]> = {
+  'pending-confirmation': ['Chờ thanh toán', 'Thanh toán thất bại', 'Chờ xác nhận'],
+  'awaiting-pickup': ['Đang xử lý', 'Chờ lấy hàng'],
+  'awaiting-delivery': ['Chờ giao hàng', 'Đang giao'],
+  delivered: ['Hoàn thành'],
+  returned: ['Đã trả hàng'],
+  cancelled: ['Đã hủy'],
+}
 
 type AccountProfileDropdownOption = {
   value: string
@@ -91,17 +107,48 @@ function toAdministrativeOption(unit: { name: string }): AccountProfileDropdownO
   }
 }
 
+function formatProfileAddress(profile: CustomerProfile, language: AppLanguage, fallback: string) {
+  const city = getAdministrativeDisplayName(profile.city.trim())
+  const ward = getAdministrativeDisplayName(profile.ward.trim())
+  const district = getAdministrativeDisplayName(profile.district.trim())
+  const addressParts = [
+    profile.address.trim(),
+    ward ? (language === 'vi' ? `Phường ${ward}` : `Ward ${ward}`) : '',
+    district ? (language === 'vi' ? `Quận ${district}` : `${district} District`) : '',
+    city ? (language === 'vi' ? `TP. ${city}` : `${city} City`) : '',
+  ].filter(Boolean)
+
+  return addressParts.length ? addressParts.join(', ') : fallback
+}
+
+function parseAccountSection(value: string | null): AccountSection {
+  return value !== null && ACCOUNT_SECTION_IDS.includes(value as AccountSection) ? value as AccountSection : 'overview'
+}
+
+function parseAccountOrderFilter(value: string | null): AccountOrderFilter {
+  return value !== null && ACCOUNT_ORDER_FILTER_IDS.includes(value as AccountOrderFilter) ? value as AccountOrderFilter : 'all'
+}
+
 export function TrangTaiKhoanPage() {
-  const { content } = useLanguage()
-  const { user, profile, signOut, updateProfile } = useUser()
+  const { content, language } = useLanguage()
+  const { user, profile, isAuthLoading, signOut, updateProfile } = useUser()
   const navigate = useNavigate()
-  const [activeSection, setActiveSection] = useState<AccountSection>('overview')
+  const location = useLocation()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeSection = parseAccountSection(searchParams.get('section'))
+  const orderFilter = parseAccountOrderFilter(searchParams.get('filter'))
+  const orderSearch = searchParams.get('q') ?? ''
   const [isProfileEditing, setIsProfileEditing] = useState(false)
   const [profileDraft, setProfileDraft] = useState<CustomerProfile>(profile)
   const [avatarError, setAvatarError] = useState('')
   const [administrativeData, setAdministrativeData] = useState<AdministrativeData | null>(null)
   const [isAdministrativeDataLoading, setIsAdministrativeDataLoading] = useState(false)
   const [isAdministrativeDataUnavailable, setIsAdministrativeDataUnavailable] = useState(false)
+  const [orders, setOrders] = useState<AdminOrder[]>([])
+  const [isOrdersLoading, setIsOrdersLoading] = useState(false)
+  const [hasOrdersLoadError, setHasOrdersLoadError] = useState(false)
+  const [ordersReloadKey, setOrdersReloadKey] = useState(0)
+  const customerId = user?.id
 
   const provinceOptions = useMemo(
     () => administrativeData?.provinces
@@ -139,20 +186,87 @@ export function TrangTaiKhoanPage() {
       : [],
     [administrativeData, selectedDistrict],
   )
+  const searchedOrders = useMemo(() => {
+    const normalizedSearch = normalizeSearchText(orderSearch)
+    if (!normalizedSearch) return orders
+
+    return orders.filter((order) => order.items.some((item) => (
+      normalizeSearchText(item.name).includes(normalizedSearch) ||
+      normalizeSearchText(item.sku).includes(normalizedSearch)
+    )))
+  }, [orderSearch, orders])
+  const orderCounts = useMemo<Record<AccountOrderFilter, number>>(() => {
+    const counts: Record<AccountOrderFilter, number> = {
+      all: searchedOrders.length,
+      'pending-confirmation': 0,
+      'awaiting-pickup': 0,
+      'awaiting-delivery': 0,
+      delivered: 0,
+      returned: 0,
+      cancelled: 0,
+    }
+
+    for (const [filter, statuses] of Object.entries(ORDER_FILTER_STATUSES) as Array<[Exclude<AccountOrderFilter, 'all'>, readonly AdminOrder['status'][]]>) {
+      counts[filter] = searchedOrders.filter((order) => statuses.includes(order.status)).length
+    }
+
+    return counts
+  }, [searchedOrders])
+  const filteredOrders = useMemo(() => {
+    if (orderFilter === 'all') return searchedOrders
+
+    return searchedOrders.filter((order) => ORDER_FILTER_STATUSES[orderFilter].includes(order.status))
+  }, [orderFilter, searchedOrders])
+  useEffect(() => {
+    if (!customerId) return undefined
+
+    let isCurrent = true
+    void Promise.resolve()
+      .then(() => {
+        if (!isCurrent) return null
+        setIsOrdersLoading(true)
+        setHasOrdersLoadError(false)
+        return getCustomerOrders()
+      })
+      .then((nextOrders) => {
+        if (isCurrent && nextOrders) {
+          setOrders(nextOrders)
+        }
+      })
+      .catch(() => {
+        if (isCurrent) {
+          setOrders([])
+          setHasOrdersLoadError(true)
+        }
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsOrdersLoading(false)
+        }
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [customerId, ordersReloadKey])
+
+  if (isAuthLoading) {
+    return <AccountSessionSkeleton label={content.auth.restoringSession} />
+  }
 
   if (!user) {
-    return <Navigate to="/dang-nhap" state={{ from: '/tai-khoan' }} replace />
+    return <Navigate to="/dang-nhap" state={{ from: `${location.pathname}${location.search}` }} replace />
   }
 
   const authenticatedUser = user
   const displayName = profile.fullName || authenticatedUser.name
   const profileAvatar = profile.avatar || authenticatedUser.picture
+  const accountLayoutClassName = activeSection === 'information' ? 'account-layout account-layout--profile' : 'account-layout'
 
   const navigation: Array<{ id: AccountSection; label: string; icon: typeof House }> = [
     { id: 'overview', label: content.auth.overview, icon: House },
     { id: 'information', label: content.auth.userInformation, icon: User },
     { id: 'orders', label: content.auth.orders, icon: Package },
-    { id: 'history', label: content.auth.purchaseHistory, icon: ClockCounterClockwise },
     { id: 'gifts', label: content.auth.gifts, icon: Gift },
   ]
 
@@ -162,11 +276,45 @@ export function TrangTaiKhoanPage() {
   }
 
   function handleProfileSection(section: AccountSection) {
-    setActiveSection(section)
+    const nextSearchParams = new URLSearchParams(searchParams)
+
+    if (section === 'overview') {
+      nextSearchParams.delete('section')
+    } else {
+      nextSearchParams.set('section', section)
+    }
+
+    setSearchParams(nextSearchParams, { preventScrollReset: true })
 
     if (section !== 'information') {
       setIsProfileEditing(false)
     }
+  }
+
+  function handleOrderFilter(nextFilter: AccountOrderFilter) {
+    const nextSearchParams = new URLSearchParams(searchParams)
+    nextSearchParams.set('section', 'orders')
+
+    if (nextFilter === 'all') {
+      nextSearchParams.delete('filter')
+    } else {
+      nextSearchParams.set('filter', nextFilter)
+    }
+
+    setSearchParams(nextSearchParams, { preventScrollReset: true })
+  }
+
+  function handleOrderSearch(nextSearch: string) {
+    const nextSearchParams = new URLSearchParams(searchParams)
+    nextSearchParams.set('section', 'orders')
+
+    if (nextSearch.trim()) {
+      nextSearchParams.set('q', nextSearch)
+    } else {
+      nextSearchParams.delete('q')
+    }
+
+    setSearchParams(nextSearchParams, { replace: true, preventScrollReset: true })
   }
 
   function handleProfileFieldChange<Field extends keyof CustomerProfile>(field: Field, value: CustomerProfile[Field]) {
@@ -277,7 +425,7 @@ export function TrangTaiKhoanPage() {
   return (
     <main className="account-page">
       <div className="account-shell">
-        <div className={activeSection === 'information' ? 'account-layout account-layout--profile' : 'account-layout'}>
+        <div className={accountLayoutClassName}>
           <aside className="account-sidebar">
             <div className="account-sidebar__identity">
               {profileAvatar ? (
@@ -323,7 +471,7 @@ export function TrangTaiKhoanPage() {
                       <span className="account-metrics__icon" aria-hidden="true"><Package size={24} weight="thin" /></span>
                       <span>
                         <small>{content.auth.orderCount}</small>
-                        <strong>0</strong>
+                        <strong>{orders.length}</strong>
                       </span>
                     </article>
                     <article>
@@ -341,14 +489,18 @@ export function TrangTaiKhoanPage() {
                       </span>
                     </article>
                   </div>
-                  <section className="account-empty-state">
-                    <h2>{content.auth.recentOrderTitle}</h2>
-                    <div className="account-empty-state__content">
-                      <span className="account-empty-state__icon" aria-hidden="true"><Package size={26} weight="thin" /></span>
-                      <p>{content.auth.noOrders}</p>
-                      <Link className="button button--gold" to="/products">{content.common.products}</Link>
-                    </div>
-                  </section>
+                  <AccountOrdersState
+                    title={content.auth.recentOrderTitle}
+                    emptyDescription={content.auth.noOrders}
+                    orders={orders.slice(0, 2)}
+                    isLoading={isOrdersLoading}
+                    hasError={hasOrdersLoadError}
+                    language={language}
+                    copy={content.auth}
+                    onRetry={() => setOrdersReloadKey((currentKey) => currentKey + 1)}
+                    emptyAction={<Link className="button button--gold" to="/products">{content.common.products}</Link>}
+                    compact
+                  />
                 </>
               ) : null}
 
@@ -496,9 +648,9 @@ export function TrangTaiKhoanPage() {
                         value={profile.gender ? genderLabel[profile.gender] : content.auth.notUpdated}
                       />
                       <AccountProfileField icon={<Buildings size={23} weight="thin" />} label={content.auth.provinceCity} value={profile.city || content.auth.notUpdated} />
-                      <AccountProfileField icon={<MapTrifold size={23} weight="thin" />} label={content.auth.district} value={profile.district || content.auth.notUpdated} />
                       <AccountProfileField icon={<MapPin size={23} weight="thin" />} label={content.auth.ward} value={profile.ward || content.auth.notUpdated} />
-                      <AccountProfileField icon={<HouseLine size={23} weight="thin" />} label={content.auth.address} value={profile.address || content.auth.notUpdated} isWide />
+                      <AccountProfileField icon={<MapTrifold size={23} weight="thin" />} label={content.auth.district} value={profile.district || content.auth.notUpdated} />
+                      <AccountProfileField icon={<HouseLine size={23} weight="thin" />} label={content.auth.address} value={formatProfileAddress(profile, language, content.auth.notUpdated)} isWide />
                     </div>
                     <div className="account-profile__actions">
                       <div className="account-profile__buttons">
@@ -513,10 +665,24 @@ export function TrangTaiKhoanPage() {
               ) : null}
 
               {activeSection === 'orders' ? (
-                <AccountEmpty className="account-empty-state--orders" icon={<Package size={34} weight="thin" />} title={content.auth.ordersTitle} description={content.auth.noOrders} />
-              ) : null}
-              {activeSection === 'history' ? (
-                <AccountEmpty icon={<Package size={34} weight="thin" />} title={content.auth.historyTitle} description={content.auth.historyDescription} />
+                <AccountOrdersState
+                  title={content.auth.ordersTitle}
+                  emptyDescription={content.auth.noOrders}
+                  orders={filteredOrders}
+                  isLoading={isOrdersLoading}
+                  hasError={hasOrdersLoadError}
+                  language={language}
+                  copy={content.auth}
+                  onRetry={() => setOrdersReloadKey((currentKey) => currentKey + 1)}
+                  filter={{
+                    value: orderFilter,
+                    onChange: handleOrderFilter,
+                    counts: orderCounts,
+                    searchQuery: orderSearch,
+                    onSearchChange: handleOrderSearch,
+                    searchPlaceholder: content.auth.orderSearchPlaceholder,
+                  }}
+                />
               ) : null}
               {activeSection === 'gifts' ? (
                 <AccountEmpty icon={<Gift size={34} weight="thin" />} title={content.auth.giftsTitle} description={content.auth.giftsDescription} />
@@ -847,6 +1013,362 @@ function AccountProfileDropdown({
       ) : null}
     </div>
   )
+}
+
+function AccountSessionSkeleton({ label }: { label: string }) {
+  return (
+    <main className="account-page account-page--skeleton" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">{label}</span>
+      <div className="account-shell" aria-hidden="true">
+        <div className="account-layout account-session-skeleton">
+          <aside className="account-sidebar account-session-skeleton__sidebar">
+            <div className="account-sidebar__identity account-session-skeleton__identity">
+              <div className="account-session-skeleton__avatar">
+                <KhungXuong />
+              </div>
+              <div className="account-session-skeleton__identity-copy">
+                <KhungXuong className="account-session-skeleton__identity-name" />
+                <KhungXuong className="account-session-skeleton__identity-meta" />
+              </div>
+            </div>
+
+            <div className="account-sidebar__nav account-session-skeleton__nav">
+              {Array.from({ length: 5 }, (_, index) => (
+                <div className="account-session-skeleton__nav-item" key={index}>
+                  <KhungXuong className="account-session-skeleton__nav-icon" />
+                  <KhungXuong className="account-session-skeleton__nav-copy" />
+                </div>
+              ))}
+            </div>
+
+            <div className="account-sign-out account-session-skeleton__sign-out">
+              <KhungXuong className="account-session-skeleton__sign-out-icon" />
+              <KhungXuong className="account-session-skeleton__sign-out-copy" />
+            </div>
+          </aside>
+
+          <section className="account-panel">
+            <div className="account-panel__content">
+              <header className="account-panel__header account-session-skeleton__header">
+                <KhungXuong className="account-session-skeleton__title" />
+              </header>
+
+              <div className="account-metrics account-session-skeleton__metrics">
+                {Array.from({ length: 3 }, (_, index) => (
+                  <article key={index}>
+                    <KhungXuong className="account-session-skeleton__metric-icon" />
+                    <div className="account-session-skeleton__metric-copy">
+                      <KhungXuong className="account-session-skeleton__metric-label" />
+                      <KhungXuong className="account-session-skeleton__metric-value" />
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              <section className="account-orders account-orders--compact account-session-skeleton__orders">
+                <header className="account-orders__header">
+                  <KhungXuong className="account-session-skeleton__orders-title" />
+                  <KhungXuong className="account-session-skeleton__orders-count" />
+                </header>
+                <div className="account-orders__list account-orders__list--loading">
+                  {Array.from({ length: 2 }, (_, index) => (
+                    <div className="account-order account-order--skeleton" key={index}>
+                      <KhungXuong className="account-order__skeleton account-order__skeleton--title" />
+                      <KhungXuong className="account-order__skeleton account-order__skeleton--line" />
+                      <KhungXuong className="account-order__skeleton account-order__skeleton--line account-order__skeleton--short" />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  )
+}
+
+type AccountOrderCopy = Pick<
+  SiteContent['auth'],
+  | 'ordersLoading'
+  | 'ordersLoadError'
+  | 'ordersRetry'
+  | 'orderCode'
+  | 'orderDate'
+  | 'orderItems'
+  | 'orderTotal'
+  | 'orderPayment'
+  | 'orderDelivery'
+  | 'orderFilterLabel'
+  | 'orderFilterAll'
+  | 'orderFilterPendingConfirmation'
+  | 'orderFilterAwaitingPickup'
+  | 'orderFilterAwaitingDelivery'
+  | 'orderFilterDelivered'
+  | 'orderFilterReturned'
+  | 'orderFilterCancelled'
+  | 'orderSearchPlaceholder'
+  | 'orderFilterEmpty'
+>
+
+type AccountOrderFilterControl = {
+  value: AccountOrderFilter
+  onChange: (nextFilter: AccountOrderFilter) => void
+  counts: Record<AccountOrderFilter, number>
+  searchQuery: string
+  onSearchChange: (nextSearch: string) => void
+  searchPlaceholder: string
+}
+
+function AccountOrdersState({
+  title,
+  emptyDescription,
+  orders,
+  isLoading,
+  hasError,
+  language,
+  copy,
+  onRetry,
+  emptyAction,
+  compact = false,
+  filter,
+}: {
+  title: string
+  emptyDescription: string
+  orders: AdminOrder[]
+  isLoading: boolean
+  hasError: boolean
+  language: AppLanguage
+  copy: AccountOrderCopy
+  onRetry: () => void
+  emptyAction?: ReactNode
+  compact?: boolean
+  filter?: AccountOrderFilterControl
+}) {
+  const Heading = compact ? 'h2' : 'h1'
+  const stateClassName = compact
+    ? 'account-empty-state'
+    : 'account-empty-state account-empty-state--full account-empty-state--orders'
+
+  if (isLoading) {
+    return <AccountOrdersLoading title={title} label={copy.ordersLoading} compact={compact} />
+  }
+
+  if (hasError) {
+    return (
+      <section className={stateClassName} aria-live="polite">
+        <Heading>{title}</Heading>
+        <div className="account-empty-state__content">
+          <span className="account-empty-state__icon" aria-hidden="true"><Package size={30} weight="thin" /></span>
+          <p role="alert">{copy.ordersLoadError}</p>
+          <button className="button button--gold" type="button" onClick={onRetry}>{copy.ordersRetry}</button>
+        </div>
+      </section>
+    )
+  }
+
+  if (!orders.length && !filter) {
+    return (
+      <section className={stateClassName}>
+        <Heading>{title}</Heading>
+        <div className="account-empty-state__content">
+          <span className="account-empty-state__icon" aria-hidden="true"><Package size={compact ? 26 : 34} weight="thin" /></span>
+          <p>{emptyDescription}</p>
+          {emptyAction}
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <AccountOrderList
+      title={title}
+      orders={orders}
+      language={language}
+      copy={copy}
+      compact={compact}
+      filter={filter}
+      emptyDescription={filter ? copy.orderFilterEmpty : undefined}
+    />
+  )
+}
+
+function AccountOrdersLoading({ title, label, compact }: { title: string; label: string; compact: boolean }) {
+  const Heading = compact ? 'h2' : 'h1'
+
+  return (
+    <section
+      className={compact ? 'account-orders account-orders--compact' : 'account-orders account-orders--full'}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <header className="account-orders__header">
+        <Heading>{title}</Heading>
+      </header>
+      <div className="account-orders__list account-orders__list--loading">
+        <div className="account-order account-order--skeleton" aria-hidden="true">
+          <KhungXuong className="account-order__skeleton account-order__skeleton--title" />
+          <KhungXuong className="account-order__skeleton account-order__skeleton--line" />
+          <KhungXuong className="account-order__skeleton account-order__skeleton--line account-order__skeleton--short" />
+        </div>
+        <div className="account-order account-order--skeleton" aria-hidden="true">
+          <KhungXuong className="account-order__skeleton account-order__skeleton--title" />
+          <KhungXuong className="account-order__skeleton account-order__skeleton--line" />
+        </div>
+      </div>
+      <span className="sr-only">{label}</span>
+    </section>
+  )
+}
+
+function AccountOrderList({
+  title,
+  orders,
+  language,
+  copy,
+  compact,
+  filter,
+  emptyDescription,
+}: {
+  title: string
+  orders: AdminOrder[]
+  language: AppLanguage
+  copy: AccountOrderCopy
+  compact: boolean
+  filter?: AccountOrderFilterControl
+  emptyDescription?: string
+}) {
+  const Heading = compact ? 'h2' : 'h1'
+
+  return (
+    <section className={compact ? 'account-orders account-orders--compact' : 'account-orders account-orders--full'}>
+      <header className={filter ? 'account-orders__header account-orders__header--filters' : 'account-orders__header'}>
+        {filter ? (
+          <>
+            <Heading className="sr-only">{title}</Heading>
+            <AccountOrderFilterTags filter={filter} copy={copy} />
+          </>
+        ) : (
+          <>
+            <Heading>{title}</Heading>
+            <span className="account-orders__count" aria-label={`${orders.length}`}>{orders.length}</span>
+          </>
+        )}
+      </header>
+      <div className="account-orders__list">
+        {orders.length ? (
+          orders.map((order) => <AccountOrderCard key={order.id} order={order} language={language} copy={copy} />)
+        ) : (
+          <p className="account-orders__filter-empty" role="status">{emptyDescription}</p>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function AccountOrderFilterTags({ filter, copy }: { filter: AccountOrderFilterControl; copy: AccountOrderCopy }) {
+  const options: Array<{ value: AccountOrderFilter; label: string }> = [
+    { value: 'all', label: copy.orderFilterAll },
+    { value: 'pending-confirmation', label: copy.orderFilterPendingConfirmation },
+    { value: 'awaiting-pickup', label: copy.orderFilterAwaitingPickup },
+    { value: 'awaiting-delivery', label: copy.orderFilterAwaitingDelivery },
+    { value: 'delivered', label: copy.orderFilterDelivered },
+    { value: 'returned', label: copy.orderFilterReturned },
+    { value: 'cancelled', label: copy.orderFilterCancelled },
+  ]
+
+  return (
+    <div className="account-order-filters" role="group" aria-label={copy.orderFilterLabel}>
+      {options.map((option) => {
+        const count = filter.counts[option.value]
+        const label = count > 0 ? `${option.label} (${count})` : option.label
+
+        return (
+          <button
+            key={option.value}
+            className={filter.value === option.value ? 'account-order-filter account-order-filter--active' : 'account-order-filter'}
+            type="button"
+            aria-label={label}
+            aria-pressed={filter.value === option.value}
+            onClick={() => filter.onChange(option.value)}
+          >
+            {option.label}
+            {count > 0 ? <span className="account-order-filter__count" aria-hidden="true">{count}</span> : null}
+          </button>
+        )
+      })}
+      <label className="account-order-search">
+        <MagnifyingGlass size={16} weight="bold" aria-hidden="true" />
+        <input
+          type="search"
+          value={filter.searchQuery}
+          autoComplete="off"
+          placeholder={filter.searchPlaceholder}
+          aria-label={filter.searchPlaceholder}
+          onChange={(event) => filter.onSearchChange(event.target.value)}
+        />
+      </label>
+    </div>
+  )
+}
+
+function AccountOrderCard({ order, language, copy }: { order: AdminOrder; language: AppLanguage; copy: AccountOrderCopy }) {
+  const statusTone = getOrderStatusTone(order.status)
+  const itemCount = order.items.reduce((total, item) => total + item.quantity, 0)
+  const visibleItems = order.items.slice(0, 3)
+  const remainingItemCount = Math.max(0, order.items.length - visibleItems.length)
+
+  return (
+    <article className="account-order">
+      <header className="account-order__header">
+        <div>
+          <span>{copy.orderCode}</span>
+          <strong>{order.id}</strong>
+          <time dateTime={order.createdAt}>{copy.orderDate}: {formatAccountOrderDate(order.createdAt, language)}</time>
+        </div>
+        <span className={`account-order__status account-order__status--${statusTone}`}>{order.status}</span>
+      </header>
+      <dl className="account-order__facts">
+        <div>
+          <dt>{copy.orderPayment}</dt>
+          <dd>{order.paymentMethod} · {order.paymentStatus}</dd>
+        </div>
+        <div>
+          <dt>{copy.orderTotal}</dt>
+          <dd>{formatCurrency(order.total, language)}</dd>
+        </div>
+      </dl>
+      <div className="account-order__items">
+        <span>{copy.orderItems} ({itemCount})</span>
+        <ul>
+          {visibleItems.map((item) => (
+            <li key={`${item.productId}-${item.sku}`}><span>{item.name}</span><b>×{item.quantity}</b></li>
+          ))}
+          {remainingItemCount ? <li className="account-order__more-items">+{remainingItemCount}</li> : null}
+        </ul>
+      </div>
+      <p className="account-order__address"><span>{copy.orderDelivery}</span>{order.address}</p>
+    </article>
+  )
+}
+
+function getOrderStatusTone(status: AdminOrder['status']) {
+  if (status === 'Hoàn thành') return 'complete'
+  if (status === 'Đã hủy' || status === 'Thanh toán thất bại' || status === 'Đã trả hàng') return 'problem'
+  if (status === 'Chờ thanh toán' || status === 'Chờ xác nhận') return 'pending'
+  return 'progress'
+}
+
+function formatAccountOrderDate(value: string, language: AppLanguage) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+
+  return date.toLocaleDateString(language === 'en' ? 'en-GB' : 'vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
 }
 
 function AccountEmpty({ icon, title, description, className = '' }: { icon: ReactNode; title: string; description: string; className?: string }) {

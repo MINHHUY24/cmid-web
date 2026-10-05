@@ -325,6 +325,7 @@ export interface SiteContent {
     loginDescription: string;
     googleButton: string;
     signingIn: string;
+    restoringSession: string;
     googleHelp: string;
     googleSignInNotice: string;
     checkoutTitle: string;
@@ -335,7 +336,6 @@ export interface SiteContent {
     overview: string;
     userInformation: string;
     orders: string;
-    purchaseHistory: string;
     gifts: string;
     welcome: (name: string) => string;
     accountWelcomeDescription: string;
@@ -345,6 +345,25 @@ export interface SiteContent {
     loyaltyPoints: string;
     recentOrderTitle: string;
     noOrders: string;
+    ordersLoading: string;
+    ordersLoadError: string;
+    ordersRetry: string;
+    orderCode: string;
+    orderDate: string;
+    orderItems: string;
+    orderTotal: string;
+    orderPayment: string;
+    orderDelivery: string;
+    orderFilterLabel: string;
+    orderFilterAll: string;
+    orderFilterPendingConfirmation: string;
+    orderFilterAwaitingPickup: string;
+    orderFilterAwaitingDelivery: string;
+    orderFilterDelivered: string;
+    orderFilterReturned: string;
+    orderFilterCancelled: string;
+    orderSearchPlaceholder: string;
+    orderFilterEmpty: string;
     informationTitle: string;
     informationDescription: string;
     accountEmail: string;
@@ -376,8 +395,6 @@ export interface SiteContent {
     saveChanges: string;
     cancelChanges: string;
     ordersTitle: string;
-    historyTitle: string;
-    historyDescription: string;
     giftsTitle: string;
     giftsDescription: string;
   };
@@ -933,6 +950,7 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       loginDescription: 'Đăng nhập bằng tài khoản Google để theo dõi đơn hàng, ưu đãi và các dịch vụ riêng của bạn.',
       googleButton: 'Tiếp tục với Google',
       signingIn: 'Đang đăng nhập…',
+      restoringSession: 'Đang khôi phục phiên đăng nhập…',
       googleHelp: 'Vui lòng chọn tài khoản Google trong cửa sổ bảo mật của Google.',
       googleSignInNotice: 'Google sẽ mở cửa sổ bảo mật để bạn chọn tài khoản.',
       checkoutTitle: 'Vui lòng đăng nhập để thanh toán',
@@ -943,7 +961,6 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       overview: 'Tổng quan',
       userInformation: 'Thông tin người dùng',
       orders: 'Đơn hàng',
-      purchaseHistory: 'Lịch sử mua hàng',
       gifts: 'Quà tặng',
       welcome: (name) => `Xin chào, ${name}`,
       accountWelcomeDescription: 'Cảm ơn bạn đã đồng hành cùng CMID. Những ưu đãi và đơn hàng của bạn sẽ được cập nhật tại đây.',
@@ -953,6 +970,25 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       loyaltyPoints: 'Điểm tích lũy',
       recentOrderTitle: 'Đơn hàng gần đây',
       noOrders: 'Bạn chưa có đơn hàng nào. Hãy bắt đầu khám phá các sản phẩm của CMID.',
+      ordersLoading: 'Đang tải đơn hàng...',
+      ordersLoadError: 'Không thể tải đơn hàng lúc này. Vui lòng thử lại sau.',
+      ordersRetry: 'Tải lại đơn hàng',
+      orderCode: 'Mã đơn',
+      orderDate: 'Ngày đặt',
+      orderItems: 'Sản phẩm',
+      orderTotal: 'Tổng thanh toán',
+      orderPayment: 'Thanh toán',
+      orderDelivery: 'Giao đến',
+      orderFilterLabel: 'Lọc đơn hàng theo trạng thái',
+      orderFilterAll: 'Tất cả',
+      orderFilterPendingConfirmation: 'Chờ xác nhận',
+      orderFilterAwaitingPickup: 'Chờ lấy hàng',
+      orderFilterAwaitingDelivery: 'Chờ giao hàng',
+      orderFilterDelivered: 'Đã giao',
+      orderFilterReturned: 'Trả hàng',
+      orderFilterCancelled: 'Đã hủy',
+      orderSearchPlaceholder: 'Tìm sản phẩm',
+      orderFilterEmpty: 'Bạn chưa có đơn hàng nào cả.',
       informationTitle: 'Thông tin người dùng',
       informationDescription: 'Quản lý thông tin cá nhân và thông tin liên hệ của bạn.',
       accountEmail: 'Email tài khoản',
@@ -984,8 +1020,6 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       saveChanges: 'Lưu thay đổi',
       cancelChanges: 'Hủy bỏ',
       ordersTitle: 'Đơn hàng của tôi',
-      historyTitle: 'Lịch sử mua hàng',
-      historyDescription: 'Những sản phẩm và đơn hàng đã hoàn thành sẽ xuất hiện tại đây.',
       giftsTitle: 'Quà tặng thành viên',
       giftsDescription: 'Ưu đãi và quà tặng theo hạng thành viên sẽ được cập nhật tại đây.',
     },
@@ -1621,6 +1655,7 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       loginDescription: 'Sign in with Google to track your orders, rewards and personalised CMID services.',
       googleButton: 'Continue with Google',
       signingIn: 'Signing in…',
+      restoringSession: 'Restoring your signed-in session…',
       googleHelp: 'Choose your Google account in the secure Google window.',
       googleSignInNotice: 'Google will open a secure window so you can choose your account.',
       checkoutTitle: 'Please sign in to check out',
@@ -1631,7 +1666,6 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       overview: 'Overview',
       userInformation: 'User information',
       orders: 'Orders',
-      purchaseHistory: 'Purchase history',
       gifts: 'Gifts',
       welcome: (name) => `Hello, ${name}`,
       accountWelcomeDescription: 'Thank you for being part of CMID. Your offers and orders will appear here.',
@@ -1641,6 +1675,25 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       loyaltyPoints: 'Loyalty points',
       recentOrderTitle: 'Recent orders',
       noOrders: 'You do not have any orders yet. Start exploring CMID products.',
+      ordersLoading: 'Loading orders...',
+      ordersLoadError: 'We could not load your orders right now. Please try again later.',
+      ordersRetry: 'Reload orders',
+      orderCode: 'Order code',
+      orderDate: 'Ordered on',
+      orderItems: 'Items',
+      orderTotal: 'Order total',
+      orderPayment: 'Payment',
+      orderDelivery: 'Delivery address',
+      orderFilterLabel: 'Filter orders by status',
+      orderFilterAll: 'All',
+      orderFilterPendingConfirmation: 'Awaiting confirmation',
+      orderFilterAwaitingPickup: 'Awaiting pickup',
+      orderFilterAwaitingDelivery: 'Awaiting delivery',
+      orderFilterDelivered: 'Delivered',
+      orderFilterReturned: 'Returned',
+      orderFilterCancelled: 'Cancelled',
+      orderSearchPlaceholder: 'Search products',
+      orderFilterEmpty: 'You do not have any orders yet.',
       informationTitle: 'User information',
       informationDescription: 'Manage your personal details and contact information.',
       accountEmail: 'Account email',
@@ -1672,8 +1725,6 @@ export const siteContent: Record<AppLanguage, SiteContent> = {
       saveChanges: 'Save changes',
       cancelChanges: 'Cancel',
       ordersTitle: 'My orders',
-      historyTitle: 'Purchase history',
-      historyDescription: 'Your completed products and orders will appear here.',
       giftsTitle: 'Member gifts',
       giftsDescription: 'Member-tier offers and gifts will be updated here.',
     },

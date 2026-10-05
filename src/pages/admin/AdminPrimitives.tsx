@@ -14,6 +14,7 @@ import { createPortal } from 'react-dom'
 import { KhungXuong } from '../../components/common/KhungXuong'
 import { AdminImageUpload } from './AdminImageUpload'
 import { createAdminId } from './admin-database'
+import { getLocalizedAdminError } from './admin-error-message'
 import { useAdminCopy } from './admin-language-context'
 
 export function AdminPageHeading({
@@ -151,6 +152,7 @@ interface AdminSelectProps {
   name?: string
   required?: boolean
   disabled?: boolean
+  showAllOptions?: boolean
   className?: string
   'aria-label'?: string
 }
@@ -163,6 +165,7 @@ export function AdminSelect({
   name,
   required = false,
   disabled = false,
+  showAllOptions = false,
   className = '',
   'aria-label': ariaLabel,
 }: AdminSelectProps) {
@@ -185,7 +188,7 @@ export function AdminSelect({
     if (!trigger) return
     const rect = trigger.getBoundingClientRect()
     const minimumWidth = Math.max(rect.width, 180)
-    const estimatedMenuHeight = Math.min(options.length * 40 + 10, 260)
+    const estimatedMenuHeight = Math.min(options.length * 45 + 20, showAllOptions ? 480 : 260)
     const opensAbove = window.innerHeight - rect.bottom < estimatedMenuHeight + 12 && rect.top > estimatedMenuHeight + 12
     setMenuPosition({
       left: Math.max(8, Math.min(rect.left, window.innerWidth - minimumWidth - 8)),
@@ -275,7 +278,7 @@ export function AdminSelect({
       </button>
       {isOpen && typeof document !== 'undefined' && menuPosition ? createPortal(
         <div
-          className={`admin-select__menu${hasStatusOptions ? ' admin-select__menu--status' : ''}${menuPosition.opensAbove ? ' admin-select__menu--above' : ''}`}
+          className={`admin-select__menu${hasStatusOptions ? ' admin-select__menu--status' : ''}${showAllOptions ? ' admin-select__menu--show-all' : ''}${menuPosition.opensAbove ? ' admin-select__menu--above' : ''}`}
           id={menuId}
           ref={menuRef}
           role="listbox"
@@ -332,7 +335,12 @@ export interface AdminFieldConfig {
   requiredOnCreate?: boolean
   placeholder?: string
   suffix?: string
-  action?: { label: string; onClick: () => void }
+  /**
+   * An optional inline action for a field. The callback receives a setter for
+   * that field so a child workflow (for example, creating a role) can return
+   * its newly-created value without closing or resetting the editor.
+   */
+  action?: { label: string; onClick: (setFieldValue: (value: string) => void) => void }
   permissionGroups?: AdminPermissionGroup[]
   options?: Array<{ value: string; label: string }>
   helper?: string
@@ -391,7 +399,7 @@ export function AdminCollectionManager({
   readOnly = false,
   tableClassName = '',
 }: AdminCollectionManagerProps) {
-  const { t } = useAdminCopy()
+  const { t, language } = useAdminCopy()
   const [search, setSearch] = useState('')
   const [editing, setEditing] = useState<AdminEditableRecord | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -399,6 +407,7 @@ export function AdminCollectionManager({
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [editorError, setEditorError] = useState<string | null>(null)
+  const [fieldOverrides, setFieldOverrides] = useState<Record<string, string>>({})
   const [inlineStatusError, setInlineStatusError] = useState<string | null>(null)
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
 
@@ -430,7 +439,15 @@ export function AdminCollectionManager({
   function openEditor(record?: AdminEditableRecord) {
     setEditing(record ?? null)
     setEditorError(null)
+    setFieldOverrides({})
     setDialogOpen(true)
+  }
+
+  function closeEditor() {
+    setDialogOpen(false)
+    setEditing(null)
+    setEditorError(null)
+    setFieldOverrides({})
   }
 
   function requestDelete(record: AdminEditableRecord) {
@@ -447,7 +464,7 @@ export function AdminCollectionManager({
       await onDelete(deleting.id)
       setDeleting(null)
     } catch (error) {
-      setDeleteError(error instanceof Error ? error.message : 'Không thể xóa dữ liệu.')
+      setDeleteError(getLocalizedAdminError(error, language, t('Không thể xóa dữ liệu.')))
     } finally {
       setIsDeleting(false)
     }
@@ -461,7 +478,7 @@ export function AdminCollectionManager({
     try {
       await onSave({ ...record, status })
     } catch (error) {
-      setInlineStatusError(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái.')
+      setInlineStatusError(getLocalizedAdminError(error, language, t('Không thể cập nhật trạng thái.')))
     } finally {
       setUpdatingStatusId(null)
     }
@@ -498,10 +515,9 @@ export function AdminCollectionManager({
 
     try {
       await onSave(next)
-      setDialogOpen(false)
-      setEditing(null)
+      closeEditor()
     } catch (error) {
-      setEditorError(error instanceof Error ? error.message : 'Không thể lưu dữ liệu.')
+      setEditorError(getLocalizedAdminError(error, language, t('Không thể lưu dữ liệu.')))
     }
   }
 
@@ -573,11 +589,11 @@ export function AdminCollectionManager({
       </AdminPanel>
 
       {dialogOpen ? (
-        <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => setDialogOpen(false)}>
+        <div className="admin-dialog-backdrop" role="presentation" onMouseDown={closeEditor}>
           <section className="admin-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-editor-title" onMouseDown={(event) => event.stopPropagation()}>
             <header>
               <div><h2 id="admin-editor-title">{editing ? `${t('Cập nhật')} ${t(singularLabel)}` : `${t('Thêm')} ${t(singularLabel)}`}</h2><p>{t('Dữ liệu được lưu ngay sau khi xác nhận.')}</p></div>
-              <button type="button" onClick={() => setDialogOpen(false)} aria-label={t('Đóng')}><X size={19} /></button>
+              <button type="button" onClick={closeEditor} aria-label={t('Đóng')}><X size={19} /></button>
             </header>
             <form onSubmit={submit}>
               <div className="admin-dialog__body">
@@ -635,6 +651,8 @@ export function AdminCollectionManager({
                         <AdminSelect
                           key={`${field.key}-${String(initialValue ?? field.options?.[0]?.value ?? '')}`}
                           name={field.key}
+                          value={fieldOverrides[field.key]}
+                          onChange={(value) => setFieldOverrides((current) => ({ ...current, [field.key]: value }))}
                           defaultValue={String(initialValue ?? field.options?.[0]?.value ?? '')}
                           options={field.options ?? []}
                           required={field.required || (field.requiredOnCreate && !editing)}
@@ -652,12 +670,12 @@ export function AdminCollectionManager({
                         )
                       )}
                       {field.helper ? <small>{field.helper}</small> : null}
-                      {field.action ? <button className="admin-field__action" type="button" onClick={field.action.onClick}><Plus size={15} weight="bold" /> {field.action.label}</button> : null}
+                      {field.action ? <button className="admin-field__action" type="button" onClick={() => field.action?.onClick((value) => setFieldOverrides((current) => ({ ...current, [field.key]: value })))}><Plus size={15} weight="bold" /> {field.action.label}</button> : null}
                     </label>
                   )
                 })}
               </div>
-              <footer><button className="admin-button" type="button" onClick={() => setDialogOpen(false)}>{t('Hủy')}</button><button className="admin-button admin-button--primary" type="submit">{t('Lưu thay đổi')}</button></footer>
+              <footer><button className="admin-button" type="button" onClick={closeEditor}>{t('Hủy')}</button><button className="admin-button admin-button--primary" type="submit">{t('Lưu thay đổi')}</button></footer>
             </form>
           </section>
         </div>

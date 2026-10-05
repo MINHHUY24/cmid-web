@@ -1,4 +1,4 @@
-import { getAccessToken, type AuthTokenScope } from './auth-token'
+import { getAccessToken, refreshAccessToken, type AuthTokenScope } from './auth-token'
 
 const apiUrl = import.meta.env.VITE_API_URL
 
@@ -53,17 +53,38 @@ export async function apiFetch<T>(path: string, options?: ApiFetchOptions): Prom
 
   const { skipAuth = false, authScope = 'customer', ...requestOptions } = options ?? {}
   const accessToken = skipAuth ? null : getAccessToken(authScope)
+  const requestUrl = getApiUrl(path)
 
-  try {
-    response = await fetch(getApiUrl(path), {
+  const sendRequest = async (token: string | null) => {
+    // Keep a plain object for fetch so existing callers/tests can inspect the
+    // request headers, while still respecting explicitly supplied auth headers.
+    const providedHeaders = toHeaderRecord(requestOptions.headers)
+    const headerNames = new Set(Object.keys(providedHeaders).map((name) => name.toLocaleLowerCase('en-US')))
+    const headers = {
+      ...(headerNames.has('accept') ? {} : { Accept: 'application/json' }),
+      ...(token && !headerNames.has('authorization') ? { Authorization: 'Bearer ' + token } : {}),
+      ...providedHeaders,
+    }
+
+    return fetch(requestUrl, {
       ...requestOptions,
       credentials: requestOptions.credentials ?? 'include',
-      headers: {
-        Accept: 'application/json',
-        ...(accessToken ? { Authorization: 'Bearer ' + accessToken } : {}),
-        ...requestOptions.headers,
-      },
+      headers,
     })
+  }
+
+  try {
+    response = await sendRequest(accessToken)
+
+    // Access tokens are intentionally memory-only and short-lived. Refresh
+    // once through the HttpOnly cookie, then retry the original request with
+    // the new token so a tab left open for over 15 minutes stays usable.
+    if (response.status === 401 && !skipAuth && accessToken) {
+      const refreshedAccessToken = await refreshAccessToken(authScope).catch(() => null)
+      if (refreshedAccessToken) {
+        response = await sendRequest(refreshedAccessToken)
+      }
+    }
   } catch {
     throw new ApiError('Không thể kết nối đến máy chủ API.')
   }
@@ -91,4 +112,11 @@ export async function apiFetch<T>(path: string, options?: ApiFetchOptions): Prom
   }
 
   return (await response.json()) as T
+}
+
+function toHeaderRecord(headers: HeadersInit | undefined): Record<string, string> {
+  if (!headers) return {}
+  if (Array.isArray(headers)) return Object.fromEntries(headers)
+  if (headers instanceof Headers) return Object.fromEntries(headers.entries())
+  return { ...headers }
 }

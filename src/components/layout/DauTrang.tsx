@@ -24,7 +24,7 @@ export function SiteHeader() {
   const { colorTheme, toggleColorTheme } = useColorTheme()
   const { itemCount } = useCart()
   const { content, language, setLanguage } = useLanguage()
-  const { user } = useUser()
+  const { user, isAuthLoading } = useUser()
   const mainNavigation = [
     { label: content.header.home, to: '/' },
     { label: content.header.products, to: '/products' },
@@ -125,12 +125,19 @@ export function SiteHeader() {
 
             <span className="topbar__divider" aria-hidden="true" />
             <NavLink
-              to={user ? '/tai-khoan' : '/dang-nhap'}
-              className="topbar__account-link"
-              aria-label={user ? content.auth.account : content.auth.signIn}
+              to={user || isAuthLoading ? '/tai-khoan' : '/dang-nhap'}
+              className={isAuthLoading ? 'topbar__account-link topbar__account-link--loading' : 'topbar__account-link'}
+              aria-label={user || isAuthLoading ? content.auth.account : content.auth.signIn}
+              aria-busy={isAuthLoading || undefined}
             >
-              <UserCircle size={17} weight="regular" aria-hidden="true" />
-              <span>{user ? user.name : content.auth.signIn}</span>
+              {isAuthLoading ? (
+                <span className="topbar__account-loader" aria-hidden="true" />
+              ) : (
+                <>
+                  <UserCircle size={17} weight="regular" aria-hidden="true" />
+                  <span>{user ? user.name : content.auth.signIn}</span>
+                </>
+              )}
             </NavLink>
 
             <span className="topbar__divider" aria-hidden="true" />

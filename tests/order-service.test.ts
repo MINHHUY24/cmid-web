@@ -113,6 +113,49 @@ describe('order service', () => {
     })
   })
 
+  it('loads only the signed-in customer\'s orders from the customer endpoint', async () => {
+    const { service, fetchMock } = await setup([serverOrder])
+    const { setAccessToken } = await import('../src/services/auth-token')
+    setAccessToken('customer-access-token')
+
+    await expect(service.getCustomerOrders()).resolves.toEqual([
+      expect.objectContaining({
+        id: 'CMID-1001',
+        status: 'Hoàn thành',
+        total: 1_100_000,
+      }),
+    ])
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example/api/orders/me',
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: 'Bearer customer-access-token' }),
+      }),
+    )
+  })
+
+  it('creates a normal checkout order with the signed-in customer token', async () => {
+    const { service, fetchMock } = await setup(serverOrder)
+    const { setAccessToken } = await import('../src/services/auth-token')
+    setAccessToken('customer-access-token')
+
+    await service.createCheckoutOrder({
+      customerName: 'Nguyễn Văn A',
+      customerEmail: 'a@example.com',
+      customerPhone: '0909000000',
+      address: 'TP. Hồ Chí Minh',
+      paymentMethod: 'COD',
+      items: [{ productId: 7, quantity: 1 }],
+    })
+
+    const request = fetchMock.mock.calls[0]?.[1] as RequestInit
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://api.example/api/orders')
+    expect(request.headers).toEqual(expect.objectContaining({
+      Authorization: 'Bearer customer-access-token',
+      'Content-Type': 'application/json',
+    }))
+  })
+
   it('sends only the allowed backend enum when updating order status', async () => {
     const { service, fetchMock } = await setup(serverOrder)
 

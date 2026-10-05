@@ -75,26 +75,7 @@ html[data-theme] .app-shell--site.app-shell--hero .tin-tuc__hero-overlay {
   background: transparent;
   box-shadow: none;
   backdrop-filter: none;
-}
-
-.app-shell--site .tin-tuc__hero-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 0 0 20px;
-  color: var(--cmid-palette-e2ae55);
-  font-size: 0.77rem;
-  font-weight: 700;
-  letter-spacing: 0.19em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.app-shell--site .tin-tuc__hero-eyebrow::after {
-  width: 54px;
-  height: 1px;
-  content: '';
-  background: currentcolor;
+  transform: translateY(-44px);
 }
 
 .app-shell--site.app-shell--hero .tin-tuc__hero-content h1,
@@ -654,6 +635,10 @@ html[data-theme='light'] .app-shell--site .tin-tuc__pagination button.is-active 
 }
 
 @media (max-width: 760px) {
+  .app-shell--site.app-shell--hero .tin-tuc__hero-editorial {
+    transform: translateY(-24px);
+  }
+
   .app-shell--site .tin-tuc__khung {
     width: min(100% - 32px, 1240px);
   }

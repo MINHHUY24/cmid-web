@@ -45,6 +45,8 @@ const orderStatuses: AdminOrder['status'][] = [
   'Đã trả hàng',
 ]
 
+const orderStatusOptions = orderStatuses.map((status) => ({ value: status, label: status }))
+
 const paymentStatuses: AdminOrder['paymentStatus'][] = [
   'Chưa thanh toán',
   'Thanh toán thất bại',
@@ -52,19 +54,6 @@ const paymentStatuses: AdminOrder['paymentStatus'][] = [
   'Hoàn tiền một phần',
   'Đã hoàn tiền',
 ]
-
-const allowedOrderTransitions: Record<AdminOrder['status'], AdminOrder['status'][]> = {
-  'Chờ thanh toán': ['Đã hủy'],
-  'Thanh toán thất bại': ['Đã hủy'],
-  'Chờ xác nhận': ['Đang xử lý', 'Đã hủy'],
-  'Đang xử lý': ['Chờ lấy hàng', 'Đã hủy'],
-  'Chờ lấy hàng': ['Chờ giao hàng', 'Đã hủy'],
-  'Chờ giao hàng': ['Đang giao', 'Đã hủy'],
-  'Đang giao': ['Hoàn thành', 'Đã trả hàng'],
-  'Hoàn thành': ['Đã trả hàng'],
-  'Đã hủy': [],
-  'Đã trả hàng': [],
-}
 
 const allowedRefundTransitions: Record<AdminOrder['refunds'][number]['status'], AdminOrder['refunds'][number]['status'][]> = {
   'Chờ duyệt': ['Đã duyệt', 'Từ chối'],
@@ -847,7 +836,7 @@ export function AdminOrdersView({
                     <td className="admin-table__price">{formatCurrency(order.total)}</td>
                     <td className="admin-table__cell--center"><AdminStatus>{order.paymentStatus}</AdminStatus></td>
                     <td className="admin-table__cell--center">
-                      <AdminSelect className="admin-inline-select admin-order-status-select" value={order.status} onChange={(value) => void updateStatus(order.id, value as AdminOrder['status'])} aria-label={`Trạng thái đơn ${order.id}`} options={getOrderStatusOptions(order.status)} />
+                      <AdminSelect className="admin-inline-select admin-order-status-select" value={order.status} onChange={(value) => void updateStatus(order.id, value as AdminOrder['status'])} aria-label={`Trạng thái đơn ${order.id}`} options={orderStatusOptions} showAllOptions />
                     </td>
                     <td className="admin-table__cell--actions"><button className="admin-row-action" type="button" onClick={() => setSelectedOrder(order)} aria-label={`Xem đơn ${order.id}`}><Eye size={18} /></button></td>
                   </tr>
@@ -985,7 +974,12 @@ export function AdminReportsView({ products, database, isLoading }: AdminReports
       <div className="admin-dashboard-grid admin-commerce-report-grid">
         <AdminPanel title="Sản phẩm trong đơn hàng" className="admin-table-panel">
           <div className="admin-table-wrap">
-            <table className="admin-table">
+            <table className="admin-table admin-table--order-products">
+              <colgroup>
+                <col className="admin-table--order-products__product" />
+                <col className="admin-table--order-products__quantity" />
+                <col className="admin-table--order-products__revenue" />
+              </colgroup>
               <thead><tr><th>Sản phẩm</th><th>Số lượng</th><th>Doanh số</th></tr></thead>
               <tbody>
                 {topProducts.slice(0, 6).map((item) => (
@@ -1406,15 +1400,11 @@ function OrderDetailDialog({
         <footer>
           {canMarkPaid ? <button className="admin-button admin-button--primary" type="button" disabled={isSaving} onClick={() => void markPaid()}>Xác nhận đã thanh toán</button> : null}
           <button className="admin-button" type="button" onClick={onClose}>Đóng</button>
-          <AdminSelect className="admin-inline-select admin-order-detail__status-select" value={order.status} disabled={isSaving || allowedOrderTransitions[order.status].length === 0} onChange={(value) => void onStatusChange(value as AdminOrder['status'])} aria-label="Cập nhật trạng thái đơn hàng" options={getOrderStatusOptions(order.status)} />
+          <AdminSelect className="admin-inline-select admin-order-detail__status-select" value={order.status} disabled={isSaving} onChange={(value) => void onStatusChange(value as AdminOrder['status'])} aria-label="Cập nhật trạng thái đơn hàng" options={orderStatusOptions} showAllOptions />
         </footer>
       </section>
     </div>
   )
-}
-
-function getOrderStatusOptions(status: AdminOrder['status']) {
-  return [status, ...allowedOrderTransitions[status]].map((value) => ({ value, label: value }))
 }
 
 function getProductImage(product: Product) {

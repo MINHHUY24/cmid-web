@@ -153,6 +153,18 @@ export async function getAdminOrders(useDemoAccess = false): Promise<AdminOrder[
   return orders.map(toAdminOrder)
 }
 
+/**
+ * Loads only the orders belonging to the currently authenticated customer.
+ *
+ * The API obtains the customer identity from the bearer token, rather than
+ * accepting an email address from the browser. This keeps the account page
+ * from ever being able to enumerate another customer's orders.
+ */
+export async function getCustomerOrders(): Promise<AdminOrder[]> {
+  const orders = await apiFetch<ServerOrder[]>('/orders/me')
+  return orders.map(toAdminOrder)
+}
+
 export async function updateAdminOrderStatus(
   orderId: string,
   status: AdminOrder['status'],
@@ -218,7 +230,6 @@ export async function createCheckoutOrder(input: CreateCheckoutOrderInput) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
-    skipAuth: true,
   })
   return toAdminOrder(order)
 }

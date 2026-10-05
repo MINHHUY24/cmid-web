@@ -78,7 +78,6 @@ export function TrangTinTucSuKienPage() {
   const heroTitle = language === 'vi'
     ? 'Cảm hứng kiến tạo không gian sống'
     : 'Ideas shaping thoughtful living'
-  const heroEyebrow = language === 'vi' ? 'Tin tức & sự kiện' : 'News & events'
   const exploreLabel = language === 'vi' ? 'Khám phá ngay' : 'Explore stories'
   const featuredLabel = language === 'vi' ? 'Bài viết nổi bật' : 'Featured story'
 
@@ -88,7 +87,6 @@ export function TrangTinTucSuKienPage() {
         <div className="tin-tuc__hero-overlay" />
         <div className="tin-tuc__hero-content">
           <div className="tin-tuc__hero-editorial">
-            <span className="tin-tuc__hero-eyebrow">{heroEyebrow}</span>
             <h1>{heroTitle}</h1>
             <p>{news.heroDescription}</p>
             <a className="button cmid-hero-action tin-tuc__hero-action" href="#danh-sach-bai-viet">

@@ -31,6 +31,7 @@ import { AdminLayout } from './AdminLayout'
 import { canAccessAdminView, getFirstAccessibleAdminView, hasPermission } from './admin-permissions'
 import { AdminLanguageProvider } from './admin-language'
 import { AdminOperationalView } from './AdminOperationalViews'
+import { AdminHelpdeskView } from './AdminHelpdeskView'
 import { AdminProductEditor } from './AdminProductEditor'
 import { AdminBangKhungXuong, AdminToast } from './AdminPrimitives'
 import { TrangDangNhapQuanTri } from './TrangDangNhapQuanTri'
@@ -518,8 +519,12 @@ function AuthenticatedAdmin({
           <AdminProjectsView key={`projects-${contentVersion}`} onToast={setToast} />
         ) : null}
 
+        {canAccessActiveView && activeView === 'helpdesk' ? (
+          <AdminHelpdeskView onToast={setToast} />
+        ) : null}
+
         {canAccessActiveView && operationalViews.has(activeView) ? (
-          <AdminOperationalView view={activeView} database={database} onToast={setToast} onNavigate={navigate} />
+          <AdminOperationalView view={activeView} database={database} onToast={setToast} />
         ) : null}
 
         {toast ? <AdminToast message={toast} onClose={() => setToast(null)} /> : null}

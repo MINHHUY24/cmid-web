@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { TrangThaiPhienDangNhap } from '../components/common/TrangThaiPhienDangNhap'
 import { useLanguage } from '../contexts/NgonNguContext'
 import { useUser } from '../contexts/NguoiDungContext'
 
@@ -9,11 +10,15 @@ interface LoginLocationState {
 
 export function TrangDangNhapPage() {
   const { content } = useLanguage()
-  const { user, isSigningIn, signInWithGoogle } = useUser()
+  const { user, isAuthLoading, isSigningIn, signInWithGoogle } = useUser()
   const location = useLocation()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const destination = (location.state as LoginLocationState | null)?.from ?? '/tai-khoan'
+
+  if (isAuthLoading) {
+    return <TrangThaiPhienDangNhap message={content.auth.restoringSession} variant="login" />
+  }
 
   if (user) {
     return <Navigate to={destination} replace />

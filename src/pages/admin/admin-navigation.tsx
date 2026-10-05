@@ -1,24 +1,29 @@
 import {
   ArrowsCounterClockwise,
-  Buildings,
   ChartBar,
-  ChatsCircle,
   ClockCounterClockwise,
-  Cube,
   GearSix,
   Gift,
+  Headset,
   ImageSquare,
   ListBullets,
   Newspaper,
   Package,
   ShieldCheck,
   ShoppingCartSimple,
-  Storefront,
   Tag,
   UserGear,
   UserList,
   UsersThree,
 } from '@phosphor-icons/react'
+import {
+  Factory,
+  FolderKanban,
+  LayoutDashboard,
+  Layers3,
+  MessageSquareQuote,
+  Store,
+} from 'lucide-react'
 import type { ReactNode } from 'react'
 
 export type AdminView =
@@ -42,6 +47,7 @@ export type AdminView =
   | 'reports'
   | 'settings'
   | 'users'
+  | 'helpdesk'
   | 'roles'
   | 'logs'
 
@@ -56,7 +62,7 @@ export const adminMenuGroups: Array<{ label: string; items: AdminNavItem[] }> = 
   {
     label: 'Tổng quan',
     items: [
-      { id: 'dashboard', label: 'Dashboard', icon: <ChartBar size={19} /> },
+      { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={19} /> },
       { id: 'reports', label: 'Báo cáo', icon: <ChartBar size={19} weight="duotone" /> },
     ],
   },
@@ -66,8 +72,8 @@ export const adminMenuGroups: Array<{ label: string; items: AdminNavItem[] }> = 
       { id: 'products', label: 'Sản phẩm', icon: <Package size={19} /> },
       { id: 'categories', label: 'Danh mục', icon: <ListBullets size={19} /> },
       { id: 'brands', label: 'Thương hiệu', icon: <Tag size={19} /> },
-      { id: 'materials', label: 'Vật liệu', icon: <Cube size={19} /> },
-      { id: 'suppliers', label: 'Nhà cung cấp', icon: <Storefront size={19} /> },
+      { id: 'materials', label: 'Vật liệu', icon: <Layers3 size={19} /> },
+      { id: 'suppliers', label: 'Nhà cung cấp', icon: <Factory size={19} /> },
     ],
   },
   {
@@ -81,7 +87,7 @@ export const adminMenuGroups: Array<{ label: string; items: AdminNavItem[] }> = 
     label: 'Quản lý khách hàng',
     items: [
       { id: 'customers', label: 'Khách hàng', icon: <UsersThree size={19} /> },
-      { id: 'inquiries', label: 'Liên hệ & Báo giá', icon: <ChatsCircle size={19} /> },
+      { id: 'inquiries', label: 'Liên hệ & Báo giá', icon: <MessageSquareQuote size={19} /> },
       { id: 'customer-groups', label: 'Nhóm khách hàng', icon: <UserList size={19} /> },
       { id: 'gifts', label: 'Quà tặng & ưu đãi', icon: <Gift size={19} /> },
     ],
@@ -90,9 +96,9 @@ export const adminMenuGroups: Array<{ label: string; items: AdminNavItem[] }> = 
     label: 'Quản lý nội dung',
     items: [
       { id: 'news', label: 'Tin tức', icon: <Newspaper size={19} /> },
-      { id: 'projects', label: 'Dự án', icon: <Buildings size={19} /> },
+      { id: 'projects', label: 'Dự án', icon: <FolderKanban size={19} /> },
       { id: 'banners', label: 'Banner', icon: <ImageSquare size={19} /> },
-      { id: 'showrooms', label: 'Showroom', icon: <Buildings size={19} weight="duotone" /> },
+      { id: 'showrooms', label: 'Showroom', icon: <Store size={19} /> },
     ],
   },
   {
@@ -100,6 +106,7 @@ export const adminMenuGroups: Array<{ label: string; items: AdminNavItem[] }> = 
     items: [
       { id: 'settings', label: 'Cấu hình', icon: <GearSix size={19} /> },
       { id: 'users', label: 'Nhân viên', icon: <UserGear size={19} /> },
+      { id: 'helpdesk', label: 'Hỗ trợ IT', icon: <Headset size={19} /> },
       { id: 'roles', label: 'Phân quyền', icon: <ShieldCheck size={19} /> },
       { id: 'logs', label: 'Nhật ký hoạt động', icon: <ClockCounterClockwise size={19} /> },
     ],
@@ -127,6 +134,7 @@ export const adminViewMeta: Record<AdminView, { label: string; description: stri
   reports: { label: 'Báo cáo', description: 'Tổng hợp doanh thu, đơn hàng, khách hàng và sản phẩm.' },
   settings: { label: 'Cấu hình', description: 'Thiết lập thông tin doanh nghiệp và chính sách bán hàng.' },
   users: { label: 'Nhân viên', description: 'Quản lý tài khoản nội bộ được phép truy cập khu vực admin.' },
+  helpdesk: { label: 'Hỗ trợ IT', description: 'Gửi yêu cầu nội bộ và trao đổi với bộ phận IT trong một luồng theo dõi rõ ràng.' },
   roles: { label: 'Phân quyền', description: 'Thiết lập vai trò và phạm vi thao tác.' },
   logs: { label: 'Nhật ký hoạt động', description: 'Theo dõi thay đổi và thao tác quản trị.' },
 }

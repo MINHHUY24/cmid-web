@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { Link, useSearchParams } from 'react-router-dom'
 import { DonHangTomTat } from '../components/cart/DonHangTomTat'
 import { KhungXuong } from '../components/common/KhungXuong'
+import { TrangThaiPhienDangNhap } from '../components/common/TrangThaiPhienDangNhap'
 import { PaymentQrDialog } from '../components/payment/PaymentQrDialog'
 import momoQrAsset from '../components/payment/momo-qr.png'
 import { useCart, type CartItem } from '../contexts/GioHangContext'
@@ -132,7 +133,7 @@ function createVietQrQuickLink(amount: number, orderCode: string) {
 export function TrangThanhToanPage() {
   const { clearCart, items } = useCart()
   const { content, language } = useLanguage()
-  const { user, profile, updateProfile } = useUser()
+  const { user, profile, isAuthLoading, updateProfile } = useUser()
   const { checkout, common } = content
   const [searchParams] = useSearchParams()
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank')
@@ -153,6 +154,14 @@ export function TrangThanhToanPage() {
     district: getAdministrativeDisplayName(profile.district),
     ward: getAdministrativeDisplayName(profile.ward),
   }))
+  const [customerDetails, setCustomerDetails] = useState(() => ({
+    fullName: profile.fullName || user?.name || '',
+    phone: profile.phone,
+    address: profile.address,
+  }))
+  const checkoutProfileUserIdRef = useRef<string | null>(null)
+  const hasEditedCustomerDetailsRef = useRef(false)
+  const hasEditedDeliveryLocationRef = useRef(false)
   const [locationError, setLocationError] = useState('')
   const momoOrderId = searchParams.get('momoOrderId')
   const siteToastRoot = typeof document !== 'undefined'
@@ -208,7 +217,7 @@ export function TrangThanhToanPage() {
   }, [])
 
   useEffect(() => {
-    if (!momoOrderId) return
+    if (!momoOrderId || isAuthLoading || !user) return
 
     let isCurrent = true
     let retryTimeout: number | undefined
@@ -247,7 +256,48 @@ export function TrangThanhToanPage() {
       isCurrent = false
       if (retryTimeout !== undefined) window.clearTimeout(retryTimeout)
     }
-  }, [checkout.momoPaymentFailed, clearCart, momoOrderId])
+  }, [checkout.momoPaymentFailed, clearCart, isAuthLoading, momoOrderId, user])
+
+  useEffect(() => {
+    const userId = user?.id
+    if (!userId) {
+      checkoutProfileUserIdRef.current = null
+      hasEditedCustomerDetailsRef.current = false
+      hasEditedDeliveryLocationRef.current = false
+      return undefined
+    }
+
+    if (checkoutProfileUserIdRef.current !== userId) {
+      checkoutProfileUserIdRef.current = userId
+      hasEditedCustomerDetailsRef.current = false
+      hasEditedDeliveryLocationRef.current = false
+    }
+
+    if (isAuthLoading) return undefined
+
+    const savedCustomerDetails = {
+      fullName: profile.fullName || user.name,
+      phone: profile.phone,
+      address: profile.address,
+    }
+    const savedLocation = {
+      city: getAdministrativeDisplayName(profile.city) || 'Hồ Chí Minh',
+      district: getAdministrativeDisplayName(profile.district),
+      ward: getAdministrativeDisplayName(profile.ward),
+    }
+    const shouldSyncCustomerDetails = !hasEditedCustomerDetailsRef.current
+    const shouldSyncDeliveryLocation = !hasEditedDeliveryLocationRef.current
+
+    // The remote profile can arrive after the access session. Populate the
+    // checkout from it unless the shopper has already started entering a
+    // different address in this visit.
+    void Promise.resolve().then(() => {
+      if (checkoutProfileUserIdRef.current !== userId) return
+      if (shouldSyncCustomerDetails) setCustomerDetails(savedCustomerDetails)
+      if (shouldSyncDeliveryLocation) setDeliveryLocation(savedLocation)
+    })
+    return undefined
+  }, [isAuthLoading, profile.address, profile.city, profile.district, profile.fullName, profile.phone, profile.ward, user?.id, user?.name])
 
   useEffect(() => {
     if (!paymentNotice) return undefined
@@ -355,22 +405,34 @@ export function TrangThanhToanPage() {
   )
 
   function handleProvinceChange(city: string) {
+    hasEditedDeliveryLocationRef.current = true
     setDeliveryLocation({ city, district: '', ward: '' })
     setLocationError('')
   }
 
   function handleDistrictChange(district: string) {
+    hasEditedDeliveryLocationRef.current = true
     setDeliveryLocation((currentLocation) => ({ ...currentLocation, district, ward: '' }))
     setLocationError('')
   }
 
   function handleWardChange(ward: string) {
+    hasEditedDeliveryLocationRef.current = true
     setDeliveryLocation((currentLocation) => ({ ...currentLocation, ward }))
     setLocationError('')
   }
 
+  function handleCustomerDetailChange(field: keyof typeof customerDetails, value: string) {
+    hasEditedCustomerDetailsRef.current = true
+    setCustomerDetails((currentDetails) => ({ ...currentDetails, [field]: value }))
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+
+    if (isAuthLoading) {
+      return
+    }
 
     if (!user) {
       setIsLoginDialogOpen(true)
@@ -433,7 +495,10 @@ export function TrangThanhToanPage() {
 
     const checkoutOrderInput = {
       customerName: fullName,
-      customerEmail: getFieldValue('email'),
+      // An authenticated checkout must always be associated with the signed-in
+      // account. Keeping this out of an editable form field also makes the
+      // account's order history deterministic.
+      customerEmail: user.email,
       customerPhone: phone,
       address: submittedAddress,
       note: getFieldValue('note') || undefined,
@@ -444,7 +509,7 @@ export function TrangThanhToanPage() {
       setIsPaymentStarting(true)
       try {
         await createCheckoutOrder({ ...checkoutOrderInput, paymentMethod: 'COD' })
-        updateProfile(nextProfile)
+        await Promise.resolve(updateProfile(nextProfile))
         setIsSubmitted(true)
         clearCart()
       } catch (error) {
@@ -459,11 +524,11 @@ export function TrangThanhToanPage() {
       setIsPaymentStarting(true)
       try {
         const order = await createCheckoutOrder({ ...checkoutOrderInput, paymentMethod: 'BANK_TRANSFER' })
-        updateProfile(nextProfile)
+        await Promise.resolve(updateProfile(nextProfile))
         setPaymentCountdown(paymentTimeoutSeconds)
         setPendingPayment({
           customer: fullName,
-          email: getFieldValue('email'),
+          email: user.email,
           phone,
           address: submittedAddress,
           paymentMethod: submittedPaymentMethod,
@@ -490,11 +555,11 @@ export function TrangThanhToanPage() {
             ...checkoutOrderInput,
             paymentMethod: submittedPaymentMethod === 'momo' ? 'MOMO_WALLET' : 'MOMO_CARD',
           })
-          updateProfile(nextProfile)
+          await Promise.resolve(updateProfile(nextProfile))
           setPaymentCountdown(paymentTimeoutSeconds)
           setPendingPayment({
             customer: fullName,
-            email: getFieldValue('email'),
+            email: user.email,
             phone,
             address: submittedAddress,
             paymentMethod: submittedPaymentMethod,
@@ -520,7 +585,7 @@ export function TrangThanhToanPage() {
           paymentMethod: submittedPaymentMethod === 'momo' ? 'MOMO_WALLET' : 'MOMO_CARD',
           customer: {
             name: fullName,
-            email: getFieldValue('email'),
+            email: user.email,
             phone,
           },
           address: submittedAddress,
@@ -528,7 +593,7 @@ export function TrangThanhToanPage() {
           items: items.map((item) => ({ productId: item.product.id, quantity: item.quantity })),
         })
 
-        updateProfile(nextProfile)
+        await Promise.resolve(updateProfile(nextProfile))
         window.location.assign(payment.payUrl)
         return
       } catch (error: unknown) {
@@ -539,6 +604,10 @@ export function TrangThanhToanPage() {
     }
 
     setPaymentError('Phương thức thanh toán không được hỗ trợ.')
+  }
+
+  if (isAuthLoading) {
+    return <TrangThaiPhienDangNhap message={content.auth.restoringSession} variant="account" />
   }
 
   return (
@@ -579,9 +648,9 @@ export function TrangThanhToanPage() {
               <fieldset>
                 <legend><span>1</span> {checkout.customerTitle}</legend>
                 <div className="checkout-form__grid checkout-form__grid--three">
-                  <label><span className="form-label-text">{checkout.fullName} <b>*</b></span><input name="name" autoComplete="name" defaultValue={profile.fullName || user?.name || ''} required /></label>
-                  <label><span className="form-label-text">{checkout.phone} <b>*</b></span><input name="phone" type="tel" autoComplete="tel" defaultValue={profile.phone} required /></label>
-                  <label><span className="form-label-text">{checkout.email} <b>*</b></span><input name="email" type="email" autoComplete="email" defaultValue={user?.email ?? ''} required /></label>
+                  <label><span className="form-label-text">{checkout.fullName} <b>*</b></span><input name="name" autoComplete="name" value={customerDetails.fullName} onChange={(event) => handleCustomerDetailChange('fullName', event.target.value)} required /></label>
+                  <label><span className="form-label-text">{checkout.phone} <b>*</b></span><input name="phone" type="tel" autoComplete="tel" value={customerDetails.phone} onChange={(event) => handleCustomerDetailChange('phone', event.target.value)} required /></label>
+                  <label><span className="form-label-text">{checkout.email} <b>*</b></span><input name="email" type="email" autoComplete="email" value={user?.email ?? ''} readOnly required /></label>
                 </div>
               </fieldset>
 
@@ -647,7 +716,7 @@ export function TrangThanhToanPage() {
                   </div>
                 </div>
                 {locationError ? <p id="checkout-location-error" className="checkout-form__location-error" role="alert">{locationError}</p> : null}
-                <label className="checkout-form__full"><span className="form-label-text">{checkout.address} <b>*</b></span><input name="address" autoComplete="street-address" defaultValue={profile.address} required /></label>
+                <label className="checkout-form__full"><span className="form-label-text">{checkout.address} <b>*</b></span><input name="address" autoComplete="street-address" value={customerDetails.address} onChange={(event) => handleCustomerDetailChange('address', event.target.value)} required /></label>
                 <label className="checkout-form__save-address">
                   <input name="save-address" type="checkbox" defaultChecked />
                   <span className="checkout-form__save-address-box" aria-hidden="true"><Check size={13} weight="bold" /></span>
@@ -722,7 +791,7 @@ export function TrangThanhToanPage() {
               formId="checkout-form"
               onAction={user ? undefined : () => setIsLoginDialogOpen(true)}
               showProducts
-              disabled={isPaymentStarting}
+              disabled={isPaymentStarting || isAuthLoading}
             />
           </div>
         )}
