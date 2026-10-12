@@ -4,6 +4,26 @@ export type ColorTheme = 'dark' | 'light'
 type ColorThemePreference = ColorTheme | 'system'
 
 const COLOR_THEME_PREFERENCE_STORAGE_KEY = 'cmid-color-theme-preference'
+const THEME_COLORS: Record<ColorTheme, string> = {
+  dark: '#0f0b08',
+  light: '#e9e1d6',
+}
+
+function applyColorThemeToDocument(theme: ColorTheme) {
+  if (typeof document === 'undefined') return
+
+  const root = document.documentElement
+  root.dataset.theme = theme
+  // Safari uses the root colour scheme when choosing the contrast of its
+  // browser chrome. Setting it on a nested application shell is too late for
+  // a live theme change on iOS.
+  root.style.colorScheme = theme
+
+  const themeColor = document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+  if (themeColor) {
+    themeColor.content = THEME_COLORS[theme]
+  }
+}
 
 export function getSystemColorTheme(): ColorTheme {
   if (typeof window === 'undefined') {
@@ -34,9 +54,7 @@ function resolveColorTheme(preference: ColorThemePreference): ColorTheme {
 
 export function applyPreferredColorTheme(): ColorTheme {
   const theme = resolveColorTheme(getColorThemePreference())
-  if (typeof document !== 'undefined') {
-    document.documentElement.dataset.theme = theme
-  }
+  applyColorThemeToDocument(theme)
   return theme
 }
 
@@ -46,7 +64,7 @@ export function useColorTheme() {
   const colorTheme = themePreference === 'system' ? systemTheme : themePreference
 
   useEffect(() => {
-    document.documentElement.dataset.theme = colorTheme
+    applyColorThemeToDocument(colorTheme)
   }, [colorTheme])
 
   useEffect(() => {
