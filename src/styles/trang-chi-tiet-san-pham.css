@@ -1352,7 +1352,21 @@ html[data-theme='light'] .product-detail-loading {
 
 .related-product-card .product-card__media {
   min-height: 180px;
+  overflow: hidden;
+  border-radius: calc(var(--cmid-surface-radius) - 1px) calc(var(--cmid-surface-radius) - 1px) 0 0;
   background: var(--cmid-palette-eee5d9);
+}
+
+/* Let the product photo form the complete upper surface of a related-product
+   card. The rounded corners belong only to the top of the card, while the
+   image-to-content edge stays perfectly square. */
+.related-product-card .product-card__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  object-fit: cover;
+  object-position: center;
 }
 
 .related-product-card .product-card__body {

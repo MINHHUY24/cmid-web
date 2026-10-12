@@ -71,10 +71,11 @@
   box-shadow: 0 5px 17px var(--cmid-palette-rgb-69-49-18-alpha-7p);
 }
 
-.trang-san-pham .product-card--catalog .product-card__media {
-  margin: 6px 6px 0;
-  border-radius: 5px;
-  aspect-ratio: 1 / 0.79;
+.app-shell--site .trang-san-pham .product-card--catalog .product-card__media {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+  aspect-ratio: 1;
 }
 
 .trang-san-pham .product-card--catalog .product-card__body {
@@ -457,7 +458,7 @@ html[data-theme='light'] .catalog-loading {
 
 .catalog-skeleton-card__media {
   flex: 0 0 auto;
-  aspect-ratio: 1 / 0.79;
+  aspect-ratio: 1;
   margin: 6px 6px 0;
   border-radius: 5px;
   background: var(--catalog-loading-surface-soft);
@@ -774,14 +775,25 @@ html[data-theme='light'] .catalog-loading {
 .product-card--catalog .product-card__media {
   position: relative;
   min-height: 0;
-  aspect-ratio: 1 / 0.79;
-  margin: 6px 6px 0;
-  border-radius: 5px;
+  aspect-ratio: 1;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
   background: var(--cmid-palette-f6f4ef);
 }
 
 .product-card--catalog .product-card__image {
-  object-fit: contain;
+  display: block;
+  padding: 0;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 180ms ease;
+}
+
+/* Match the related-products card interaction: the product image responds to
+   the card hover, while its media frame keeps the zoom neatly clipped. */
+.product-card--catalog:hover .product-card__image {
+  transform: scale(1.035);
 }
 
 .product-card__3d-badge {

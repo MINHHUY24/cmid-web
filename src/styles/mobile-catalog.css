@@ -324,15 +324,24 @@
     border-radius: 12px;
   }
 
-  .app-shell--site .trang-san-pham .product-card--catalog .product-card__media,
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__media {
+    aspect-ratio: 1;
+    margin: 0;
+    overflow: hidden;
+    border-radius: 11px 11px 0 0;
+  }
+
   .app-shell--site .trang-san-pham .catalog-skeleton-card__media {
-    aspect-ratio: 1 / 0.82;
+    aspect-ratio: 1;
     margin: 6px 6px 0;
     border-radius: 8px;
   }
 
   .app-shell--site .trang-san-pham .product-card--catalog .product-card__image {
-    object-fit: contain;
+    display: block;
+    padding: 0;
+    object-fit: cover;
+    object-position: center;
   }
 
   .app-shell--site .trang-san-pham .product-card--catalog .product-card__body,
