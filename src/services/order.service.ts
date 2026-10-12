@@ -1,4 +1,4 @@
-import type { AdminOrder, AdminReturn } from '../pages/admin/admin-database'
+import type { AdminOrder, AdminReturn } from '../pages/admin/CoSoDuLieuQuanTri'
 import { apiFetch } from './api'
 
 export type ServerOrderStatus =

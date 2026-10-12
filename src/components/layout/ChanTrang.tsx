@@ -1,9 +1,11 @@
 import { EnvelopeSimple, MapPin, Phone } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 import { useLanguage } from '../../contexts/NgonNguContext'
+import { useSiteSettings } from '../../contexts/ThongTinWebsiteContext'
 
 export function SiteFooter() {
   const { content } = useLanguage()
+  const { settings } = useSiteSettings()
   const { footer } = content
   const footerGroups = [
     {
@@ -55,17 +57,17 @@ export function SiteFooter() {
 
         <div className="site-footer__contact">
           <h2>{footer.contactInformation}</h2>
-          <a href="tel:02838386173">
+          <a href={`tel:${settings.phone.replaceAll(/[^+\d]/g, '')}`}>
             <Phone size={15} aria-hidden="true" />
-            {footer.phone} (028) 3838 6173
+            {footer.phone} {settings.phone}
           </a>
-          <a href="mailto:info@cmid.vn">
+          <a href={`mailto:${settings.email}`}>
             <EnvelopeSimple size={15} aria-hidden="true" />
-            info@cmid.vn
+            {settings.email}
           </a>
           <p>
             <MapPin size={15} aria-hidden="true" />
-            {footer.office} 156 Nguyễn Văn Trỗi, Phường 8, Phú Nhuận, TP. Hồ Chí Minh
+            {footer.office} {settings.address}
           </p>
         </div>
       </div>

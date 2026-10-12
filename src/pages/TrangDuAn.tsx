@@ -41,6 +41,7 @@ export function TrangDuAnPage() {
         description={projectPage.description}
         image={heroImage}
         imageAlt="Không gian nội thất dự án cao cấp"
+        showDivider={false}
         actionLabel={projectPage.action}
         actionHref="#danh-sach-du-an"
       />

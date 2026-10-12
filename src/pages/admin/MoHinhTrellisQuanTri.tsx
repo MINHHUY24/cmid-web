@@ -1,7 +1,7 @@
 import { Cube, FloppyDisk, Play, Trash } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { ProductModelViewer } from '../../components/product/ProductModelViewer'
-import { AdminSelect } from './AdminPrimitives'
+import { AdminSelect } from './ThanhPhanCoBanQuanTri'
 import {
   cancelTrellisJob, createTrellisJob, getTrellisHealth, getTrellisJob, saveTrellisModel,
   TRELLIS_QUALITY_PRESETS, TrellisApiError, type SavedTrellisModel, type TrellisJob,

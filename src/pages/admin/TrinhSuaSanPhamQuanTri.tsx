@@ -1,14 +1,13 @@
 import { Check, FloppyDisk, Plus, Trash } from '@phosphor-icons/react'
 import { useId, useState, type FormEvent } from 'react'
 import type { Product, ProductStatus, ProductStoreStock, ProductTechnicalSpecification, SaleType } from '../../types/product'
-import { AdminImageUpload } from './AdminImageUpload'
-import { AdminTrellisModel } from './AdminTrellisModel'
-import { createProductImageSlots, PRODUCT_IMAGE_VIEWS, toProductImages, type ProductImageSlot } from './admin-product-images'
-import { AdminPageHeading, AdminPanel, AdminSelect } from './AdminPrimitives'
-import type { AdminBrand, AdminNamedRecord, AdminShowroom } from './admin-database'
-import { saveAdminProduct } from './admin-local-store'
+import { AdminImageUpload } from './TaiAnhLenQuanTri'
+import { AdminTrellisModel } from './MoHinhTrellisQuanTri'
+import { createProductImageSlots, PRODUCT_IMAGE_VIEWS, toProductImages, type ProductImageSlot } from './HinhAnhSanPhamQuanTri'
+import { AdminPageHeading, AdminPanel, AdminSelect } from './ThanhPhanCoBanQuanTri'
+import type { AdminBrand, AdminNamedRecord, AdminShowroom } from './CoSoDuLieuQuanTri'
 import { saveProduct } from '../../services/product.service'
-import { isAdminDemoEnabled } from './admin-demo-auth'
+import { isAdminDemoEnabled } from './XacThucMauQuanTri'
 
 interface AdminProductEditorProps {
   product?: Product
@@ -200,7 +199,6 @@ export function AdminProductEditor({
     try {
       setIsSaving(true)
       const savedProduct = await saveProduct(nextProduct, isAdminDemoEnabled)
-      saveAdminProduct(savedProduct)
       onSaved(savedProduct)
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : 'Không thể lưu sản phẩm lên máy chủ.')

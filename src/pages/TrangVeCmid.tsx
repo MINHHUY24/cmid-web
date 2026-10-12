@@ -74,6 +74,7 @@ export function TrangVeCmidPage() {
         description={about.description}
         image={heroImage}
         imageAlt={about.title}
+        showDivider={false}
         actionLabel={about.action}
         actionHref="#lien-he-cmid"
       />

@@ -10,14 +10,11 @@ import momoQrAsset from '../components/payment/momo-qr.png'
 import { useCart, type CartItem } from '../contexts/GioHangContext'
 import { useLanguage } from '../contexts/NgonNguContext'
 import { useUser } from '../contexts/NguoiDungContext'
+import { useSiteSettings } from '../contexts/ThongTinWebsiteContext'
 import { createMomoPayment, getMomoPaymentStatus, type MomoPaymentStatus } from '../services/payment.service'
 import { createCheckoutOrder, createDemoCheckoutOrder, updateAdminPaymentStatus } from '../services/order.service'
 import { formatCurrency } from '../utils/formatCurrency'
 import { getOrderCosts, getProductPrice } from '../utils/order'
-import {
-  ADMIN_DATABASE_UPDATED_EVENT,
-  getPaymentQrTimeoutSeconds,
-} from './admin/admin-database'
 import { getPaymentErrorMessage } from './TrangThanhToan.helpers'
 
 type PaymentMethod = 'bank' | 'cod' | 'momo' | 'card'
@@ -134,6 +131,7 @@ export function TrangThanhToanPage() {
   const { clearCart, items } = useCart()
   const { content, language } = useLanguage()
   const { user, profile, isAuthLoading, updateProfile } = useUser()
+  const { settings } = useSiteSettings()
   const { checkout, common } = content
   const [searchParams] = useSearchParams()
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank')
@@ -143,7 +141,7 @@ export function TrangThanhToanPage() {
   const [paymentNotice, setPaymentNotice] = useState('')
   const [momoPaymentStatus, setMomoPaymentStatus] = useState<MomoPaymentStatus | null>(null)
   const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null)
-  const [paymentTimeoutSeconds, setPaymentTimeoutSeconds] = useState(getPaymentQrTimeoutSeconds)
+  const paymentTimeoutSeconds = Math.max(30, Math.round(settings.paymentQrTimeoutSeconds || 300))
   const [paymentCountdown, setPaymentCountdown] = useState(0)
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false)
   const [administrativeData, setAdministrativeData] = useState<AdministrativeData | null>(null)
@@ -167,19 +165,6 @@ export function TrangThanhToanPage() {
   const siteToastRoot = typeof document !== 'undefined'
     ? document.getElementById('site-toast-root')
     : null
-
-  useEffect(() => {
-    const syncPaymentTimeout = () => setPaymentTimeoutSeconds(getPaymentQrTimeoutSeconds())
-    const syncPaymentTimeoutFromStorage = () => syncPaymentTimeout()
-
-    window.addEventListener(ADMIN_DATABASE_UPDATED_EVENT, syncPaymentTimeout)
-    window.addEventListener('storage', syncPaymentTimeoutFromStorage)
-
-    return () => {
-      window.removeEventListener(ADMIN_DATABASE_UPDATED_EVENT, syncPaymentTimeout)
-      window.removeEventListener('storage', syncPaymentTimeoutFromStorage)
-    }
-  }, [])
 
   useEffect(() => {
     let isCurrent = true

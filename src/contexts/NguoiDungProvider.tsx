@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import type { AuthenticatedUser, CustomerProfile } from './NguoiDungContext'
 import { UserContext } from './NguoiDungContext'
 import {
@@ -55,7 +62,9 @@ interface GoogleIdentity {
         auto_select?: boolean
         cancel_on_tap_outside?: boolean
       }) => void
-      prompt: (listener?: (notification: GooglePromptMomentNotification) => void) => void
+      prompt: (
+        listener?: (notification: GooglePromptMomentNotification) => void,
+      ) => void
     }
   }
 }
@@ -88,7 +97,9 @@ function hasSavedProfile(userId: string) {
 
 function hasSyncedProfile(userId: string) {
   try {
-    return window.localStorage.getItem(getProfileSyncStorageKey(userId)) === 'true'
+    return (
+      window.localStorage.getItem(getProfileSyncStorageKey(userId)) === 'true'
+    )
   } catch {
     return false
   }
@@ -113,7 +124,10 @@ function markProfileAsPending(userId: string) {
 
 function saveProfile(userId: string, profile: CustomerProfile) {
   try {
-    window.localStorage.setItem(getProfileStorageKey(userId), JSON.stringify(profile))
+    window.localStorage.setItem(
+      getProfileStorageKey(userId),
+      JSON.stringify(profile),
+    )
   } catch {
     // A large local avatar or privacy mode must not block checkout/profile use.
   }
@@ -125,7 +139,9 @@ function getSavedProfile(userId?: string): CustomerProfile {
   }
 
   try {
-    const savedProfile = window.localStorage.getItem(getProfileStorageKey(userId))
+    const savedProfile = window.localStorage.getItem(
+      getProfileStorageKey(userId),
+    )
     if (!savedProfile) {
       return createEmptyProfile()
     }
@@ -136,7 +152,12 @@ function getSavedProfile(userId?: string): CustomerProfile {
       avatar: typeof profile.avatar === 'string' ? profile.avatar : '',
       phone: typeof profile.phone === 'string' ? profile.phone : '',
       birthDate: typeof profile.birthDate === 'string' ? profile.birthDate : '',
-      gender: profile.gender === 'male' || profile.gender === 'female' || profile.gender === 'other' ? profile.gender : '',
+      gender:
+        profile.gender === 'male' ||
+        profile.gender === 'female' ||
+        profile.gender === 'other'
+          ? profile.gender
+          : '',
       city: typeof profile.city === 'string' ? profile.city : '',
       district: typeof profile.district === 'string' ? profile.district : '',
       ward: typeof profile.ward === 'string' ? profile.ward : '',
@@ -166,7 +187,9 @@ function normalizeProfile(profile: CustomerProfile): CustomerProfile {
   }
 }
 
-function toCustomerProfile(serverProfile: ServerCustomerProfile): CustomerProfile {
+function toCustomerProfile(
+  serverProfile: ServerCustomerProfile,
+): CustomerProfile {
   return {
     fullName: serverProfile.fullName,
     avatar: serverProfile.avatar,
@@ -195,7 +218,10 @@ function mergeServerProfile(
     avatar: localProfile.avatar || serverProfile.avatar,
     phone: choose(serverProfile.phone, localProfile.phone),
     birthDate: choose(serverProfile.birthDate, localProfile.birthDate),
-    gender: choose(serverProfile.gender, localProfile.gender) as CustomerProfile['gender'],
+    gender: choose(
+      serverProfile.gender,
+      localProfile.gender,
+    ) as CustomerProfile['gender'],
     city: choose(serverProfile.city, localProfile.city),
     district: choose(serverProfile.district, localProfile.district),
     ward: choose(serverProfile.ward, localProfile.ward),
@@ -206,13 +232,13 @@ function mergeServerProfile(
 function hasServerPersistableProfileData(profile: CustomerProfile) {
   return Boolean(
     profile.fullName ||
-    profile.phone ||
-    profile.birthDate ||
-    profile.gender ||
-    profile.city ||
-    profile.district ||
-    profile.ward ||
-    profile.address,
+      profile.phone ||
+      profile.birthDate ||
+      profile.gender ||
+      profile.city ||
+      profile.district ||
+      profile.ward ||
+      profile.address,
   )
 }
 
@@ -236,6 +262,7 @@ function toAuthenticatedUser(user: ServerAuthenticatedUser): AuthenticatedUser {
     email: user.email,
     picture: user.picture,
     role: user.role,
+    roleName: user.roleName,
     permissions: user.permissions,
     emailVerified: user.emailVerified,
   }
@@ -247,11 +274,17 @@ function loadGoogleIdentityScript(): Promise<void> {
   }
 
   return new Promise((resolve, reject) => {
-    const existingScript = document.querySelector<HTMLScriptElement>('script[data-google-identity]')
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[data-google-identity]',
+    )
 
     if (existingScript) {
       existingScript.addEventListener('load', () => resolve(), { once: true })
-      existingScript.addEventListener('error', () => reject(new Error('Không thể tải Google Identity Services.')), { once: true })
+      existingScript.addEventListener(
+        'error',
+        () => reject(new Error('Không thể tải Google Identity Services.')),
+        { once: true },
+      )
       return
     }
 
@@ -261,14 +294,17 @@ function loadGoogleIdentityScript(): Promise<void> {
     script.defer = true
     script.dataset.googleIdentity = 'true'
     script.onload = () => resolve()
-    script.onerror = () => reject(new Error('Không thể tải Google Identity Services.'))
+    script.onerror = () =>
+      reject(new Error('Không thể tải Google Identity Services.'))
     document.head.append(script)
   })
 }
 
 async function requestGoogleCredential(): Promise<string> {
   if (!GOOGLE_CLIENT_ID) {
-    throw new Error('Google đăng nhập chưa được cấu hình. Thêm VITE_GOOGLE_CLIENT_ID vào file .env.')
+    throw new Error(
+      'Google đăng nhập chưa được cấu hình. Thêm VITE_GOOGLE_CLIENT_ID vào file .env.',
+    )
   }
 
   await loadGoogleIdentityScript()
@@ -318,7 +354,9 @@ async function requestGoogleCredential(): Promise<string> {
 
     googleIdentity.prompt((notification) => {
       if (notification.isNotDisplayed?.() || notification.isSkippedMoment?.()) {
-        rejectOnce('Không thể mở hộp thoại Google. Vui lòng kiểm tra cấu hình Google Login.')
+        rejectOnce(
+          'Không thể mở hộp thoại Google. Vui lòng kiểm tra cấu hình Google Login.',
+        )
       }
     })
   })
@@ -329,7 +367,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<CustomerProfile>(createEmptyProfile)
   const [isAuthLoading, setIsAuthLoading] = useState(true)
   const [isSigningIn, setIsSigningIn] = useState(false)
-  const [nextSessionRefreshAt, setNextSessionRefreshAt] = useState<number | null>(null)
+  const [nextSessionRefreshAt, setNextSessionRefreshAt] = useState<
+    number | null
+  >(null)
   const authGenerationRef = useRef(0)
   const profileRevisionRef = useRef(0)
 
@@ -345,82 +385,92 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setNextSessionRefreshAt(null)
   }, [])
 
-  const applyAuthenticatedSession = useCallback((session: Awaited<ReturnType<typeof refreshCustomerAuthSession>>) => {
-    setAccessToken(session.accessToken)
-    setNextSessionRefreshAt(Date.now() + session.accessTokenExpiresIn * 1_000)
+  const applyAuthenticatedSession = useCallback(
+    (session: Awaited<ReturnType<typeof refreshCustomerAuthSession>>) => {
+      setAccessToken(session.accessToken)
+      setNextSessionRefreshAt(Date.now() + session.accessTokenExpiresIn * 1_000)
 
-    const authenticatedUser = toAuthenticatedUser(session.user)
-    applyAuthenticatedUser(authenticatedUser)
-    return authenticatedUser
-  }, [applyAuthenticatedUser])
+      const authenticatedUser = toAuthenticatedUser(session.user)
+      applyAuthenticatedUser(authenticatedUser)
+      return authenticatedUser
+    },
+    [applyAuthenticatedUser],
+  )
 
-  const hydrateCustomerProfile = useCallback((nextUser: AuthenticatedUser, authGeneration: number) => {
-    const localProfile = getSavedProfile(nextUser.id)
-    const shouldMigrateLocalProfile =
-      hasSavedProfile(nextUser.id) &&
-      !hasSyncedProfile(nextUser.id) &&
-      hasServerPersistableProfileData(localProfile)
-    const profileRevision = profileRevisionRef.current
+  const hydrateCustomerProfile = useCallback(
+    (nextUser: AuthenticatedUser, authGeneration: number) => {
+      const localProfile = getSavedProfile(nextUser.id)
+      const shouldMigrateLocalProfile =
+        hasSavedProfile(nextUser.id) &&
+        !hasSyncedProfile(nextUser.id) &&
+        hasServerPersistableProfileData(localProfile)
+      const profileRevision = profileRevisionRef.current
 
-    void getCustomerProfile()
-      .then(({ profile: serverProfile }) => {
-        if (
-          authGenerationRef.current !== authGeneration ||
-          profileRevisionRef.current !== profileRevision
-        ) {
-          return
-        }
+      void getCustomerProfile()
+        .then(({ profile: serverProfile }) => {
+          if (
+            authGenerationRef.current !== authGeneration ||
+            profileRevisionRef.current !== profileRevision
+          ) {
+            return
+          }
 
-        const mergedProfile = normalizeProfile(
-          mergeServerProfile(
-            toCustomerProfile(serverProfile),
-            localProfile,
-            shouldMigrateLocalProfile,
-          ),
-        )
-        setProfile(mergedProfile)
-        saveProfile(nextUser.id, mergedProfile)
+          const mergedProfile = normalizeProfile(
+            mergeServerProfile(
+              toCustomerProfile(serverProfile),
+              localProfile,
+              shouldMigrateLocalProfile,
+            ),
+          )
+          setProfile(mergedProfile)
+          saveProfile(nextUser.id, mergedProfile)
 
-        if (!shouldMigrateLocalProfile) {
-          markProfileAsSynced(nextUser.id)
-          return
-        }
-
-        // Before this API existed, profiles lived solely in localStorage.
-        // Move that legacy data to the server once without overwriting a newer
-        // server profile on later visits.
-        void updateCustomerProfile(toCustomerProfileUpdate(mergedProfile))
-          .then(({ profile: savedProfile }) => {
-            if (
-              authGenerationRef.current !== authGeneration ||
-              profileRevisionRef.current !== profileRevision
-            ) {
-              return
-            }
-
-            const canonicalProfile = normalizeProfile(
-              mergeServerProfile(toCustomerProfile(savedProfile), mergedProfile, false),
-            )
-            setProfile(canonicalProfile)
-            saveProfile(nextUser.id, canonicalProfile)
+          if (!shouldMigrateLocalProfile) {
             markProfileAsSynced(nextUser.id)
-            setUser((currentUser) =>
-              currentUser?.id === nextUser.id && canonicalProfile.fullName
-                ? { ...currentUser, name: canonicalProfile.fullName }
-                : currentUser,
-            )
-          })
-          .catch(() => {
-            // Keep the local profile and retry it on the next authenticated
-            // bootstrap instead of making a completed checkout look failed.
-            markProfileAsPending(nextUser.id)
-          })
-      })
-      .catch(() => {
-        // The cached profile remains usable when the API is temporarily down.
-        // It is intentionally left unsynced so the next session can retry.
-      })
-  }, [])
+            return
+          }
+
+          // Before this API existed, profiles lived solely in localStorage.
+          // Move that legacy data to the server once without overwriting a newer
+          // server profile on later visits.
+          void updateCustomerProfile(toCustomerProfileUpdate(mergedProfile))
+            .then(({ profile: savedProfile }) => {
+              if (
+                authGenerationRef.current !== authGeneration ||
+                profileRevisionRef.current !== profileRevision
+              ) {
+                return
+              }
+
+              const canonicalProfile = normalizeProfile(
+                mergeServerProfile(
+                  toCustomerProfile(savedProfile),
+                  mergedProfile,
+                  false,
+                ),
+              )
+              setProfile(canonicalProfile)
+              saveProfile(nextUser.id, canonicalProfile)
+              markProfileAsSynced(nextUser.id)
+              setUser((currentUser) =>
+                currentUser?.id === nextUser.id && canonicalProfile.fullName
+                  ? { ...currentUser, name: canonicalProfile.fullName }
+                  : currentUser,
+              )
+            })
+            .catch(() => {
+              // Keep the local profile and retry it on the next authenticated
+              // bootstrap instead of making a completed checkout look failed.
+              markProfileAsPending(nextUser.id)
+            })
+        })
+        .catch(() => {
+          // The cached profile remains usable when the API is temporarily down.
+          // It is intentionally left unsynced so the next session can retry.
+        })
+    },
+    [],
+  )
 
   useEffect(() => {
     let isCurrent = true
@@ -458,7 +508,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
     if (!user || nextSessionRefreshAt === null) return undefined
 
     const authGeneration = authGenerationRef.current
-    const refreshDelay = Math.max(5_000, nextSessionRefreshAt - Date.now() - 60_000)
+    const refreshDelay = Math.max(
+      5_000,
+      nextSessionRefreshAt - Date.now() - 60_000,
+    )
     const refreshTimer = window.setTimeout(() => {
       void refreshCustomerAuthSession()
         .then((session) => {
@@ -478,29 +531,38 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }, refreshDelay)
 
     return () => window.clearTimeout(refreshTimer)
-  }, [applyAuthenticatedSession, hydrateCustomerProfile, nextSessionRefreshAt, user])
+  }, [
+    applyAuthenticatedSession,
+    hydrateCustomerProfile,
+    nextSessionRefreshAt,
+    user,
+  ])
 
-  useEffect(() => registerAccessTokenRefresher('customer', async () => {
-    const authGeneration = authGenerationRef.current
+  useEffect(
+    () =>
+      registerAccessTokenRefresher('customer', async () => {
+        const authGeneration = authGenerationRef.current
 
-    try {
-      const session = await refreshCustomerAuthSession()
-      if (authGenerationRef.current !== authGeneration) return null
+        try {
+          const session = await refreshCustomerAuthSession()
+          if (authGenerationRef.current !== authGeneration) return null
 
-      const authenticatedUser = applyAuthenticatedSession(session)
-      hydrateCustomerProfile(authenticatedUser, authGeneration)
-      return session.accessToken
-    } catch (error) {
-      if (
-        authGenerationRef.current === authGeneration &&
-        error instanceof ApiError &&
-        error.status === 401
-      ) {
-        clearCustomerSession()
-      }
-      return null
-    }
-  }), [applyAuthenticatedSession, clearCustomerSession, hydrateCustomerProfile])
+          const authenticatedUser = applyAuthenticatedSession(session)
+          hydrateCustomerProfile(authenticatedUser, authGeneration)
+          return session.accessToken
+        } catch (error) {
+          if (
+            authGenerationRef.current === authGeneration &&
+            error instanceof ApiError &&
+            error.status === 401
+          ) {
+            clearCustomerSession()
+          }
+          return null
+        }
+      }),
+    [applyAuthenticatedSession, clearCustomerSession, hydrateCustomerProfile],
+  )
 
   const signInWithGoogle = useCallback(async () => {
     setIsSigningIn(true)
@@ -543,7 +605,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
 
         const canonicalProfile = normalizeProfile(
-          mergeServerProfile(toCustomerProfile(savedProfile), normalizedProfile, false),
+          mergeServerProfile(
+            toCustomerProfile(savedProfile),
+            normalizedProfile,
+            false,
+          ),
         )
         setProfile(canonicalProfile)
         saveProfile(user.id, canonicalProfile)
@@ -584,7 +650,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
       updateProfile,
       signOut,
     }),
-    [isAuthLoading, isSigningIn, profile, signInWithGoogle, signOut, updateProfile, user],
+    [
+      isAuthLoading,
+      isSigningIn,
+      profile,
+      signInWithGoogle,
+      signOut,
+      updateProfile,
+      user,
+    ],
   )
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>

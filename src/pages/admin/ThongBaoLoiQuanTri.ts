@@ -18,9 +18,9 @@ const validationMessages: Record<string, LocalizedMessage> = {
     vi: 'Phần tên email chỉ dùng chữ thường không dấu, số và các ký tự . _ -; độ dài từ 2 đến 63 ký tự.',
     en: 'The email username may only use lowercase letters, numbers, and . _ -; it must be 2–63 characters long.',
   },
-  'admin.validation.password.minLength': {
-    vi: 'Mật khẩu phải có ít nhất 10 ký tự.',
-    en: 'The password must be at least 10 characters long.',
+  'admin.validation.password.complexity': {
+    vi: 'Mật khẩu phải có ít nhất một chữ hoa, một chữ thường và một ký tự đặc biệt.',
+    en: 'The password must include an uppercase letter, a lowercase letter, and a special character.',
   },
   'admin.validation.password.maxLength': {
     vi: 'Mật khẩu không được dài quá 128 ký tự.',
@@ -78,6 +78,14 @@ const validationMessages: Record<string, LocalizedMessage> = {
     vi: 'Người phụ trách không hợp lệ.',
     en: 'The assignee is invalid.',
   },
+  'helpdesk.validation.team.invalid': {
+    vi: 'Nhóm hỗ trợ không hợp lệ.',
+    en: 'The support team is invalid.',
+  },
+  'helpdesk.validation.slaDeadline.invalid': {
+    vi: 'Mốc thời gian SLA không hợp lệ.',
+    en: 'The SLA deadline is invalid.',
+  },
 }
 
 function chooseCopy(language: AppLanguage, message: LocalizedMessage) {
@@ -127,10 +135,10 @@ export function localizeAdminErrorMessage(message: string, language: AppLanguage
       en: 'The email username cannot be longer than 63 characters.',
     })
   }
-  if (/\bpassword must be longer than or equal to\b/i.test(normalized)) {
+  if (/\bpassword must match\b/i.test(normalized)) {
     add({
-      vi: 'Mật khẩu phải có ít nhất 10 ký tự.',
-      en: 'The password must be at least 10 characters long.',
+      vi: 'Mật khẩu phải có ít nhất một chữ hoa, một chữ thường và một ký tự đặc biệt.',
+      en: 'The password must include an uppercase letter, a lowercase letter, and a special character.',
     })
   }
   if (/\bpassword must be shorter than or equal to\b/i.test(normalized)) {

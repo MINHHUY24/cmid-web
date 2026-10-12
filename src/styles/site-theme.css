@@ -1605,6 +1605,12 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
   box-shadow: none;
 }
 
+.app-shell--site:not(.app-shell--home) .site-main :is(.catalog-filter__search, .account-order-search) input:focus,
+.app-shell--site:not(.app-shell--home) .site-main :is(.catalog-filter__search, .account-order-search) input:focus-visible {
+  border-color: transparent;
+  box-shadow: none;
+}
+
 .app-shell--site:not(.app-shell--home) .site-main .catalog-sort:focus-within {
   border-color: transparent;
   outline: 0;
@@ -5501,16 +5507,43 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) :is(
   background-image: linear-gradient(90deg, rgb(69 47 29 / 34%) 0%, rgb(77 51 30 / 10%) 50%, transparent 82%) !important;
 }
 
-/* Inner hero copy starts beneath the sticky menu. Nudge each complete copy
-   block down so its visual centre sits halfway to the banner's lower edge. */
-@media (min-width: 761px) {
-  .app-shell--site.app-shell--hero :is(
-    .trang-du-an,
-    .trang-ve-cmid,
-    .trang-lien-he
-  ) .khung-dau-trang__noi-dung,
-  .app-shell--site.app-shell--hero .trang-tin-tuc .tin-tuc__hero-editorial {
-    transform: translateY(clamp(48px, 4.6vw, 72px));
+/* Centre hero copy in the portion of the image that remains below the fixed
+   menu.  The header overlays the banner, so centring against the whole image
+   makes titles appear too high.  These dimensions match the actual header
+   stack: top bar + its gap + primary navigation. */
+.app-shell--site.app-shell--hero {
+  --cmid-hero-copy-start: 123px;
+}
+
+.app-shell--site.app-shell--hero .khung-dau-trang {
+  padding-block: var(--cmid-hero-copy-start) 0 !important;
+}
+
+.app-shell--site.app-shell--hero :is(
+  .catalog-hero__content,
+  .tin-tuc__hero-content
+) {
+  align-self: end;
+  box-sizing: border-box;
+  block-size: calc(100% - var(--cmid-hero-copy-start)) !important;
+  min-height: 0 !important;
+  margin: var(--cmid-hero-copy-start) auto 0 !important;
+  padding-block: 0 !important;
+}
+
+/* Clear the old page-specific nudges.  Each text group now shares the same
+   geometric centre as the product banner: midpoint(menu bottom, banner end). */
+.app-shell--site.app-shell--hero :is(
+  .khung-dau-trang__noi-dung,
+  .catalog-hero__glass,
+  .tin-tuc__hero-editorial
+) {
+  transform: none !important;
+}
+
+@media (max-width: 1024px) {
+  .app-shell--site.app-shell--hero {
+    --cmid-hero-copy-start: 121px;
   }
 }
 

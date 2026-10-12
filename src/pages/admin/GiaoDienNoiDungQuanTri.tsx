@@ -20,9 +20,9 @@ import {
   newsCategoryKeys,
   type ArticleCategoryKey,
 } from '../../content/news-articles'
-import { AdminImageUpload } from './AdminImageUpload'
-import { AdminBangKhungXuong, AdminPageHeading, AdminPanel, AdminSelect } from './AdminPrimitives'
-import { isAdminDemoEnabled } from './admin-demo-auth'
+import { AdminImageUpload } from './TaiAnhLenQuanTri'
+import { AdminBangKhungXuong, AdminModalPortal, AdminPageHeading, AdminPanel, AdminSelect } from './ThanhPhanCoBanQuanTri'
+import { isAdminDemoEnabled } from './XacThucMauQuanTri'
 import {
   deleteProject,
   getAdminProjects as getAdminProjectsFromApi,
@@ -35,12 +35,11 @@ import {
   getAdminNewsArticles as getAdminNewsArticlesFromApi,
   resolveNewsImage,
   saveNewsArticle,
+  type NewsStatus,
   type NewsArticleRecord,
 } from '../../services/news.service'
-import {
-  ADMIN_CONTENT_UPDATED_EVENT,
-  type AdminPublishStatus,
-} from './admin-local-store'
+
+type AdminPublishStatus = NewsStatus
 
 interface AdminContentViewProps {
   onToast: (message: string) => void
@@ -152,11 +151,8 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
 
   useEffect(() => {
     const initialLoad = window.setTimeout(() => { void loadNews() }, 0)
-    const refresh = () => { void loadNews() }
-    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, refresh)
     return () => {
       window.clearTimeout(initialLoad)
-      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, refresh)
     }
   }, [loadNews])
 
@@ -324,18 +320,19 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
         )}
       />
 
-      <ContentToolbar
-        value={search}
-        onChange={setSearch}
-        placeholder="Tìm theo tiêu đề, nội dung hoặc chuyên mục..."
-        totalCount={isLoading ? undefined : articles.length}
-        totalLabel="Tổng số bài viết"
-      />
+      <section className="admin-searchable-workspace" aria-label="Danh sách bài viết">
+        <ContentToolbar
+          value={search}
+          onChange={setSearch}
+          placeholder="Tìm theo tiêu đề, nội dung hoặc chuyên mục..."
+          totalCount={isLoading ? undefined : articles.length}
+          totalLabel="Tổng số bài viết"
+        />
 
-      <AdminPanel className="admin-table-panel">
-        {isLoading ? <AdminBangKhungXuong columns={7} label="Đang tải danh sách bài viết" /> : (
-          <div className="admin-table-wrap">
-          <table className="admin-table">
+        <AdminPanel className="admin-table-panel admin-searchable-table-panel">
+          {isLoading ? <AdminBangKhungXuong columns={7} label="Đang tải danh sách bài viết" /> : (
+            <div className="admin-table-wrap admin-searchable-table-wrap">
+            <table className="admin-table admin-table--sticky-heading">
             <thead>
               <tr>
                 <th>Ảnh bìa</th>
@@ -391,9 +388,10 @@ export function AdminNewsView({ onToast }: AdminContentViewProps) {
           {filteredArticles.length === 0 ? (
             <ContentEmpty icon={<Newspaper size={31} />} text={loadError ?? 'Chưa có bài viết quản trị phù hợp.'} />
           ) : null}
-          </div>
-        )}
-      </AdminPanel>
+            </div>
+          )}
+        </AdminPanel>
+      </section>
 
       {dialogOpen ? (
         <ContentDialog
@@ -504,11 +502,8 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
 
   useEffect(() => {
     const initialLoad = window.setTimeout(() => { void loadProjects() }, 0)
-    const refresh = () => { void loadProjects() }
-    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, refresh)
     return () => {
       window.clearTimeout(initialLoad)
-      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, refresh)
     }
   }, [loadProjects])
 
@@ -662,18 +657,19 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
         )}
       />
 
-      <ContentToolbar
-        value={search}
-        onChange={setSearch}
-        placeholder="Tìm theo tên, địa điểm hoặc mô tả dự án..."
-        totalCount={isLoading ? undefined : projects.length}
-        totalLabel="Tổng số dự án"
-      />
+      <section className="admin-searchable-workspace" aria-label="Danh sách dự án">
+        <ContentToolbar
+          value={search}
+          onChange={setSearch}
+          placeholder="Tìm theo tên, địa điểm hoặc mô tả dự án..."
+          totalCount={isLoading ? undefined : projects.length}
+          totalLabel="Tổng số dự án"
+        />
 
-      <AdminPanel className="admin-table-panel">
-        {isLoading ? <AdminBangKhungXuong columns={6} label="Đang tải danh sách dự án" /> : (
-          <div className="admin-table-wrap">
-            <table className="admin-table">
+        <AdminPanel className="admin-table-panel admin-searchable-table-panel">
+          {isLoading ? <AdminBangKhungXuong columns={6} label="Đang tải danh sách dự án" /> : (
+            <div className="admin-table-wrap admin-searchable-table-wrap">
+              <table className="admin-table admin-table--sticky-heading">
               <thead>
                 <tr>
                   <th>Hình ảnh</th>
@@ -730,9 +726,10 @@ export function AdminProjectsView({ onToast }: AdminContentViewProps) {
                 text={loadError ?? 'Chưa có dự án quản trị phù hợp.'}
               />
             ) : null}
-          </div>
-        )}
-      </AdminPanel>
+            </div>
+          )}
+        </AdminPanel>
+      </section>
 
       {dialogOpen ? (
         <ContentDialog
@@ -885,8 +882,9 @@ function ContentDialog({
   children: ReactNode
 }) {
   return (
-    <div className="admin-dialog-backdrop" role="presentation" onMouseDown={onClose}>
-      <section
+    <AdminModalPortal>
+      <div className="admin-dialog-backdrop" role="presentation" onMouseDown={onClose}>
+        <section
         className="admin-dialog admin-dialog--wide"
         role="dialog"
         aria-modal="true"
@@ -898,8 +896,9 @@ function ContentDialog({
           <button type="button" onClick={onClose} aria-label="Đóng"><X size={19} /></button>
         </header>
         {children}
-      </section>
-    </div>
+        </section>
+      </div>
+    </AdminModalPortal>
   )
 }
 
@@ -926,8 +925,9 @@ function DeleteDialog({
   onConfirm: () => void
 }) {
   return (
-    <div className="admin-dialog-backdrop" role="presentation" onMouseDown={onCancel}>
-      <section
+    <AdminModalPortal>
+      <div className="admin-dialog-backdrop" role="presentation" onMouseDown={onCancel}>
+        <section
         className="admin-dialog admin-dialog--confirm"
         role="alertdialog"
         aria-modal="true"
@@ -940,8 +940,9 @@ function DeleteDialog({
             <Trash size={17} /> Xóa dữ liệu
           </button>
         </footer>
-      </section>
-    </div>
+        </section>
+      </div>
+    </AdminModalPortal>
   )
 }
 

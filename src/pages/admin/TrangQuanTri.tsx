@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import '../../styles/admin-styles/trang-quan-tri.css'
 import { KhungXuong } from '../../components/common/KhungXuong'
@@ -25,36 +25,38 @@ import {
   type AdminProductListFilters,
   type ProductSaleFilter,
   type ProductStatusFilter,
-} from './AdminCommerceViews'
-import { AdminNewsView, AdminProjectsView } from './AdminContentViews'
-import { AdminLayout } from './AdminLayout'
-import { canAccessAdminView, getFirstAccessibleAdminView, hasPermission } from './admin-permissions'
-import { AdminLanguageProvider } from './admin-language'
-import { AdminOperationalView } from './AdminOperationalViews'
-import { AdminHelpdeskView } from './AdminHelpdeskView'
-import { AdminProductEditor } from './AdminProductEditor'
-import { AdminBangKhungXuong, AdminToast } from './AdminPrimitives'
+} from './GiaoDienThuongMaiQuanTri'
+import { AdminNewsView, AdminProjectsView } from './GiaoDienNoiDungQuanTri'
+import { AdminLayout } from './BoCucQuanTri'
+import { canAccessAdminView, getFirstAccessibleAdminView, hasPermission } from './PhanQuyenQuanTri'
+import { AdminLanguageProvider } from './NgonNguQuanTri'
+import { AdminOperationalView } from './GiaoDienVanHanhQuanTri'
+import { AdminHelpdeskView } from './GiaoDienHoTroQuanTri'
+import { AdminEmployeeProfileView } from './HoSoNhanVienQuanTri'
+import { AdminProductEditor } from './TrinhSuaSanPhamQuanTri'
+import { AdminBangKhungXuong, AdminToast } from './ThanhPhanCoBanQuanTri'
 import { TrangDangNhapQuanTri } from './TrangDangNhapQuanTri'
-import { isAdminDemoEnabled } from './admin-demo-auth'
+import { isAdminDemoEnabled } from './XacThucMauQuanTri'
 import {
   isAdminUser,
   toAdminSession,
   type AdminRole,
   type AdminSession,
-} from './admin-auth'
+} from './XacThucQuanTri'
 import {
   ADMIN_DATABASE_UPDATED_EVENT,
+  clearLegacyAdminDatabase,
   getAdminDatabase,
+  hydrateAdminDatabase,
+  setAdminWorkspacePersistence,
   type AdminDatabase,
   type AdminOrder,
-} from './admin-database'
+} from './CoSoDuLieuQuanTri'
 import {
-  ADMIN_CONTENT_UPDATED_EVENT,
-  ADMIN_PRODUCTS_UPDATED_EVENT,
-  deleteAdminProduct,
-  saveAdminProduct,
-} from './admin-local-store'
-import { isAdminView, type AdminView } from './admin-navigation'
+  getAdminWorkspace,
+  replaceAdminWorkspace,
+} from '../../services/admin-workspace.service'
+import { isAdminView, type AdminView } from './DieuHuongQuanTri'
 
 const operationalViews = new Set<AdminView>([
   'categories',
@@ -216,12 +218,13 @@ function AdminSessionSkeleton() {
 }
 
 function AuthenticatedAdmin({
-  session,
+  session: initialSession,
   onSignOut,
 }: {
   session: AdminSession
   onSignOut: () => void
 }) {
+  const [session, setSession] = useState(initialSession)
   const { products, isLoading, errorMessage, retry, removeProduct: removeProductFromList } = useProducts({ includeModels: true })
   const [searchParams, setSearchParams] = useSearchParams()
   const [database, setDatabase] = useState<AdminDatabase>(() => {
@@ -234,7 +237,9 @@ function AuthenticatedAdmin({
   const [ordersError, setOrdersError] = useState<string | null>(null)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>()
   const [toast, setToast] = useState<string | null>(null)
-  const [contentVersion, setContentVersion] = useState(0)
+  const [isToastClosing, setIsToastClosing] = useState(false)
+  const toastCloseTimerRef = useRef<number | null>(null)
+  const previousToastRef = useRef<string | null>(null)
 
   const activeView = useMemo<AdminView>(() => {
     const requestedView = searchParams.get('view')
@@ -299,6 +304,35 @@ function AuthenticatedAdmin({
   }, [replaceServerOrders, session.permissions])
 
   useEffect(() => {
+    let isCurrent = true
+    setAdminWorkspacePersistence(async (nextDatabase) => {
+      await replaceAdminWorkspace(nextDatabase)
+    })
+
+    void getAdminWorkspace()
+      .then(async (state) => {
+        if (!isCurrent) return
+        const database = state.data ?? getAdminDatabase()
+        if (state.data === null) {
+          await replaceAdminWorkspace(database)
+        }
+        if (!isCurrent) return
+        hydrateAdminDatabase(database)
+        clearLegacyAdminDatabase()
+      })
+      .catch((error: unknown) => {
+        if (isCurrent) {
+          setToast(error instanceof Error ? error.message : 'Không thể đồng bộ dữ liệu quản trị với máy chủ.')
+        }
+      })
+
+    return () => {
+      isCurrent = false
+      setAdminWorkspacePersistence(null)
+    }
+  }, [])
+
+  useEffect(() => {
     function syncDatabase() {
       setDatabase((current) => ({
         ...getAdminDatabase(),
@@ -306,24 +340,40 @@ function AuthenticatedAdmin({
         returns: current.returns,
       }))
     }
-    function syncContent() {
-      setContentVersion((current) => current + 1)
-    }
     window.addEventListener(ADMIN_DATABASE_UPDATED_EVENT, syncDatabase)
-    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncContent)
-    window.addEventListener(ADMIN_PRODUCTS_UPDATED_EVENT, syncContent)
     return () => {
       window.removeEventListener(ADMIN_DATABASE_UPDATED_EVENT, syncDatabase)
-      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncContent)
-      window.removeEventListener(ADMIN_PRODUCTS_UPDATED_EVENT, syncContent)
     }
   }, [])
 
+  function closeToast() {
+    if (!toast || isToastClosing) return
+    setIsToastClosing(true)
+    if (toastCloseTimerRef.current !== null) window.clearTimeout(toastCloseTimerRef.current)
+    toastCloseTimerRef.current = window.setTimeout(() => {
+      setToast(null)
+      setIsToastClosing(false)
+      toastCloseTimerRef.current = null
+    }, 190)
+  }
+
   useEffect(() => {
-    if (!toast) return
-    const timeout = window.setTimeout(() => setToast(null), 3200)
-    return () => window.clearTimeout(timeout)
+    if (previousToastRef.current === toast) return
+    previousToastRef.current = toast
+    if (toastCloseTimerRef.current !== null) window.clearTimeout(toastCloseTimerRef.current)
+    toastCloseTimerRef.current = null
+    setIsToastClosing(false)
   }, [toast])
+
+  useEffect(() => {
+    if (!toast || isToastClosing) return undefined
+    const timeout = window.setTimeout(closeToast, 3200)
+    return () => window.clearTimeout(timeout)
+  }, [isToastClosing, toast])
+
+  useEffect(() => () => {
+    if (toastCloseTimerRef.current !== null) window.clearTimeout(toastCloseTimerRef.current)
+  }, [])
 
   function navigate(view: AdminView) {
     if (!canAccessAdminView(session.permissions, view)) return
@@ -340,6 +390,16 @@ function AuthenticatedAdmin({
       nextSearchParams,
       restoreProductsScroll ? { state: { restoreScroll: true } } : undefined,
     )
+  }
+
+  function openHelpdeskTicket(ticketId: string) {
+    if (!canAccessAdminView(session.permissions, 'helpdesk')) return
+    const nextSearchParams = new URLSearchParams(searchParams)
+    nextSearchParams.set('view', 'helpdesk')
+    nextSearchParams.set('ticket', ticketId)
+    nextSearchParams.delete('product')
+    setEditingProduct(undefined)
+    setSearchParams(nextSearchParams)
   }
 
   function updateProductListFilters(filters: AdminProductListFilters) {
@@ -415,14 +475,12 @@ function AuthenticatedAdmin({
 
   async function removeProduct(product: Product) {
     await deleteProduct(product.id, isAdminDemoEnabled)
-    deleteAdminProduct(product.id)
     removeProductFromList(product.id)
     setToast(`Đã xóa sản phẩm “${product.name}”.`)
   }
 
   async function changeProductStatus(product: Product, status: ProductStatus) {
     const savedProduct = await saveProduct({ ...product, status }, isAdminDemoEnabled)
-    saveAdminProduct(savedProduct)
     setEditingProduct((current) => current?.id === savedProduct.id ? savedProduct : current)
     setToast(`Đã cập nhật trạng thái “${savedProduct.name}”.`)
   }
@@ -434,6 +492,7 @@ function AuthenticatedAdmin({
         activeView={activeView}
         activities={database.activities}
         onNavigate={navigate}
+        onOpenHelpdeskTicket={openHelpdeskTicket}
         onSignOut={signOut}
         badges={{
           orders: database.orders.filter((order) => order.status === 'Chờ xác nhận').length,
@@ -512,22 +571,36 @@ function AuthenticatedAdmin({
         ) : null}
 
         {canAccessActiveView && activeView === 'news' ? (
-          <AdminNewsView key={`news-${contentVersion}`} onToast={setToast} />
+          <AdminNewsView onToast={setToast} />
         ) : null}
 
         {canAccessActiveView && activeView === 'projects' ? (
-          <AdminProjectsView key={`projects-${contentVersion}`} onToast={setToast} />
+          <AdminProjectsView onToast={setToast} />
         ) : null}
 
         {canAccessActiveView && activeView === 'helpdesk' ? (
           <AdminHelpdeskView onToast={setToast} />
         ) : null}
 
+        {canAccessActiveView && activeView === 'profile' ? (
+          <AdminEmployeeProfileView
+            session={session}
+            onUpdated={(profile) => {
+              setSession((current) => ({
+                ...current,
+                name: profile.fullName,
+                roleName: profile.roleName,
+              }))
+              setToast('Đã cập nhật thông tin cá nhân.')
+            }}
+          />
+        ) : null}
+
         {canAccessActiveView && operationalViews.has(activeView) ? (
           <AdminOperationalView view={activeView} database={database} onToast={setToast} />
         ) : null}
 
-        {toast ? <AdminToast message={toast} onClose={() => setToast(null)} /> : null}
+        {toast ? <AdminToast isClosing={isToastClosing} message={toast} onClose={closeToast} /> : null}
       </AdminLayout>
     </AdminLanguageProvider>
   )

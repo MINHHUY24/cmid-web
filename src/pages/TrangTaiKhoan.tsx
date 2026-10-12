@@ -27,7 +27,7 @@ import { KhungXuong } from '../components/common/KhungXuong'
 import type { AppLanguage, SiteContent } from '../content/site-content'
 import { useLanguage } from '../contexts/NgonNguContext'
 import { type CustomerProfile, useUser } from '../contexts/NguoiDungContext'
-import type { AdminOrder } from './admin/admin-database'
+import type { AdminOrder } from './admin/CoSoDuLieuQuanTri'
 import { getCustomerOrders } from '../services/order.service'
 import { formatCurrency } from '../utils/formatCurrency'
 

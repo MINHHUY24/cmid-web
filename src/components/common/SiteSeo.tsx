@@ -10,6 +10,8 @@ import heroShowroomImage from '../../assets/images/hero-showroom-cmid.png'
 import heroSolutionImage from '../../assets/images/hero-giai-phap-cmid.png'
 import logoImage from '../../assets/images/logo.webp'
 import { useLanguage } from '../../contexts/NgonNguContext'
+import { useSiteSettings } from '../../contexts/ThongTinWebsiteContext'
+import type { PublicSiteSettings } from '../../services/site-settings.service'
 import { getAbsoluteUrl, siteUrl } from '../../utils/seo'
 import { Seo, type SeoProps } from './Seo'
 
@@ -154,8 +156,9 @@ const metadata: Record<'vi' | 'en', Record<string, LocalizedPageMetadata>> = {
   },
 }
 
-function createHomeStructuredData(language: 'vi' | 'en') {
+function createHomeStructuredData(language: 'vi' | 'en', settings: PublicSiteSettings) {
   const inLanguage = language === 'vi' ? 'vi-VN' : 'en-US'
+  const phone = settings.phone.trim()
 
   return {
     '@context': 'https://schema.org',
@@ -163,14 +166,14 @@ function createHomeStructuredData(language: 'vi' | 'en') {
       {
         '@type': 'Organization',
         '@id': `${siteUrl}/#organization`,
-        name: 'CMID',
+        name: settings.businessName,
         url: `${siteUrl}/`,
         logo: getAbsoluteUrl(logoImage),
-        email: 'info@cmid.vn',
-        telephone: '+84 1800 6868',
+        email: settings.email,
+        telephone: phone,
         contactPoint: {
           '@type': 'ContactPoint',
-          telephone: '+84 1800 6868',
+          telephone: phone,
           contactType: 'customer service',
           availableLanguage: ['vi', 'en'],
         },
@@ -190,6 +193,7 @@ function createHomeStructuredData(language: 'vi' | 'en') {
 export function SiteSeo() {
   const { pathname } = useLocation()
   const { language } = useLanguage()
+  const { settings } = useSiteSettings()
   const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/+$/, '')
 
   if (/^\/products\/[^/]+$/.test(normalizedPath) || /^\/tin-tuc-su-kien\/[^/]+$/.test(normalizedPath)) {
@@ -215,7 +219,7 @@ export function SiteSeo() {
       {...page}
       language={language}
       canonicalPath={normalizedPath}
-      structuredData={normalizedPath === '/' ? createHomeStructuredData(language) : undefined}
+      structuredData={normalizedPath === '/' ? createHomeStructuredData(language, settings) : undefined}
     />
   )
 }

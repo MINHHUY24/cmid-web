@@ -1,4 +1,4 @@
-import type { AdminView } from './admin-navigation'
+import type { AdminView } from './DieuHuongQuanTri'
 
 export function hasPermission(grantedPermissions: string[], requiredPermission: string) {
   return grantedPermissions.some((permission) =>
@@ -28,6 +28,7 @@ const viewPermissions: Record<AdminView, string> = {
   showrooms: 'content.manage',
   reports: 'report.view',
   settings: 'settings.manage',
+  profile: 'admin.access',
   users: 'user.manage',
   helpdesk: 'helpdesk.access',
   roles: 'role.manage',

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -27,14 +27,7 @@ import { TrangDangNhapPage } from "../pages/TrangDangNhap";
 import { TrangTaiKhoanPage } from "../pages/TrangTaiKhoan";
 import { TrangBaoTriPage } from "../pages/TrangBaoTri";
 import { TrangKhongTimThayPage } from "../pages/TrangKhongTimThay";
-import {
-  ADMIN_DATABASE_UPDATED_EVENT,
-  getAdminDatabase,
-} from "../pages/admin/admin-database";
-import {
-  getSharedMaintenanceMode,
-  usesSharedMaintenanceMode,
-} from "../services/maintenance-mode.service";
+import { useSiteSettings } from "../contexts/ThongTinWebsiteContext";
 
 const TrangQuanTriPage = lazy(() =>
   import("../pages/admin/TrangQuanTri").then(({ TrangQuanTriPage }) => ({
@@ -68,11 +61,11 @@ function AppRoutes() {
           </Suspense>
         }
       />
+      <Route path="products/:id/3d" element={<ThreeDExperienceGate />} />
       <Route element={<PublicWebsiteGate />}>
         <Route index element={<TrangChuPage />} />
         <Route path="products" element={<TrangSanPhamPage />} />
         <Route path="products/:id" element={<TrangChiTietSanPham />} />
-        <Route path="products/:id/3d" element={<TrangTraiNghiem3D />} />
         <Route path="gio-hang" element={<TrangGioHangPage />} />
         <Route path="thanh-toan" element={<TrangThanhToanPage />} />
         <Route path="dang-nhap" element={<TrangDangNhapPage />} />
@@ -118,56 +111,17 @@ function AdminRouteFallback() {
 }
 
 function PublicWebsiteGate() {
-  const usesSharedMode = usesSharedMaintenanceMode();
-  const [isMaintenanceMode, setIsMaintenanceMode] = useState(
-    () => getAdminDatabase().settings.maintenanceMode,
-  );
-  const [isMaintenanceModeReady, setIsMaintenanceModeReady] = useState(
-    () => !usesSharedMode,
-  );
+  const { settings, isLoading } = useSiteSettings();
 
-  useEffect(() => {
-    let isCurrent = true;
-    const syncMaintenanceMode = () => {
-      if (!usesSharedMode) {
-        setIsMaintenanceMode(getAdminDatabase().settings.maintenanceMode);
-        setIsMaintenanceModeReady(true);
-        return;
-      }
+  if (isLoading) return null;
+  return settings.maintenanceMode ? <TrangBaoTriPage /> : <AppLayout />;
+}
 
-      void getSharedMaintenanceMode()
-        .then((maintenanceMode) => {
-          if (isCurrent) setIsMaintenanceMode(maintenanceMode);
-        })
-        .catch(() => {
-          if (isCurrent) {
-            setIsMaintenanceMode(getAdminDatabase().settings.maintenanceMode);
-          }
-        })
-        .finally(() => {
-          if (isCurrent) setIsMaintenanceModeReady(true);
-        });
-    };
+function ThreeDExperienceGate() {
+  const { settings, isLoading } = useSiteSettings();
 
-    window.addEventListener(ADMIN_DATABASE_UPDATED_EVENT, syncMaintenanceMode);
-    window.addEventListener("storage", syncMaintenanceMode);
-    syncMaintenanceMode();
-    const refreshInterval = usesSharedMode
-      ? window.setInterval(syncMaintenanceMode, 30_000)
-      : undefined;
-    return () => {
-      isCurrent = false;
-      window.removeEventListener(
-        ADMIN_DATABASE_UPDATED_EVENT,
-        syncMaintenanceMode,
-      );
-      window.removeEventListener("storage", syncMaintenanceMode);
-      if (refreshInterval) window.clearInterval(refreshInterval);
-    };
-  }, [usesSharedMode]);
-
-  if (!isMaintenanceModeReady) return null;
-  return isMaintenanceMode ? <TrangBaoTriPage /> : <AppLayout />;
+  if (isLoading) return null;
+  return settings.maintenanceMode ? <TrangBaoTriPage /> : <TrangTraiNghiem3D />;
 }
 
 const SCROLL_POSITION_PREFIX = "cmid-scroll-position:";
@@ -182,7 +136,7 @@ function ScrollRestoration() {
 
   useEffect(() => {
     if (location.pathname.startsWith("/admin")) {
-      document.title = "CMID | Quản trị";
+      document.title = "CMID | Khu vực nhân viên";
       const robots =
         document.head.querySelector<HTMLMetaElement>('meta[name="robots"]') ??
         document.head.appendChild(document.createElement("meta"));

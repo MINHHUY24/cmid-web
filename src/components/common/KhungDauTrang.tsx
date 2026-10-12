@@ -9,6 +9,7 @@ interface KhungDauTrangProps {
   actionLabel?: string;
   actionHref?: string;
   tone?: "sang" | "toi";
+  showDivider?: boolean;
 }
 
 export function KhungDauTrang({
@@ -19,12 +20,13 @@ export function KhungDauTrang({
   actionLabel,
   actionHref,
   tone = "sang",
+  showDivider = true,
 }: KhungDauTrangProps) {
   return (
     <section className={`khung-dau-trang khung-dau-trang--${tone}`}>
       <div className="khung-dau-trang__noi-dung">
         <h1>{title}</h1>
-        <span className="khung-dau-trang__duong-ke" aria-hidden="true" />
+        {showDivider ? <span className="khung-dau-trang__duong-ke" aria-hidden="true" /> : null}
         <p>{description}</p>
         {actionLabel && actionHref ? (
           <a className="button cmid-hero-action khung-dau-trang__button" href={actionHref}>

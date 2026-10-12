@@ -21,9 +21,9 @@ import { useMemo, useState, type CSSProperties, type FormEvent } from 'react'
 import { KhungXuong } from '../../components/common/KhungXuong'
 import type { Product, ProductStatus, SaleType } from '../../types/product'
 import { formatCurrency } from '../../utils/formatCurrency'
-import { AdminBangKhungXuong, AdminChiSoKhungXuong, AdminPageHeading, AdminPanel, AdminSelect, AdminStatus } from './AdminPrimitives'
-import type { AdminDatabase, AdminOrder } from './admin-database'
-import type { AdminView } from './admin-navigation'
+import { AdminBangKhungXuong, AdminChiSoKhungXuong, AdminModalPortal, AdminPageHeading, AdminPanel, AdminSelect, AdminStatus } from './ThanhPhanCoBanQuanTri'
+import type { AdminDatabase, AdminOrder } from './CoSoDuLieuQuanTri'
+import type { AdminView } from './DieuHuongQuanTri'
 
 type OrderFilter = 'ALL' | AdminOrder['status']
 type PaymentFilter = 'ALL' | AdminOrder['paymentStatus']
@@ -412,45 +412,46 @@ export function AdminProductsListView({
         </div>
       )}
 
-      <AdminPanel className="admin-toolbar admin-commerce-toolbar">
-        <label>
-          <MagnifyingGlass size={17} />
-          <input
-            value={filters.search}
-            onChange={(event) => onFiltersChange({ ...filters, search: event.target.value })}
-            placeholder="Tìm theo tên, mã SKU, thương hiệu..."
-          />
-        </label>
-        <div className="admin-commerce-toolbar__filters">
-          <AdminSelect className="admin-inline-select" value={filters.category} onChange={(category) => onFiltersChange({ ...filters, category })} aria-label="Lọc danh mục" options={[
-            { value: 'ALL', label: 'Tất cả danh mục' },
-            ...categories.map(([slug, name]) => ({ value: slug, label: name })),
-          ]} />
-          <AdminSelect className="admin-inline-select admin-commerce-toolbar__status-filter" value={filters.status} onChange={(value) => onFiltersChange({ ...filters, status: value as ProductStatusFilter })} aria-label="Lọc trạng thái" options={[
-            { value: 'ALL', label: 'Tất cả trạng thái' },
-            ...Object.entries(productStatusLabels).map(([value, label]) => ({ value, label })),
-          ]} />
-          <AdminSelect className="admin-inline-select" value={filters.saleType} onChange={(value) => onFiltersChange({ ...filters, saleType: value as ProductSaleFilter })} aria-label="Lọc loại bán" options={[
-            { value: 'ALL', label: 'Tất cả loại bán' },
-            ...Object.entries(saleTypeLabels).map(([value, label]) => ({ value, label })),
-          ]} />
-        </div>
-      </AdminPanel>
-
-      {isLoading ? (
-        <AdminPanel className="admin-table-panel"><AdminBangKhungXuong columns={8} label="Đang tải danh sách sản phẩm" /></AdminPanel>
-      ) : errorMessage ? (
-        <AdminPanel>
-          <div className="admin-empty">
-            <Package size={30} />
-            <p>{errorMessage}</p>
-            <button className="admin-button" type="button" onClick={onRetry}>Thử lại</button>
+      <section className="admin-searchable-workspace" aria-label="Danh sách sản phẩm">
+        <AdminPanel className="admin-toolbar admin-commerce-toolbar">
+          <label>
+            <MagnifyingGlass size={17} />
+            <input
+              value={filters.search}
+              onChange={(event) => onFiltersChange({ ...filters, search: event.target.value })}
+              placeholder="Tìm theo tên, mã SKU, thương hiệu..."
+            />
+          </label>
+          <div className="admin-commerce-toolbar__filters">
+            <AdminSelect className="admin-inline-select" value={filters.category} onChange={(category) => onFiltersChange({ ...filters, category })} aria-label="Lọc danh mục" options={[
+              { value: 'ALL', label: 'Tất cả danh mục' },
+              ...categories.map(([slug, name]) => ({ value: slug, label: name })),
+            ]} />
+            <AdminSelect className="admin-inline-select admin-commerce-toolbar__status-filter" value={filters.status} onChange={(value) => onFiltersChange({ ...filters, status: value as ProductStatusFilter })} aria-label="Lọc trạng thái" options={[
+              { value: 'ALL', label: 'Tất cả trạng thái' },
+              ...Object.entries(productStatusLabels).map(([value, label]) => ({ value, label })),
+            ]} />
+            <AdminSelect className="admin-inline-select" value={filters.saleType} onChange={(value) => onFiltersChange({ ...filters, saleType: value as ProductSaleFilter })} aria-label="Lọc loại bán" options={[
+              { value: 'ALL', label: 'Tất cả loại bán' },
+              ...Object.entries(saleTypeLabels).map(([value, label]) => ({ value, label })),
+            ]} />
           </div>
         </AdminPanel>
-      ) : (
-        <AdminPanel className="admin-table-panel">
-          <div className="admin-table-wrap">
-            <table className="admin-table">
+
+        {isLoading ? (
+          <AdminPanel className="admin-table-panel admin-searchable-table-panel"><AdminBangKhungXuong columns={8} label="Đang tải danh sách sản phẩm" /></AdminPanel>
+        ) : errorMessage ? (
+          <AdminPanel className="admin-searchable-table-panel">
+            <div className="admin-empty">
+              <Package size={30} />
+              <p>{errorMessage}</p>
+              <button className="admin-button" type="button" onClick={onRetry}>Thử lại</button>
+            </div>
+          </AdminPanel>
+        ) : (
+          <AdminPanel className="admin-table-panel admin-searchable-table-panel">
+            <div className="admin-table-wrap admin-searchable-table-wrap">
+              <table className="admin-table admin-table--sticky-heading">
               <thead>
                 <tr><th>Sản phẩm</th><th>Mã SKU</th><th>Danh mục</th><th>Giá bán</th><th>Loại bán</th><th>Tồn kho</th><th className="admin-table__cell--center">Trạng thái</th><th className="admin-table__cell--actions">Thao tác</th></tr>
               </thead>
@@ -496,13 +497,15 @@ export function AdminProductsListView({
               </tbody>
             </table>
           </div>
-          {visibleProducts.length === 0 ? <div className="admin-empty"><Package size={29} /><p>Không có sản phẩm phù hợp bộ lọc.</p></div> : null}
-        </AdminPanel>
-      )}
+            {visibleProducts.length === 0 ? <div className="admin-empty"><Package size={29} /><p>Không có sản phẩm phù hợp bộ lọc.</p></div> : null}
+          </AdminPanel>
+        )}
+      </section>
 
       {deletingProduct ? (
-        <div className="admin-dialog-backdrop" role="presentation" onMouseDown={closeDeleteDialog}>
-          <section
+        <AdminModalPortal>
+          <div className="admin-dialog-backdrop" role="presentation" onMouseDown={closeDeleteDialog}>
+            <section
             className="admin-dialog admin-dialog--confirm"
             role="alertdialog"
             aria-modal="true"
@@ -525,8 +528,9 @@ export function AdminProductsListView({
                 {isDeleting ? 'Đang xóa...' : 'Xóa sản phẩm'}
               </button>
             </footer>
-          </section>
-        </div>
+            </section>
+          </div>
+        </AdminModalPortal>
       ) : null}
     </>
   )
@@ -802,51 +806,53 @@ export function AdminOrdersView({
         ))}
       </div>
 
-      <AdminPanel className="admin-toolbar admin-commerce-toolbar">
-        <label>
-          <MagnifyingGlass size={17} />
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm mã đơn, khách hàng, sản phẩm..." />
-        </label>
-        <AdminSelect className="admin-inline-select admin-orders-toolbar__payment-filter" value={paymentFilter} onChange={(value) => setPaymentFilter(value as PaymentFilter)} aria-label="Lọc thanh toán" options={[
-          { value: 'ALL', label: 'Tất cả thanh toán' },
-          ...paymentStatuses.map((status) => ({ value: status, label: status })),
-        ]} />
-      </AdminPanel>
+      <section className="admin-orders-workspace" aria-label="Danh sách đơn hàng">
+        <AdminPanel className="admin-toolbar admin-commerce-toolbar">
+          <label>
+            <MagnifyingGlass size={17} />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm mã đơn, khách hàng, sản phẩm..." />
+          </label>
+          <AdminSelect className="admin-inline-select admin-orders-toolbar__payment-filter" value={paymentFilter} onChange={(value) => setPaymentFilter(value as PaymentFilter)} aria-label="Lọc thanh toán" options={[
+            { value: 'ALL', label: 'Tất cả thanh toán' },
+            ...paymentStatuses.map((status) => ({ value: status, label: status })),
+          ]} />
+        </AdminPanel>
 
-      <AdminPanel className="admin-table-panel">
-        {errorMessage ? (
-          <div className="admin-load-error" role="alert">
-            <p>{errorMessage}</p>
-            <button className="admin-button" type="button" onClick={onRetry}>Thử lại</button>
-          </div>
-        ) : null}
-        {actionError ? <p className="admin-form-error admin-orders-error" role="alert">{actionError}</p> : null}
-        {isLoading ? <AdminBangKhungXuong columns={7} label="Đang tải danh sách đơn hàng" /> : (
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead>
-                <tr><th>Mã đơn</th><th>Khách hàng</th><th>Sản phẩm</th><th>Tổng giá trị</th><th className="admin-table__cell--center">Thanh toán</th><th className="admin-table__cell--center">Trạng thái</th><th className="admin-table__cell--actions">Chi tiết</th></tr>
-              </thead>
-              <tbody>
-                {filteredOrders.map((order) => (
-                  <tr key={order.id}>
-                    <td><strong>{order.id}</strong><small>{formatDate(order.createdAt)}</small></td>
-                    <td>{order.customer}<small>{order.phone || order.email || 'Chưa có liên hệ'}</small></td>
-                    <td>{summarizeOrderItems(order)}</td>
-                    <td className="admin-table__price">{formatCurrency(order.total)}</td>
-                    <td className="admin-table__cell--center"><AdminStatus>{order.paymentStatus}</AdminStatus></td>
-                    <td className="admin-table__cell--center">
-                      <AdminSelect className="admin-inline-select admin-order-status-select" value={order.status} onChange={(value) => void updateStatus(order.id, value as AdminOrder['status'])} aria-label={`Trạng thái đơn ${order.id}`} options={orderStatusOptions} showAllOptions />
-                    </td>
-                    <td className="admin-table__cell--actions"><button className="admin-row-action" type="button" onClick={() => setSelectedOrder(order)} aria-label={`Xem đơn ${order.id}`}><Eye size={18} /></button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {!isLoading && !errorMessage && filteredOrders.length === 0 ? <div className="admin-empty"><ShoppingCartSimple size={29} /><p>Không có đơn hàng phù hợp bộ lọc.</p></div> : null}
-      </AdminPanel>
+        <AdminPanel className="admin-table-panel admin-orders-table-panel">
+          {errorMessage ? (
+            <div className="admin-load-error" role="alert">
+              <p>{errorMessage}</p>
+              <button className="admin-button" type="button" onClick={onRetry}>Thử lại</button>
+            </div>
+          ) : null}
+          {actionError ? <p className="admin-form-error admin-orders-error" role="alert">{actionError}</p> : null}
+          {isLoading ? <AdminBangKhungXuong columns={7} label="Đang tải danh sách đơn hàng" /> : (
+            <div className="admin-table-wrap admin-orders-table-wrap">
+              <table className="admin-table admin-table--sticky-heading">
+                <thead>
+                  <tr><th>Mã đơn</th><th>Khách hàng</th><th>Sản phẩm</th><th>Tổng giá trị</th><th className="admin-table__cell--center">Thanh toán</th><th className="admin-table__cell--center">Trạng thái</th><th className="admin-table__cell--actions">Chi tiết</th></tr>
+                </thead>
+                <tbody>
+                  {filteredOrders.map((order) => (
+                    <tr key={order.id}>
+                      <td><strong>{order.id}</strong><small>{formatDate(order.createdAt)}</small></td>
+                      <td>{order.customer}<small>{order.phone || order.email || 'Chưa có liên hệ'}</small></td>
+                      <td>{summarizeOrderItems(order)}</td>
+                      <td className="admin-table__price">{formatCurrency(order.total)}</td>
+                      <td className="admin-table__cell--center"><AdminStatus>{order.paymentStatus}</AdminStatus></td>
+                      <td className="admin-table__cell--center">
+                        <AdminSelect className="admin-inline-select admin-order-status-select" value={order.status} onChange={(value) => void updateStatus(order.id, value as AdminOrder['status'])} aria-label={`Trạng thái đơn ${order.id}`} options={orderStatusOptions} showAllOptions />
+                      </td>
+                      <td className="admin-table__cell--actions"><button className="admin-row-action" type="button" onClick={() => setSelectedOrder(order)} aria-label={`Xem đơn ${order.id}`}><Eye size={18} /></button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {!isLoading && !errorMessage && filteredOrders.length === 0 ? <div className="admin-empty"><ShoppingCartSimple size={29} /><p>Không có đơn hàng phù hợp bộ lọc.</p></div> : null}
+        </AdminPanel>
+      </section>
 
       {selectedOrder ? (
         <OrderDetailDialog
@@ -1152,7 +1158,10 @@ function MetricCard({
 function RevenueLineChart({ data }: { data: Array<{ key: string; label: string; value: number }> }) {
   const width = 680
   const height = 230
-  const plot = { top: 18, right: 18, bottom: 39, left: 48 }
+  // The final month label can be wider than the spacing left by the chart edge
+  // (for example, "Tháng 10"). Reserve a real text-safe gutter so the SVG
+  // viewport never clips the last label.
+  const plot = { top: 18, right: 42, bottom: 39, left: 48 }
   const maximumValue = Math.max(...data.map((item) => item.value), 0)
   const chartMaximum = getRevenueChartMaximum(maximumValue)
   const plotWidth = width - plot.left - plot.right
@@ -1292,8 +1301,9 @@ function OrderDetailDialog({
   }
 
   return (
-    <div className="admin-dialog-backdrop" role="presentation" onMouseDown={onClose}>
-      <section className="admin-dialog admin-order-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-order-detail-title" onMouseDown={(event) => event.stopPropagation()}>
+    <AdminModalPortal>
+      <div className="admin-dialog-backdrop" role="presentation" onMouseDown={onClose}>
+        <section className="admin-dialog admin-order-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-order-detail-title" onMouseDown={(event) => event.stopPropagation()}>
         <header>
           <div><h2 id="admin-order-detail-title">Chi tiết đơn {order.id}</h2><p>Được tạo lúc {formatDateTime(order.createdAt)}</p></div>
           <button type="button" onClick={onClose} aria-label="Đóng chi tiết"><X size={19} /></button>
@@ -1402,8 +1412,9 @@ function OrderDetailDialog({
           <button className="admin-button" type="button" onClick={onClose}>Đóng</button>
           <AdminSelect className="admin-inline-select admin-order-detail__status-select" value={order.status} disabled={isSaving} onChange={(value) => void onStatusChange(value as AdminOrder['status'])} aria-label="Cập nhật trạng thái đơn hàng" options={orderStatusOptions} showAllOptions />
         </footer>
-      </section>
-    </div>
+        </section>
+      </div>
+    </AdminModalPortal>
   )
 }
 

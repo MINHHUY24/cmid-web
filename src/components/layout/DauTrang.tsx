@@ -14,6 +14,7 @@ import { useCart } from '../../contexts/GioHangContext'
 import { useLanguage } from '../../contexts/NgonNguContext'
 import { useUser } from '../../contexts/NguoiDungContext'
 import { useColorTheme } from '../../hooks/useColorTheme'
+import { useSiteSettings } from '../../contexts/ThongTinWebsiteContext'
 import logoImage from '../../assets/images/logo.webp'
 
 const navLinkClassName = ({ isActive }: { isActive: boolean }): string =>
@@ -25,6 +26,7 @@ export function SiteHeader() {
   const { itemCount } = useCart()
   const { content, language, setLanguage } = useLanguage()
   const { user, isAuthLoading } = useUser()
+  const { settings } = useSiteSettings()
   const mainNavigation = [
     { label: content.header.home, to: '/' },
     { label: content.header.products, to: '/products' },
@@ -75,13 +77,13 @@ export function SiteHeader() {
       <div className="topbar">
         <div className="topbar__inner">
           <div className="topbar__contact">
-            <a href="tel:18006868">
+            <a href={`tel:${settings.phone.replaceAll(/[^+\d]/g, '')}`}>
               <Phone size={14} weight="fill" aria-hidden="true" />
-              {content.header.hotline} 1800 6868
+              {content.header.hotline} {settings.phone}
             </a>
-            <a href="mailto:info@cmid.vn">
+            <a href={`mailto:${settings.email}`}>
               <EnvelopeSimple size={14} weight="fill" aria-hidden="true" />
-              info@cmid.vn
+              {settings.email}
             </a>
           </div>
           <div className="topbar__actions">

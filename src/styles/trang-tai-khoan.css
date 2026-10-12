@@ -730,9 +730,10 @@
   background: var(--site-surface-solid, var(--cmid-palette-rgb-255-253-249-alpha-56p));
 }
 
+.account-order-search:hover,
 .account-order-search:focus-within {
-  border-color: var(--site-gold, var(--cmid-palette-bf8735));
-  box-shadow: 0 0 0 3px var(--cmid-palette-rgb-191-135-53-alpha-14p);
+  border-color: var(--site-line, var(--cmid-palette-rgb-179-124-44-alpha-22p));
+  box-shadow: none;
 }
 
 .account-order-search > svg {

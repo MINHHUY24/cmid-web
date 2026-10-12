@@ -2,6 +2,8 @@ import {
   CaretDown,
   Check,
   CheckCircle,
+  Eye,
+  EyeSlash,
   MagnifyingGlass,
   Package,
   PencilSimple,
@@ -12,10 +14,10 @@ import {
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { KhungXuong } from '../../components/common/KhungXuong'
-import { AdminImageUpload } from './AdminImageUpload'
-import { createAdminId } from './admin-database'
-import { getLocalizedAdminError } from './admin-error-message'
-import { useAdminCopy } from './admin-language-context'
+import { AdminImageUpload } from './TaiAnhLenQuanTri'
+import { createAdminId } from './CoSoDuLieuQuanTri'
+import { getLocalizedAdminError } from './ThongBaoLoiQuanTri'
+import { useAdminCopy } from './NguCanhNgonNguQuanTri'
 
 export function AdminPageHeading({
   title,
@@ -173,10 +175,12 @@ export function AdminSelect({
   const fallbackValue = options[0]?.value ?? ''
   const [internalValue, setInternalValue] = useState(defaultValue ?? fallbackValue)
   const [isOpen, setIsOpen] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
   const [menuPosition, setMenuPosition] = useState<{ left: number; top: number; width: number; opensAbove: boolean } | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const closeTimerRef = useRef<number | null>(null)
   const menuId = useId()
   const selectedValue = isControlled ? value : internalValue
   const selectedOption = options.find((option) => option.value === selectedValue) ?? options[0]
@@ -200,28 +204,46 @@ export function AdminSelect({
 
   function openMenu() {
     if (disabled) return
+    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current)
+    closeTimerRef.current = null
+    setIsClosing(false)
     setIsOpen(true)
     requestAnimationFrame(updateMenuPosition)
+  }
+
+  function closeMenu(shouldRestoreFocus = false) {
+    if (!isOpen && !isClosing) return
+    setIsOpen(false)
+    setIsClosing(true)
+    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current)
+    closeTimerRef.current = window.setTimeout(() => {
+      setIsClosing(false)
+      setMenuPosition(null)
+      closeTimerRef.current = null
+    }, 180)
+    if (shouldRestoreFocus) requestAnimationFrame(() => triggerRef.current?.focus())
   }
 
   function selectOption(nextValue: string) {
     if (!isControlled) setInternalValue(nextValue)
     onChange?.(nextValue)
-    setIsOpen(false)
-    requestAnimationFrame(() => triggerRef.current?.focus())
+    closeMenu(true)
   }
+
+  useEffect(() => () => {
+    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current)
+  }, [])
 
   useEffect(() => {
     if (!isOpen) return undefined
     const closeOnOutsideInteraction = (event: Event) => {
       const target = event.target
       if (!(target instanceof Node)) return
-      if (!rootRef.current?.contains(target) && !menuRef.current?.contains(target)) setIsOpen(false)
+      if (!rootRef.current?.contains(target) && !menuRef.current?.contains(target)) closeMenu()
     }
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
-      setIsOpen(false)
-      triggerRef.current?.focus()
+      closeMenu(true)
     }
     const updatePositionOnViewportScroll = (event: Event) => {
       // The menu itself is scrollable. Recalculating its position for that
@@ -271,14 +293,14 @@ export function AdminSelect({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={isOpen ? menuId : undefined}
-        onClick={() => (isOpen ? setIsOpen(false) : openMenu())}
+        onClick={() => (isOpen ? closeMenu() : openMenu())}
       >
         <span>{selectedOption?.label ?? 'Chọn giá trị'}</span>
         <CaretDown size={17} weight="bold" aria-hidden="true" />
       </button>
-      {isOpen && typeof document !== 'undefined' && menuPosition ? createPortal(
+      {(isOpen || isClosing) && typeof document !== 'undefined' && menuPosition ? createPortal(
         <div
-          className={`admin-select__menu${hasStatusOptions ? ' admin-select__menu--status' : ''}${showAllOptions ? ' admin-select__menu--show-all' : ''}${menuPosition.opensAbove ? ' admin-select__menu--above' : ''}`}
+          className={`admin-select__menu${hasStatusOptions ? ' admin-select__menu--status' : ''}${showAllOptions ? ' admin-select__menu--show-all' : ''}${menuPosition.opensAbove ? ' admin-select__menu--above' : ''}${isClosing ? ' is-closing' : ''}`}
           id={menuId}
           ref={menuRef}
           role="listbox"
@@ -309,15 +331,21 @@ export function AdminSelect({
   )
 }
 
-export function AdminToast({ message, onClose }: { message: string; onClose: () => void }) {
+export function AdminToast({ message, onClose, isClosing = false }: { message: string; onClose: () => void; isClosing?: boolean }) {
   const { t } = useAdminCopy()
   return (
-    <div className="admin-toast" role="status">
+    <div className={`admin-toast${isClosing ? ' is-closing' : ''}`} role="status">
       <CheckCircle size={19} weight="fill" />
       <span>{t(message)}</span>
       <button type="button" onClick={onClose} aria-label={t('Đóng')}><X size={16} /></button>
     </div>
   )
+}
+
+/** Keeps a modal above the entire admin shell, including the sidebar and top bar. */
+export function AdminModalPortal({ children }: { children: ReactNode }) {
+  if (typeof document === 'undefined') return null
+  return createPortal(children, document.body)
 }
 
 export type AdminEditableRecord = { id: string; [key: string]: unknown }
@@ -345,6 +373,51 @@ export interface AdminFieldConfig {
   options?: Array<{ value: string; label: string }>
   helper?: string
   readOnly?: boolean
+}
+
+function AdminPasswordInput({
+  name,
+  defaultValue,
+  placeholder,
+  required,
+  readOnly,
+}: {
+  name: string
+  defaultValue: string
+  placeholder?: string
+  required: boolean
+  readOnly?: boolean
+}) {
+  const { t } = useAdminCopy()
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const inputId = useId()
+
+  return (
+    <div className="admin-password-input">
+      <input
+        id={inputId}
+        name={name}
+        type={isPasswordVisible ? 'text' : 'password'}
+        defaultValue={defaultValue}
+        placeholder={placeholder}
+        required={required}
+        readOnly={readOnly}
+        autoComplete="new-password"
+      />
+      <button
+        className="admin-password-input__toggle"
+        type="button"
+        aria-controls={inputId}
+        aria-pressed={isPasswordVisible}
+        aria-label={isPasswordVisible ? t('Ẩn mật khẩu') : t('Hiện mật khẩu')}
+        onClick={() => setIsPasswordVisible((isVisible) => !isVisible)}
+      >
+        {isPasswordVisible
+          ? <Eye size={19} aria-hidden="true" />
+          : <EyeSlash size={19} aria-hidden="true" />}
+      </button>
+    </div>
+  )
 }
 
 export interface AdminColumnConfig {
@@ -403,13 +476,17 @@ export function AdminCollectionManager({
   const [search, setSearch] = useState('')
   const [editing, setEditing] = useState<AdminEditableRecord | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [isEditorClosing, setIsEditorClosing] = useState(false)
   const [deleting, setDeleting] = useState<AdminEditableRecord | null>(null)
+  const [isDeleteDialogClosing, setIsDeleteDialogClosing] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [editorError, setEditorError] = useState<string | null>(null)
   const [fieldOverrides, setFieldOverrides] = useState<Record<string, string>>({})
   const [inlineStatusError, setInlineStatusError] = useState<string | null>(null)
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
+  const editorCloseTimerRef = useRef<number | null>(null)
+  const deleteCloseTimerRef = useRef<number | null>(null)
 
   const inlineStatusField = fields.find(
     (field) => field.key === 'status' && field.type === 'select' && (field.options?.length ?? 0) > 0,
@@ -437,6 +514,9 @@ export function AdminCollectionManager({
   }))
 
   function openEditor(record?: AdminEditableRecord) {
+    if (editorCloseTimerRef.current !== null) window.clearTimeout(editorCloseTimerRef.current)
+    editorCloseTimerRef.current = null
+    setIsEditorClosing(false)
     setEditing(record ?? null)
     setEditorError(null)
     setFieldOverrides({})
@@ -444,16 +524,47 @@ export function AdminCollectionManager({
   }
 
   function closeEditor() {
+    if (!dialogOpen && !isEditorClosing) return
     setDialogOpen(false)
-    setEditing(null)
-    setEditorError(null)
-    setFieldOverrides({})
+    setIsEditorClosing(true)
+    if (editorCloseTimerRef.current !== null) window.clearTimeout(editorCloseTimerRef.current)
+    editorCloseTimerRef.current = window.setTimeout(() => {
+      setIsEditorClosing(false)
+      setEditing(null)
+      setEditorError(null)
+      setFieldOverrides({})
+      editorCloseTimerRef.current = null
+    }, 190)
   }
 
   function requestDelete(record: AdminEditableRecord) {
+    if (deleteCloseTimerRef.current !== null) window.clearTimeout(deleteCloseTimerRef.current)
+    deleteCloseTimerRef.current = null
+    setIsDeleteDialogClosing(false)
     setDeleteError(null)
     setDeleting(record)
   }
+
+  function finishClosingDeleteDialog() {
+    setIsDeleteDialogClosing(true)
+    if (deleteCloseTimerRef.current !== null) window.clearTimeout(deleteCloseTimerRef.current)
+    deleteCloseTimerRef.current = window.setTimeout(() => {
+      setIsDeleteDialogClosing(false)
+      setDeleting(null)
+      setDeleteError(null)
+      deleteCloseTimerRef.current = null
+    }, 190)
+  }
+
+  function closeDeleteDialog() {
+    if (isDeleting || (!deleting && !isDeleteDialogClosing)) return
+    finishClosingDeleteDialog()
+  }
+
+  useEffect(() => () => {
+    if (editorCloseTimerRef.current !== null) window.clearTimeout(editorCloseTimerRef.current)
+    if (deleteCloseTimerRef.current !== null) window.clearTimeout(deleteCloseTimerRef.current)
+  }, [])
 
   async function confirmDelete() {
     if (!deleting || isDeleting) return
@@ -462,7 +573,7 @@ export function AdminCollectionManager({
     setIsDeleting(true)
     try {
       await onDelete(deleting.id)
-      setDeleting(null)
+      finishClosingDeleteDialog()
     } catch (error) {
       setDeleteError(getLocalizedAdminError(error, language, t('Không thể xóa dữ liệu.')))
     } finally {
@@ -533,18 +644,19 @@ export function AdminCollectionManager({
         ) : headingAction}
       />
 
-      <AdminPanel className="admin-toolbar">
-        <label>
-          <MagnifyingGlass size={17} />
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t(searchPlaceholder)} />
-        </label>
-      </AdminPanel>
+      <section className="admin-searchable-workspace" aria-label={`${t('Danh sách')} ${t(singularLabel)}`}>
+        <AdminPanel className="admin-toolbar">
+          <label>
+            <MagnifyingGlass size={17} />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t(searchPlaceholder)} />
+          </label>
+        </AdminPanel>
 
-      {inlineStatusError ? <p className="admin-form-error" role="alert">{inlineStatusError}</p> : null}
+        {inlineStatusError ? <p className="admin-form-error" role="alert">{inlineStatusError}</p> : null}
 
-      <AdminPanel className="admin-table-panel">
-        <div className="admin-table-wrap">
-          <table className={`admin-table ${tableClassName}`.trim()}>
+        <AdminPanel className="admin-table-panel admin-searchable-table-panel">
+          <div className="admin-table-wrap admin-searchable-table-wrap">
+            <table className={`admin-table admin-table--sticky-heading ${tableClassName}`.trim()}>
             <thead>
               <tr>
                 {columns.map((column) => (
@@ -585,12 +697,14 @@ export function AdminCollectionManager({
           {filteredRows.length === 0 ? (
             <div className="admin-empty"><Package size={30} /><p>{t('Chưa có dữ liệu phù hợp.')}</p></div>
           ) : null}
-        </div>
-      </AdminPanel>
+          </div>
+        </AdminPanel>
+      </section>
 
-      {dialogOpen ? (
-        <div className="admin-dialog-backdrop" role="presentation" onMouseDown={closeEditor}>
-          <section className="admin-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-editor-title" onMouseDown={(event) => event.stopPropagation()}>
+      {dialogOpen || isEditorClosing ? (
+        <AdminModalPortal>
+          <div className={`admin-dialog-backdrop${isEditorClosing ? ' is-closing' : ''}`} role="presentation" onMouseDown={closeEditor}>
+            <section className={`admin-dialog${isEditorClosing ? ' is-closing' : ''}`} role="dialog" aria-modal={dialogOpen} aria-labelledby="admin-editor-title" onMouseDown={(event) => event.stopPropagation()}>
             <header>
               <div><h2 id="admin-editor-title">{editing ? `${t('Cập nhật')} ${t(singularLabel)}` : `${t('Thêm')} ${t(singularLabel)}`}</h2><p>{t('Dữ liệu được lưu ngay sau khi xác nhận.')}</p></div>
               <button type="button" onClick={closeEditor} aria-label={t('Đóng')}><X size={19} /></button>
@@ -655,9 +769,17 @@ export function AdminCollectionManager({
                           onChange={(value) => setFieldOverrides((current) => ({ ...current, [field.key]: value }))}
                           defaultValue={String(initialValue ?? field.options?.[0]?.value ?? '')}
                           options={field.options ?? []}
-                          required={field.required || (field.requiredOnCreate && !editing)}
+                          required={Boolean(field.required || (field.requiredOnCreate && !editing))}
                           disabled={field.readOnly}
                           aria-label={field.label}
+                        />
+                      ) : field.type === 'password' ? (
+                        <AdminPasswordInput
+                          name={field.key}
+                          defaultValue={String(initialValue ?? '')}
+                          placeholder={field.placeholder}
+                          required={Boolean(field.required || (field.requiredOnCreate && !editing))}
+                          readOnly={field.readOnly}
                         />
                       ) : (
                         field.suffix ? (
@@ -677,18 +799,21 @@ export function AdminCollectionManager({
               </div>
               <footer><button className="admin-button" type="button" onClick={closeEditor}>{t('Hủy')}</button><button className="admin-button admin-button--primary" type="submit">{t('Lưu thay đổi')}</button></footer>
             </form>
-          </section>
-        </div>
+            </section>
+          </div>
+        </AdminModalPortal>
       ) : null}
 
       {deleting ? (
-        <div className="admin-dialog-backdrop" role="presentation" onMouseDown={() => { if (!isDeleting) setDeleting(null) }}>
-          <section className="admin-dialog admin-dialog--confirm" role="alertdialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
+        <AdminModalPortal>
+          <div className={`admin-dialog-backdrop${isDeleteDialogClosing ? ' is-closing' : ''}`} role="presentation" onMouseDown={closeDeleteDialog}>
+            <section className={`admin-dialog admin-dialog--confirm${isDeleteDialogClosing ? ' is-closing' : ''}`} role="alertdialog" aria-modal={!isDeleteDialogClosing} onMouseDown={(event) => event.stopPropagation()}>
             <header><div><h2>{t('Xóa')} {t(singularLabel)}?</h2><p>{t(deleteDescription ?? 'Dữ liệu này sẽ bị gỡ khỏi bản quản trị cục bộ.')}</p></div></header>
             {deleteError ? <p className="admin-form-error" role="alert">{deleteError}</p> : null}
-            <footer><button className="admin-button" type="button" disabled={isDeleting} onClick={() => setDeleting(null)}>{t('Giữ lại')}</button><button className="admin-button admin-button--danger" type="button" disabled={isDeleting} onClick={() => void confirmDelete()}>{isDeleting ? t('Đang xóa...') : t('Xóa dữ liệu')}</button></footer>
-          </section>
-        </div>
+            <footer><button className="admin-button" type="button" disabled={isDeleting} onClick={closeDeleteDialog}>{t('Giữ lại')}</button><button className="admin-button admin-button--danger" type="button" disabled={isDeleting} onClick={() => void confirmDelete()}>{isDeleting ? t('Đang xóa...') : t('Xóa dữ liệu')}</button></footer>
+            </section>
+          </div>
+        </AdminModalPortal>
       ) : null}
     </>
   )

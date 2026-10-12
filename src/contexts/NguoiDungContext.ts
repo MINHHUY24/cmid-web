@@ -7,6 +7,7 @@ export interface AuthenticatedUser {
   email: string
   picture?: string
   role: AuthenticatedRole
+  roleName?: string
   permissions: string[]
   emailVerified: boolean
 }

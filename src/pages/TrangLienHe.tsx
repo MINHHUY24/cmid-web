@@ -16,19 +16,12 @@ import heroImage from '../assets/images/hero-lien-he-cmid.png'
 import { CamKetDichVu } from '../components/common/CamKetDichVu'
 import { KhungDauTrang } from '../components/common/KhungDauTrang'
 import { useLanguage } from '../contexts/NgonNguContext'
+import { useSiteSettings } from '../contexts/ThongTinWebsiteContext'
 import { createContactInquiry } from '../services/inquiry.service'
-import {
-  ADMIN_DATABASE_UPDATED_EVENT,
-  getAdminDatabase,
-  type AdminShowroom,
-} from './admin/admin-database'
+import { getPublishedShowrooms, type Showroom } from '../services/showroom.service'
 
-function getActiveShowrooms() {
-  return getAdminDatabase().showrooms.filter((showroom) => showroom.status === 'ACTIVE')
-}
-
-function getDirectionsUrl(showroom: AdminShowroom) {
-  const configuredMapUrl = showroom.mapUrl.trim()
+function getDirectionsUrl(showroom: Showroom) {
+  const configuredMapUrl = showroom.mapUrl?.trim() ?? ''
   const isGenericMapsHome = /^https?:\/\/(?:www\.)?maps\.google\.com\/?$/i.test(configuredMapUrl)
 
   if (configuredMapUrl && !isGenericMapsHome) {
@@ -49,11 +42,21 @@ export function TrangLienHePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submissionError, setSubmissionError] = useState<string | null>(null)
   const [successNotice, setSuccessNotice] = useState<string | null>(null)
-  const [showrooms, setShowrooms] = useState(getActiveShowrooms)
+  const [showrooms, setShowrooms] = useState<Showroom[]>([])
   const subjectDropdownRef = useRef<HTMLDivElement>(null)
-  const { content } = useLanguage()
+  const { content, language } = useLanguage()
+  const { settings } = useSiteSettings()
   const { contact } = content
   const primaryShowroom = showrooms[0]
+  const businessHours = language === 'en'
+    ? {
+        weekday: `Weekdays: ${settings.weekdayHours}`,
+        weekend: `Weekend: ${settings.weekendHours}`,
+      }
+    : {
+        weekday: `Ngày thường: ${settings.weekdayHours}`,
+        weekend: `Cuối tuần: ${settings.weekendHours}`,
+      }
   const siteToastRoot = typeof document !== 'undefined'
     ? document.getElementById('site-toast-root')
     : null
@@ -70,14 +73,13 @@ export function TrangLienHePage() {
   }, [])
 
   useEffect(() => {
-    const syncShowrooms = () => setShowrooms(getActiveShowrooms())
-
-    window.addEventListener(ADMIN_DATABASE_UPDATED_EVENT, syncShowrooms)
-    window.addEventListener('storage', syncShowrooms)
-    return () => {
-      window.removeEventListener(ADMIN_DATABASE_UPDATED_EVENT, syncShowrooms)
-      window.removeEventListener('storage', syncShowrooms)
-    }
+    let isCurrent = true
+    void getPublishedShowrooms()
+      .then((next) => {
+        if (isCurrent) setShowrooms(next)
+      })
+      .catch(() => undefined)
+    return () => { isCurrent = false }
   }, [])
 
   useEffect(() => {
@@ -144,25 +146,26 @@ export function TrangLienHePage() {
         description={contact.heroDescription}
         image={heroImage}
         imageAlt="Không gian tư vấn nội thất tại CMID"
+        showDivider={false}
       />
 
       <div className="contact-shell khung-noi-dung">
         <section className="contact-info-strip" aria-label={contact.quickInfoLabel}>
           <article>
             <Phone size={31} weight="thin" aria-hidden="true" />
-            <div><h2>{contact.phone}</h2><a href="tel:02838386173">028 3838 6173</a><p>{contact.phoneDescription}</p></div>
+            <div><h2>{contact.phone}</h2><a href={`tel:${settings.phone.replaceAll(/[^+\d]/g, '')}`}>{settings.phone}</a><p>{contact.phoneDescription}</p></div>
           </article>
           <article>
             <EnvelopeSimple size={31} weight="thin" aria-hidden="true" />
-            <div><h2>{contact.email}</h2><a href="mailto:info@cmid.vn">info@cmid.vn</a><p>{contact.emailDescription}</p></div>
+            <div><h2>{contact.email}</h2><a href={`mailto:${settings.email}`}>{settings.email}</a><p>{contact.emailDescription}</p></div>
           </article>
           <article>
             <MapPin size={31} weight="thin" aria-hidden="true" />
-            <div><h2>{contact.mainShowroom}</h2><p>{primaryShowroom?.address ?? 'Chưa có showroom đang hoạt động'}</p></div>
+            <div><h2>{contact.mainShowroom}</h2><p>{primaryShowroom?.address ?? settings.address}</p></div>
           </article>
           <article>
             <Clock size={31} weight="thin" aria-hidden="true" />
-            <div><h2>{contact.openingHours}</h2><p>{primaryShowroom?.hours ?? contact.hours[0]}</p><p>{contact.openingHoursDescription}</p></div>
+            <div><h2>{contact.openingHours}</h2><p>{businessHours.weekday}</p><p>{businessHours.weekend}</p></div>
           </article>
         </section>
 
@@ -251,7 +254,7 @@ export function TrangLienHePage() {
                   <h3>{showroom.name}</h3>
                   <p>{showroom.address}</p>
                   <div className="contact-showrooms__actions">
-                    {showroom.phone ? <a href={`tel:${showroom.phone.replaceAll(' ', '')}`}>{showroom.phone}</a> : null}
+                    {showroom.phone ? <a href={`tel:${showroom.phone.replaceAll(/[^+\d]/g, '')}`}>{showroom.phone}</a> : null}
                     <a href={getDirectionsUrl(showroom)} target="_blank" rel="noreferrer"><MapPin size={15} weight="fill" aria-hidden="true" />{contact.directions}</a>
                   </div>
                 </div>

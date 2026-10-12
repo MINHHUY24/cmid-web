@@ -22,6 +22,7 @@ import {
   LayoutDashboard,
   Layers3,
   MessageSquareQuote,
+  CircleUserRound,
   Store,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
@@ -46,6 +47,7 @@ export type AdminView =
   | 'showrooms'
   | 'reports'
   | 'settings'
+  | 'profile'
   | 'users'
   | 'helpdesk'
   | 'roles'
@@ -104,6 +106,7 @@ export const adminMenuGroups: Array<{ label: string; items: AdminNavItem[] }> = 
   {
     label: 'Quản lý hệ thống',
     items: [
+      { id: 'profile', label: 'Thông tin cá nhân', icon: <CircleUserRound size={19} /> },
       { id: 'settings', label: 'Cấu hình', icon: <GearSix size={19} /> },
       { id: 'users', label: 'Nhân viên', icon: <UserGear size={19} /> },
       { id: 'helpdesk', label: 'Hỗ trợ IT', icon: <Headset size={19} /> },
@@ -133,6 +136,7 @@ export const adminViewMeta: Record<AdminView, { label: string; description: stri
   showrooms: { label: 'Showroom', description: 'Quản lý địa chỉ, bản đồ và giờ hoạt động.' },
   reports: { label: 'Báo cáo', description: 'Tổng hợp doanh thu, đơn hàng, khách hàng và sản phẩm.' },
   settings: { label: 'Cấu hình', description: 'Thiết lập thông tin doanh nghiệp và chính sách bán hàng.' },
+  profile: { label: 'Thông tin cá nhân', description: 'Cập nhật thông tin liên hệ của tài khoản đang đăng nhập.' },
   users: { label: 'Nhân viên', description: 'Quản lý tài khoản nội bộ được phép truy cập khu vực admin.' },
   helpdesk: { label: 'Hỗ trợ IT', description: 'Gửi yêu cầu nội bộ và trao đổi với bộ phận IT trong một luồng theo dõi rõ ràng.' },
   roles: { label: 'Phân quyền', description: 'Thiết lập vai trò và phạm vi thao tác.' },

@@ -382,6 +382,10 @@ function cloneSeed(): AdminDatabase {
   return JSON.parse(JSON.stringify(seedDatabase)) as AdminDatabase
 }
 
+let inMemoryDatabase: AdminDatabase | null = null
+let workspacePersistence: ((database: AdminDatabase) => Promise<void>) | null = null
+let pendingWorkspaceSave: Promise<void> = Promise.resolve()
+
 export function createAdminId(prefix: string) {
   const randomId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID().slice(0, 8)
@@ -391,46 +395,45 @@ export function createAdminId(prefix: string) {
 
 export function getAdminDatabase(): AdminDatabase {
   if (typeof window === 'undefined') return cloneSeed()
+  if (inMemoryDatabase) return inMemoryDatabase
 
   try {
     const saved = window.localStorage.getItem(ADMIN_DATABASE_KEY)
-    if (!saved) return cloneSeed()
+    if (!saved) {
+      inMemoryDatabase = cloneSeed()
+      return inMemoryDatabase
+    }
     const parsed = JSON.parse(saved) as Partial<AdminDatabase> & {
       documents?: unknown
       quotes?: unknown
     }
-    let hasRemovedFeatureData = false
-    if ('documents' in parsed) {
-      delete parsed.documents
-      hasRemovedFeatureData = true
-    }
-    if ('quotes' in parsed) {
-      delete parsed.quotes
-      hasRemovedFeatureData = true
-    }
-    if (parsed.activities) {
-      const retainedActivities = parsed.activities.filter((activity) => (
-        activity.module !== 'Tài liệu' && activity.module !== 'Báo giá'
-      ))
-      if (retainedActivities.length !== parsed.activities.length) {
-        parsed.activities = retainedActivities
-        hasRemovedFeatureData = true
-      }
-    }
-    if (hasRemovedFeatureData) {
-      window.localStorage.setItem(ADMIN_DATABASE_KEY, JSON.stringify(parsed))
-    }
-    const seed = cloneSeed()
-    return {
-      ...seed,
-      ...parsed,
-      settings: {
-        ...seed.settings,
-        ...(parsed.settings ?? {}),
-      },
-    }
+    inMemoryDatabase = normalizeAdminDatabase(parsed)
+    return inMemoryDatabase
   } catch {
-    return cloneSeed()
+    inMemoryDatabase = cloneSeed()
+    return inMemoryDatabase
+  }
+}
+
+export function hydrateAdminDatabase(database: AdminDatabase) {
+  inMemoryDatabase = normalizeAdminDatabase(database)
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(ADMIN_DATABASE_UPDATED_EVENT))
+  }
+  return inMemoryDatabase
+}
+
+export function setAdminWorkspacePersistence(
+  persistence: ((database: AdminDatabase) => Promise<void>) | null,
+) {
+  workspacePersistence = persistence
+}
+
+export function clearLegacyAdminDatabase() {
+  try {
+    window.localStorage.removeItem(ADMIN_DATABASE_KEY)
+  } catch {
+    // The server copy remains canonical even when browser storage is unavailable.
   }
 }
 
@@ -444,7 +447,13 @@ export function getPaymentQrTimeoutSeconds() {
 
 export function saveAdminDatabase(database: AdminDatabase) {
   if (typeof window === 'undefined') return
-  window.localStorage.setItem(ADMIN_DATABASE_KEY, JSON.stringify(database))
+  inMemoryDatabase = normalizeAdminDatabase(database)
+  if (workspacePersistence) {
+    const snapshot = inMemoryDatabase
+    pendingWorkspaceSave = pendingWorkspaceSave
+      .catch(() => undefined)
+      .then(() => workspacePersistence?.(snapshot) ?? undefined)
+  }
   window.dispatchEvent(new Event(ADMIN_DATABASE_UPDATED_EVENT))
 }
 
@@ -463,4 +472,13 @@ export function mutateAdminDatabase(
   }
   saveAdminDatabase(next)
   return next
+}
+
+function normalizeAdminDatabase(parsed: Partial<AdminDatabase>): AdminDatabase {
+  const seed = cloneSeed()
+  return {
+    ...seed,
+    ...parsed,
+    settings: { ...seed.settings, ...(parsed.settings ?? {}) },
+  }
 }

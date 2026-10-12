@@ -1,4 +1,5 @@
 import { apiFetch } from './api'
+import { getAuthTabHeaders } from './auth-tab'
 
 export type AuthenticatedRole = string
 
@@ -8,6 +9,7 @@ export interface ServerAuthenticatedUser {
   email: string
   picture?: string
   role: AuthenticatedRole
+  roleName?: string
   permissions: string[]
   emailVerified: boolean
 }
@@ -24,7 +26,7 @@ let pendingAdminRefresh: Promise<AuthSessionResponse> | null = null
 export function loginWithGoogleCredential(credential: string) {
   return apiFetch<AuthSessionResponse>('/auth/google', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...getAuthTabHeaders() },
     body: JSON.stringify({ credential }),
     skipAuth: true,
   })
@@ -32,8 +34,10 @@ export function loginWithGoogleCredential(credential: string) {
 
 export function loginAdminWithPassword(username: string, password: string) {
   return apiFetch<AuthSessionResponse>('/auth/admin/login', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }), skipAuth: true,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthTabHeaders() },
+    body: JSON.stringify({ username, password }),
+    skipAuth: true,
   })
 }
 
@@ -41,6 +45,7 @@ export function refreshCustomerAuthSession() {
   if (!pendingCustomerRefresh) {
     pendingCustomerRefresh = apiFetch<AuthSessionResponse>('/auth/refresh', {
       method: 'POST',
+      headers: getAuthTabHeaders(),
       skipAuth: true,
     }).finally(() => {
       pendingCustomerRefresh = null
@@ -54,6 +59,7 @@ export function refreshAdminAuthSession() {
   if (!pendingAdminRefresh) {
     pendingAdminRefresh = apiFetch<AuthSessionResponse>('/auth/admin/refresh', {
       method: 'POST',
+      headers: getAuthTabHeaders(),
       skipAuth: true,
     }).finally(() => {
       pendingAdminRefresh = null
@@ -68,12 +74,15 @@ export function getCurrentAuthenticatedUser() {
 }
 
 export function getCurrentAdmin() {
-  return apiFetch<{ user: ServerAuthenticatedUser }>('/auth/admin/me', { authScope: 'admin' })
+  return apiFetch<{ user: ServerAuthenticatedUser }>('/auth/admin/me', {
+    authScope: 'admin',
+  })
 }
 
 export function logoutCustomerAuthSession() {
   return apiFetch<void>('/auth/logout', {
     method: 'POST',
+    headers: getAuthTabHeaders(),
     skipAuth: true,
   })
 }
@@ -81,6 +90,7 @@ export function logoutCustomerAuthSession() {
 export function logoutAdminAuthSession() {
   return apiFetch<void>('/auth/admin/logout', {
     method: 'POST',
+    headers: getAuthTabHeaders(),
     skipAuth: true,
   })
 }
