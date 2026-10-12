@@ -19,9 +19,17 @@ function applyColorThemeToDocument(theme: ColorTheme) {
   // a live theme change on iOS.
   root.style.colorScheme = theme
 
-  const themeColor = document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-  if (themeColor) {
-    themeColor.content = THEME_COLORS[theme]
+  const currentThemeColor = document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+  const themeColor = document.createElement('meta')
+  themeColor.name = 'theme-color'
+  themeColor.content = THEME_COLORS[theme]
+
+  // Recent iOS Safari builds can retain the old browser-chrome colour when
+  // only `content` is mutated. Replacing the node makes Safari re-read it.
+  if (currentThemeColor) {
+    currentThemeColor.replaceWith(themeColor)
+  } else {
+    document.head.appendChild(themeColor)
   }
 }
 
