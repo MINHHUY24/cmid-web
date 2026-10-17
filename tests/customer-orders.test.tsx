@@ -1,10 +1,13 @@
+/*
+ * Vai trò: Hiển thị/điều hướng đơn hàng của khách.
+ */
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { siteContent } from '../src/content/site-content'
-import { LanguageContext } from '../src/contexts/NgonNguContext'
-import { type CustomerProfile, type UserContextValue, UserContext } from '../src/contexts/NguoiDungContext'
-import { TrangTaiKhoanPage } from '../src/pages/TrangTaiKhoan'
+import { siteContent } from '../src/models/content/site-content'
+import { LanguageContext } from '../src/controllers/state/NgonNguContext'
+import { type CustomerProfile, type UserContextValue, UserContext } from '../src/controllers/state/NguoiDungContext'
+import { TrangTaiKhoanPage } from '../src/views/pages/TrangTaiKhoan'
 
 const orderService = vi.hoisted(() => ({
   getCustomerOrders: vi.fn(),

@@ -1,0 +1,509 @@
+/*
+ * Vai trò: Tinh chỉnh catalogue chỉ dành cho mobile.
+ */
+.catalog-filters__mobile-trigger,
+.catalog-filters__backdrop,
+.catalog-filters__mobile-close,
+.catalog-filters__mobile-done {
+  display: none;
+}
+
+.catalog-filters__body,
+.catalog-filters__footer {
+  display: contents;
+}
+
+@media (max-width: 1024px) {
+  .mobile-navigation__links .site-nav__link {
+    min-height: 0;
+    padding: 18px 0;
+    line-height: 1.32;
+  }
+
+  .mobile-navigation__links .site-nav__link::after {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .app-shell--site.app-shell--hero .trang-san-pham {
+    --cmid-product-catalog-width: calc(100% - 32px);
+  }
+
+  .app-shell--site .trang-san-pham .catalog-shell {
+    width: var(--cmid-product-catalog-width);
+    padding-bottom: 42px;
+  }
+
+  .app-shell--site .trang-san-pham .catalog-toolbar {
+    align-items: stretch;
+    min-height: 0;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 12px;
+  }
+
+  .app-shell--site .trang-san-pham .catalog-breadcrumb {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.78rem;
+    padding: 0;
+    white-space: nowrap;
+  }
+
+  .app-shell--site .trang-san-pham .catalog-toolbar__controls {
+    display: grid;
+    grid-template-columns: minmax(0, 230px) auto;
+    align-items: center;
+    justify-content: end;
+    width: min(100%, 336px);
+    gap: 12px;
+    margin-left: auto;
+  }
+
+  .app-shell--site .trang-san-pham .catalog-sort {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .app-shell--site .trang-san-pham .catalog-sort__trigger,
+  .app-shell--site .trang-san-pham .catalog-filters__mobile-trigger {
+    min-height: 44px;
+    border: 1px solid var(--site-line);
+    border-radius: var(--cmid-control-radius);
+    color: var(--site-text);
+    background: var(--site-field);
+  }
+
+  .app-shell--site .trang-san-pham .catalog-filters__mobile-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 94px;
+    padding: 0 11px;
+    border-color: var(--site-quote-action);
+    color: var(--site-quote-action-ink);
+    background: var(--site-quote-action-surface);
+    box-shadow: inset 0 0 0 1px var(--site-quote-action-ring);
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+    transition:
+      color 180ms ease,
+      border-color 180ms ease,
+      background-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  @media (hover: hover) {
+    .app-shell--site .trang-san-pham .catalog-filters__mobile-trigger:hover {
+      border-color: var(--site-quote-action-hover);
+      color: var(--site-quote-action-hover-ink);
+      background: var(--site-quote-action-hover);
+      box-shadow: 0 0 0 1px var(--site-quote-action-ring);
+    }
+  }
+
+  .app-shell--site .trang-san-pham .catalog-filters__mobile-trigger:focus-visible {
+    outline: none;
+    border-color: var(--site-quote-action-hover);
+    box-shadow: 0 0 0 3px var(--site-quote-action-ring);
+  }
+
+  .app-shell--site .trang-san-pham .catalog-filters__mobile-trigger small {
+    display: grid;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    place-items: center;
+    border-radius: 999px;
+    color: var(--cmid-palette-fffaf2);
+    background: var(--cmid-palette-98611f);
+    font-size: 0.66rem;
+  }
+
+  .app-shell--site .trang-san-pham .catalog-layout,
+  .app-shell--site .trang-san-pham .catalog-loading {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding-top: 18px;
+  }
+
+  .app-shell--site .trang-san-pham .catalog-filters,
+  #site-modal-root .catalog-filters {
+    position: fixed;
+    inset: 0 0 0 auto;
+    z-index: 101;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    width: min(360px, calc(100vw - 18px));
+    max-width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    border: 0;
+    border-left: 1px solid var(--site-line);
+    border-radius: 16px 0 0 16px;
+    color: var(--site-text);
+    background: var(--site-surface-solid);
+    box-shadow: -18px 0 44px var(--cmid-palette-rgb-5-3-2-alpha-34p);
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transform: translateX(100%);
+    transition:
+      transform 240ms cubic-bezier(0.22, 0.8, 0.28, 1),
+      opacity 180ms ease,
+      visibility 0s linear 240ms;
+  }
+
+  #site-modal-root .catalog-filters--open {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: translateX(0);
+    transition-delay: 0s;
+  }
+
+  #site-modal-root .catalog-filters__backdrop {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: var(--cmid-palette-rgb-8-5-3-alpha-62p);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+
+  #site-modal-root .catalog-filters__backdrop--open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #site-modal-root .catalog-filters__mobile-heading {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    grid-column: 1;
+    grid-row: 1;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 68px;
+    gap: 14px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--site-line-soft);
+    color: var(--site-heading);
+    background: var(--site-surface-solid);
+  }
+
+  #site-modal-root .catalog-filters__body {
+    display: block;
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    min-height: 0;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  #site-modal-root .catalog-filters__mobile-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 0.94rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  #site-modal-root .catalog-filters__mobile-close {
+    display: inline-grid;
+    width: 40px;
+    height: 40px;
+    flex: none;
+    padding: 0;
+    place-items: center;
+    border: 1px solid var(--site-line);
+    border-radius: 50%;
+    color: var(--site-text);
+    background: var(--site-field);
+  }
+
+  #site-modal-root .catalog-filter {
+    padding: 20px 18px;
+    border-bottom-color: var(--site-line-soft);
+  }
+
+  #site-modal-root .catalog-filter__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 14px;
+  }
+
+  #site-modal-root .catalog-filter__search + .catalog-filter__list {
+    grid-template-columns: 1fr;
+  }
+
+  #site-modal-root .catalog-filter__check {
+    min-width: 0;
+    color: var(--site-muted);
+  }
+
+  #site-modal-root .catalog-filter__check small {
+    justify-self: end;
+  }
+
+  #site-modal-root .catalog-filter__check > span:nth-of-type(2) {
+    overflow-wrap: anywhere;
+  }
+
+  #site-modal-root .catalog-filters__reset {
+    width: calc(100% - 36px);
+    min-height: 42px;
+    margin: 18px;
+    border-color: var(--site-line);
+    color: var(--site-text);
+    background: var(--site-field);
+  }
+
+  #site-modal-root .catalog-filters__footer {
+    z-index: 2;
+    display: block;
+    grid-column: 1;
+    grid-row: 3;
+    width: 100%;
+    padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--site-line-soft);
+    background: var(--site-surface-solid);
+    box-shadow: 0 -10px 24px var(--cmid-palette-rgb-5-3-2-alpha-14p);
+  }
+
+  #site-modal-root .catalog-filters__mobile-done {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 48px;
+    margin: 0;
+    border: 1px solid var(--cmid-palette-98611f);
+    border-radius: var(--cmid-control-radius);
+    color: var(--cmid-palette-fffaf2);
+    background: var(--cmid-palette-98611f);
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  #site-modal-root .catalog-filters__mobile-done:active,
+  .app-shell--site .trang-san-pham .catalog-filters__mobile-trigger:active {
+    transform: translateY(1px);
+  }
+
+  .app-shell--site .trang-san-pham .product-grid,
+  .app-shell--site .trang-san-pham .catalog-loading__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .app-shell--site .trang-san-pham .catalog-loading__filters {
+    display: none;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog,
+  .app-shell--site .trang-san-pham .catalog-skeleton-card {
+    min-width: 0;
+    min-block-size: 0;
+    border-radius: 12px;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__media {
+    aspect-ratio: 1;
+    margin: 0;
+    overflow: hidden;
+    border-radius: 11px 11px 0 0;
+  }
+
+  .app-shell--site .trang-san-pham .catalog-skeleton-card__media {
+    aspect-ratio: 1;
+    margin: 6px 6px 0;
+    border-radius: 8px;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__image {
+    display: block;
+    padding: 0;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__body,
+  .app-shell--site .trang-san-pham .catalog-skeleton-card__body {
+    min-width: 0;
+    padding: 10px;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__meta {
+    overflow: hidden;
+    margin-bottom: 6px;
+    font-size: 0.72rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog h2 {
+    display: -webkit-box;
+    min-height: 2.76em;
+    overflow: hidden;
+    font-size: 0.82rem;
+    line-height: 1.38;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__sku {
+    min-width: 0;
+    min-height: 0;
+    margin: 7px 0 9px;
+    overflow: hidden;
+    font-size: 0.68rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__sku span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__sku span + span,
+  .app-shell--site .trang-san-pham .product-card__availability {
+    display: none;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__price-row {
+    align-items: baseline;
+    min-height: 34px;
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__price-row strong {
+    font-size: 0.94rem;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__footer {
+    margin-top: auto;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__action {
+    min-height: 40px;
+    gap: 4px;
+    padding: 0.38rem 0.3rem;
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__action:not(.product-card__action--quote) {
+    border-color: var(--cmid-palette-98611f);
+    background: var(--cmid-palette-98611f);
+  }
+
+  .app-shell--site .trang-san-pham .catalog-pagination {
+    margin: 26px 0 20px;
+  }
+}
+
+@media (max-width: 767px) {
+  .app-shell--site .trang-san-pham .catalog-toolbar__controls {
+    grid-template-columns: minmax(0, 1fr) auto;
+    justify-content: stretch;
+    width: 100%;
+    margin-right: 0;
+    margin-left: 0;
+  }
+}
+
+/* iPad Mini keeps the breadcrumb and compact controls on one line. */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .app-shell--site .trang-san-pham .catalog-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .app-shell--site .trang-san-pham .catalog-breadcrumb {
+    width: auto;
+  }
+
+  .app-shell--site .trang-san-pham .catalog-toolbar__controls {
+    justify-self: end;
+  }
+}
+
+/* Landscape has enough room for four cards while retaining mobile controls. */
+@media (orientation: landscape) and (min-width: 769px) and (max-width: 1024px) {
+  .app-shell--site .trang-san-pham .product-grid,
+  .app-shell--site .trang-san-pham .catalog-loading__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 360px) {
+  .app-shell--site .trang-san-pham .catalog-shell {
+    width: calc(100% - 20px);
+  }
+
+  .app-shell--site .trang-san-pham .product-grid,
+  .app-shell--site .trang-san-pham .catalog-loading__grid {
+    gap: 9px;
+  }
+
+  .app-shell--site .trang-san-pham .product-card--catalog .product-card__action svg {
+    display: none;
+  }
+
+  #site-modal-root .catalog-filter__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-filters,
+  .catalog-filters__backdrop {
+    transition: none !important;
+  }
+}
+
+/* From iPad Air upward, tablet layouts use three readable product columns. */
+@media (min-width: 820px) and (max-width: 1190px) {
+  .app-shell--site .trang-san-pham .product-grid,
+  .app-shell--site .trang-san-pham .catalog-loading__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Tablet filter state changes are intentionally immediate in both orientations. */
+@media (min-width: 768px) and (max-width: 1366px) {
+  :is(
+    .catalog-filters,
+    .catalog-filters__backdrop
+  ) {
+    animation: none !important;
+    transition: none !important;
+  }
+}

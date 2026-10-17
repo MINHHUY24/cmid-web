@@ -1,6 +1,9 @@
+/*
+ * Vai trò: Select Admin đóng khi click ngoài và scroll đến option đang chọn.
+ */
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
-import { AdminSelect } from '../src/pages/admin/AdminPrimitives'
+import { AdminSelect } from '../src/views/pages/admin/ThanhPhanCoBanQuanTri'
 
 afterEach(() => {
   cleanup()

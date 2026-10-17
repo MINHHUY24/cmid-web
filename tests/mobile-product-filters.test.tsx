@@ -1,7 +1,10 @@
+/*
+ * Vai trò: Filter catalogue ở giao diện mobile.
+ */
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ProductCatalogFilters } from '../src/components/product/BoLocSanPham'
-import { LanguageProvider } from '../src/contexts/NgonNguProvider'
+import { ProductCatalogFilters } from '../src/views/components/product/BoLocSanPham'
+import { LanguageProvider } from '../src/controllers/state/NgonNguProvider'
 
 const closeFilters = vi.fn()
 const noop = vi.fn()

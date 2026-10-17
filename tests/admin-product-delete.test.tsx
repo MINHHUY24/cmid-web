@@ -1,7 +1,10 @@
+/*
+ * Vai trò: Xác nhận xóa sản phẩm và skeleton trong lúc request xóa chờ.
+ */
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
-import { AdminProductsListView, type AdminProductListFilters } from '../src/pages/admin/AdminCommerceViews'
-import type { Product } from '../src/types/product'
+import { AdminProductsListView, type AdminProductListFilters } from '../src/views/pages/admin/GiaoDienThuongMaiQuanTri'
+import type { Product } from '../src/models/product'
 
 const product: Product = {
   id: 5,
@@ -45,6 +48,8 @@ it('hides the toolbar count and asks for confirmation before deleting a product'
       onCreate={() => {}}
       onEdit={() => {}}
       onDelete={onDelete}
+      onStatusChange={async () => {}}
+      canChangeStatus
     />,
   )
 
@@ -76,6 +81,8 @@ it('keeps a skeleton in the product row while the deletion request is pending', 
       onCreate={() => {}}
       onEdit={() => {}}
       onDelete={onDelete}
+      onStatusChange={async () => {}}
+      canChangeStatus
     />,
   )
 

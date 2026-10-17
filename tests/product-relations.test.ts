@@ -1,5 +1,8 @@
+/*
+ * Vai trò: Quy tắc tìm sản phẩm liên quan.
+ */
 import { afterEach, expect, it, vi } from 'vitest'
-import type { Product } from '../src/types/product'
+import type { Product } from '../src/models/product'
 
 afterEach(() => {
   vi.unstubAllEnvs()

@@ -1,6 +1,9 @@
+/*
+ * Vai trò: Cập nhật featured/publication của bài tin không làm mất sort order/trạng thái.
+ */
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { AdminNewsView } from '../src/pages/admin/AdminContentViews'
+import { AdminNewsView } from '../src/views/pages/admin/GiaoDienNoiDungQuanTri'
 import {
   getAdminNewsArticles,
   saveNewsArticle,

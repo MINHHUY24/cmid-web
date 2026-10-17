@@ -1,3 +1,6 @@
+/*
+ * Vai trò: Request/normalize dữ liệu service tin tức.
+ */
 import { describe, expect, it, vi } from 'vitest'
 import { apiFetch } from '../src/services/api'
 import {

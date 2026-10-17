@@ -1,38 +1,43 @@
-import { apiFetch } from './api'
+/*
+ * Vai trò: Endpoint hồ sơ khách hàng: đọc, tạo/cập nhật profile và map dữ liệu server.
+ */
+/* HTTP client tự thêm token khách hàng cho endpoint hồ sơ. */
+import { apiFetch } from "./api";
 
-export type ServerCustomerGender = '' | 'male' | 'female' | 'other'
+/* Tập giá trị giới tính backend chấp nhận. */
+export type ServerCustomerGender = "" | "male" | "female" | "other";
 
+/* Cấu trúc profile chuẩn được API trả về. */
 export interface ServerCustomerProfile {
-  fullName: string
-  avatar: string
-  phone: string
-  birthDate: string
-  gender: ServerCustomerGender
-  city: string
-  district: string
-  ward: string
-  address: string
+  fullName: string;
+  avatar: string;
+  phone: string;
+  birthDate: string;
+  gender: ServerCustomerGender;
+  city: string;
+  district: string;
+  ward: string;
+  address: string;
 }
 
-export type CustomerProfileUpdate = Omit<ServerCustomerProfile, 'avatar'>
+/* Payload cập nhật không gồm avatar vì avatar data URL chỉ lưu cục bộ hiện tại. */
+export type CustomerProfileUpdate = Omit<ServerCustomerProfile, "avatar">;
 
 type CustomerProfileResponse = {
-  profile: ServerCustomerProfile
-}
+  profile: ServerCustomerProfile;
+};
 
+/* Lấy hồ sơ của khách đang đăng nhập. */
 export function getCustomerProfile() {
-  return apiFetch<CustomerProfileResponse>('/auth/profile')
+  return apiFetch<CustomerProfileResponse>("/auth/profile");
 }
 
-/**
- * The avatar is intentionally not sent here. The account screen currently
- * allows a local data-URL avatar, which can be much larger than a normal API
- * profile update and is not a delivery-profile field.
- */
+/* Gửi profile giao hàng; avatar không được gửi vì có thể là data URL rất lớn ở local. */
 export function updateCustomerProfile(profile: CustomerProfileUpdate) {
-  return apiFetch<CustomerProfileResponse>('/auth/profile', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+  return apiFetch<CustomerProfileResponse>("/auth/profile", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    /* Đổi chuỗi rỗng thành null để server hiểu là khách đã xoá giá trị. */
     body: JSON.stringify({
       fullName: profile.fullName,
       phone: profile.phone || null,
@@ -43,5 +48,5 @@ export function updateCustomerProfile(profile: CustomerProfileUpdate) {
       ward: profile.ward || null,
       address: profile.address || null,
     }),
-  })
+  });
 }

@@ -1,3 +1,6 @@
+/*
+ * Vai trò: Bootstrap | Gắn React vào DOM, import CSS gốc và dọn các cache phiên bản cũ trước khi chạy app.
+ */
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@fontsource/roboto/latin-400.css'
@@ -6,12 +9,12 @@ import '@fontsource/roboto/latin-700.css'
 import '@fontsource/roboto/vietnamese-400.css'
 import '@fontsource/roboto/vietnamese-500.css'
 import '@fontsource/roboto/vietnamese-700.css'
-import './index.css'
+import './views/styles/index.css'
 import App from './UngDung.tsx'
-import { LanguageProvider } from './contexts/NgonNguProvider.tsx'
-import { UserProvider } from './contexts/NguoiDungProvider.tsx'
-import { SiteSettingsProvider } from './contexts/ThongTinWebsiteContext.tsx'
-import { applyPreferredColorTheme } from './hooks/useColorTheme.ts'
+import { LanguageProvider } from './controllers/state/NgonNguProvider.tsx'
+import { UserProvider } from './controllers/state/NguoiDungProvider.tsx'
+import { SiteSettingsProvider } from './controllers/state/ThongTinWebsiteContext.tsx'
+import { applyPreferredColorTheme } from './controllers/ui/useColorThemeController.ts'
 
 applyPreferredColorTheme()
 retireSupersededContentCaches()

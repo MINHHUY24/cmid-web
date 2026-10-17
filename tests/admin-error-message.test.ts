@@ -1,5 +1,8 @@
+/*
+ * Vai trò: Dịch validation/API error Admin sang đúng Việt/Anh.
+ */
 import { describe, expect, it } from 'vitest'
-import { localizeAdminErrorMessage } from '../src/pages/admin/admin-error-message'
+import { localizeAdminErrorMessage } from '../src/views/pages/admin/ThongBaoLoiQuanTri'
 
 describe('localizeAdminErrorMessage', () => {
   it('turns legacy class-validator details into friendly Vietnamese copy', () => {

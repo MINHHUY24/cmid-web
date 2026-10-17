@@ -1,0 +1,36 @@
+/*
+ * Vai trò: Hiệu ứng xuất hiện khi card đi vào vùng nhìn thấy.
+ */
+/* Chỉ animate khi người dùng không yêu cầu giảm chuyển động vì lý do trợ năng. */
+@media (prefers-reduced-motion: no-preference) {
+  /* Trạng thái ban đầu: card hơi mờ và thấp hơn vị trí cuối để tạo cảm giác nhẹ. */
+  .project-card--reveal,
+  .app-shell--home .project-card--reveal,
+  .about-projects .project-card--reveal,
+  .du-an__luoi .project-card--reveal {
+    opacity: 0.1;
+    transform: translate3d(0, 16px, 0);
+    transition:
+      opacity 560ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
+      transform 560ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
+      border-color 180ms ease,
+      box-shadow 180ms ease;
+    will-change: opacity, transform;
+  }
+
+  /* Class do Controller thêm vào sau khi card đi vào viewport. */
+  .project-card--reveal.is-revealed {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    will-change: auto;
+  }
+
+  /* Hover chỉ áp dụng sau khi card đã hiện để không xung đột transform reveal. */
+  .project-card--reveal.is-revealed:hover {
+    transform: translate3d(0, -2px, 0);
+  }
+
+  .du-an__luoi .project-card--reveal.is-revealed:hover {
+    transform: translate3d(0, -4px, 0);
+  }
+}

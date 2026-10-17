@@ -1,3 +1,6 @@
+/*
+ * Vai trò: API TRELLIS tạo/poll/lưu/hủy model 3D.
+ */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 afterEach(() => {

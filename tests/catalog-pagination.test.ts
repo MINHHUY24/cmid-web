@@ -1,8 +1,11 @@
+/*
+ * Vai trò: Số item/trang và các nút phân trang.
+ */
 import { describe, expect, it } from 'vitest'
 import {
   getCatalogPaginationItems,
   getCatalogProductsPerPage,
-} from '../src/utils/catalogPagination'
+} from '../src/views/utils/catalogPagination'
 
 describe('catalog pagination', () => {
   it('shows 20 products on desktop and 12 below the desktop breakpoint', () => {

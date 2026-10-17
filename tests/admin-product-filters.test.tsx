@@ -1,8 +1,11 @@
+/*
+ * Vai trò: Giữ filter catalogue Admin khi mở rồi quay lại editor.
+ */
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
 import { afterEach, expect, it, vi } from 'vitest'
-import { AdminProductsListView, type AdminProductListFilters } from '../src/pages/admin/AdminCommerceViews'
-import type { Product } from '../src/types/product'
+import { AdminProductsListView, type AdminProductListFilters } from '../src/views/pages/admin/GiaoDienThuongMaiQuanTri'
+import type { Product } from '../src/models/product'
 
 const product: Product = {
   id: 8,
@@ -73,6 +76,8 @@ function ProductListFlow() {
       onCreate={() => {}}
       onEdit={() => setIsEditing(true)}
       onDelete={async () => {}}
+      onStatusChange={async () => {}}
+      canChangeStatus
     />
   )
 }

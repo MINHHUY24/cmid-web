@@ -1,9 +1,12 @@
+/*
+ * Vai trò: Ảnh sản phẩm, save API, fields kỹ thuật và luồng TRELLIS 3D.
+ */
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { AdminProductEditor } from '../src/pages/admin/AdminProductEditor'
-import { createProductImageSlots, toProductImages } from '../src/pages/admin/admin-product-images'
-import { getAdminProducts } from '../src/pages/admin/admin-local-store'
-import type { Product } from '../src/types/product'
+import { AdminProductEditor } from '../src/views/pages/admin/TrinhSuaSanPhamQuanTri'
+import { createProductImageSlots, toProductImages } from '../src/views/pages/admin/HinhAnhSanPhamQuanTri'
+import type { AdminNamedRecord } from '../src/models/admin-workspace'
+import type { Product } from '../src/models/product'
 import * as trellis from '../src/services/trellis.service'
 import * as productService from '../src/services/product.service'
 
@@ -12,7 +15,7 @@ vi.mock('../src/services/trellis.service', async (original) => ({
   getTrellisHealth: vi.fn(), getTrellisJob: vi.fn(), createTrellisJob: vi.fn(),
   saveTrellisModel: vi.fn(), cancelTrellisJob: vi.fn(),
 }))
-vi.mock('../src/components/product/ProductModelViewer', () => ({
+vi.mock('../src/views/components/product/ProductModelViewer', () => ({
   ProductModelViewer: ({ src }: { src: string }) => <div data-testid="model-preview">{src}</div>,
 }))
 vi.mock('../src/services/product.service', () => ({
@@ -33,6 +36,9 @@ const completed: trellis.TrellisJob = {
   id: 'abc123', state: 'completed', message: 'Mô hình đã sẵn sàng.',
   previewUrl: '/trellis-api/jobs/abc123/model', savedUrl: null,
 }
+const categories: AdminNamedRecord[] = [
+  { id: 'cat-1', name: 'Ghế', slug: 'ghe', description: '', status: 'ACTIVE', updatedAt: '' },
+]
 
 beforeEach(() => {
   localStorage.clear()
@@ -46,15 +52,15 @@ beforeEach(() => {
 })
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
-function editor(input = product) {
-  return render(<AdminProductEditor product={input} categories={[{ id: 'cat-1', name: 'Ghế', slug: 'ghe', status: 'ACTIVE' }]} brands={[]} onCancel={() => {}} onSaved={() => {}} />)
+function editor(input = product, onSaved = () => {}) {
+  return render(<AdminProductEditor product={input} categories={categories} brands={[]} showrooms={[]} onCancel={() => {}} onSaved={onSaved} />)
 }
 
 describe('product media', () => {
   it('finishes saving to the API even when the browser product cache is full', async () => {
     localStorage.setItem('cmid-admin-products', JSON.stringify([{ ...product, name: 'Old name' }]))
     const onSaved = vi.fn()
-    render(<AdminProductEditor product={product} categories={[{ id: 'cat-1', name: 'Ghế', slug: 'ghe', status: 'ACTIVE' }]} brands={[]} onCancel={() => {}} onSaved={onSaved} />)
+    render(<AdminProductEditor product={product} categories={categories} brands={[]} showrooms={[]} onCancel={() => {}} onSaved={onSaved} />)
     await screen.findByText('TRELLIS đã kết nối')
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new DOMException('Quota exceeded', 'QuotaExceededError')
@@ -62,7 +68,6 @@ describe('product media', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Lưu sản phẩm' }))
     await waitFor(() => expect(onSaved).toHaveBeenCalledOnce())
     expect(productService.saveProduct).toHaveBeenCalledOnce()
-    expect(getAdminProducts()).toEqual([])
     expect(screen.queryByText('Quota exceeded')).toBeNull()
   })
 
@@ -103,7 +108,8 @@ describe('product media', () => {
   })
 
   it('allows product-specific technical details, guidance and sales policy to be saved and edited again', async () => {
-    const mounted = editor({ ...product, price: '6900000.00' })
+    const onSaved = vi.fn()
+    const mounted = editor({ ...product, price: '6900000.00' }, onSaved)
     await screen.findByText('TRELLIS đã kết nối')
     const priceInput = screen.getByLabelText(/Đơn giá/) as HTMLInputElement
     expect(priceInput.value).toBe('6.900.000')
@@ -122,8 +128,8 @@ describe('product media', () => {
     fireEvent.change(screen.getByLabelText('Chính sách bán hàng'), { target: { value: 'Bảo hành theo điều kiện của CMID.' } })
     fireEvent.change(screen.getByLabelText('Các điểm trong chính sách'), { target: { value: 'Kiểm tra sản phẩm khi nhận hàng' } })
     fireEvent.click(screen.getByRole('button', { name: 'Lưu sản phẩm' }))
-    await waitFor(() => expect(getAdminProducts()[0]).toBeDefined())
-    const saved = getAdminProducts()[0]
+    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce())
+    const saved = onSaved.mock.calls[0][0] as Product
     expect(saved).toMatchObject({
       price: '6900000',
       descriptionHighlights: ['Khung gỗ tự nhiên', 'Đệm mút đàn hồi'],
@@ -141,7 +147,8 @@ describe('product media', () => {
   })
 
   it('sends the first four views, previews before accepting, and persists the saved GLB on the product', async () => {
-    const mounted = editor()
+    const onSaved = vi.fn()
+    const mounted = editor(product, onSaved)
     await screen.findByText('TRELLIS đã kết nối')
     fireEvent.click(screen.getByRole('button', { name: 'Tạo mô hình 3D' }))
     await screen.findByTestId('model-preview')
@@ -151,8 +158,8 @@ describe('product media', () => {
     await screen.findByText('Đã chọn dùng cho sản phẩm')
     await waitFor(() => expect((screen.getByRole('button', { name: 'Lưu sản phẩm' }) as HTMLButtonElement).disabled).toBe(false))
     fireEvent.click(screen.getByRole('button', { name: 'Lưu sản phẩm' }))
-    await waitFor(() => expect(getAdminProducts()[0]).toBeDefined())
-    const saved = getAdminProducts()[0]
+    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce())
+    const saved = onSaved.mock.calls[0][0] as Product
     expect(saved.images.map((image) => image.imageUrl)).toEqual(['/front.png', '/right.png', '/back.png', '/detail.png'])
     expect(saved.models3D[0].modelUrl).toBe('/models/generated/abc123.glb')
     mounted.unmount()

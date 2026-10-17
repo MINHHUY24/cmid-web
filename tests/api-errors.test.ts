@@ -1,3 +1,6 @@
+/*
+ * Vai trò: Chuẩn hóa lỗi từ `apiFetch`.
+ */
 import { afterEach, expect, it, vi } from 'vitest'
 
 afterEach(() => {

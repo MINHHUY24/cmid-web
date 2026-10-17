@@ -1,18 +1,22 @@
+/*
+ * Vai trò: Mỗi draft sản phẩm phải có namespace job 3D riêng.
+ */
 import { cleanup, render } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { AdminProductEditor } from '../src/pages/admin/AdminProductEditor'
+import { AdminProductEditor } from '../src/views/pages/admin/TrinhSuaSanPhamQuanTri'
+import type { AdminNamedRecord } from '../src/models/admin-workspace'
 
 const modelOwnerKeys = vi.hoisted(() => [] as string[])
 
-vi.mock('../src/pages/admin/AdminTrellisModel', () => ({
+vi.mock('../src/views/pages/admin/MoHinhTrellisQuanTri', () => ({
   AdminTrellisModel: ({ productKey }: { productKey: string }) => {
     modelOwnerKeys.push(productKey)
     return <div data-testid="trellis-owner">{productKey}</div>
   },
 }))
 
-const categories = [
-  { id: 'cat-1', name: 'Ghế', slug: 'ghe', status: 'ACTIVE' as const },
+const categories: AdminNamedRecord[] = [
+  { id: 'cat-1', name: 'Ghế', slug: 'ghe', description: '', status: 'ACTIVE', updatedAt: '' },
 ]
 
 afterEach(() => {
@@ -26,6 +30,7 @@ describe('product model ownership', () => {
       <AdminProductEditor
         categories={categories}
         brands={[]}
+        showrooms={[]}
         onCancel={() => {}}
         onSaved={() => {}}
       />,
@@ -37,6 +42,7 @@ describe('product model ownership', () => {
       <AdminProductEditor
         categories={categories}
         brands={[]}
+        showrooms={[]}
         onCancel={() => {}}
         onSaved={() => {}}
       />,

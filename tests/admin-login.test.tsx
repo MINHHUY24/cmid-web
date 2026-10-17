@@ -1,8 +1,11 @@
+/*
+ * Vai trò: Form login Admin, đặc biệt thao tác hiện/ẩn mật khẩu.
+ */
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
-import type { AdminAuthContextValue } from '../src/contexts/QuanTriAuthContext'
-import { AdminAuthContext } from '../src/contexts/QuanTriAuthContext'
-import { TrangDangNhapQuanTri } from '../src/pages/admin/TrangDangNhapQuanTri'
+import type { AdminAuthContextValue } from '../src/controllers/state/QuanTriAuthContext'
+import { AdminAuthContext } from '../src/controllers/state/QuanTriAuthContext'
+import { TrangDangNhapQuanTri } from '../src/views/pages/admin/TrangDangNhapQuanTri'
 
 afterEach(() => {
   cleanup()

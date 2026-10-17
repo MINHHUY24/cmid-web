@@ -1,7 +1,10 @@
+/*
+ * Vai trò: Dialog chọn ngôn ngữ lần đầu.
+ */
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { LanguageWelcomeDialog } from '../src/components/common/ChonNgonNguDialog'
-import { LanguageProvider } from '../src/contexts/NgonNguProvider'
+import { LanguageWelcomeDialog } from '../src/views/components/common/ChonNgonNguDialog'
+import { LanguageProvider } from '../src/controllers/state/NgonNguProvider'
 
 function renderDialog() {
   return render(

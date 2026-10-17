@@ -1,0 +1,32 @@
+/*
+ * Vai trò: Entry CSS: import các stylesheet còn lại.
+ */
+/* Nền tảng: reset, layout, component tái sử dụng và trang chủ. */
+@import './global.css';
+@import './layout.css';
+@import './components.css';
+@import './trang-chu.css';
+/* Styles theo từng nhóm trang public. */
+@import './dau-trang.css';
+@import './trang-san-pham.css';
+@import './trang-chi-tiet-san-pham.css';
+@import './trang-gioi-thieu.css';
+@import './trang-noi-dung.css';
+@import './trang-giai-phap.css';
+@import './trang-du-an.css';
+@import './trang-chi-tiet-du-an.css';
+@import './trang-dich-vu.css';
+@import './trang-ve-cmid.css';
+@import './trang-lien-he.css';
+@import './trang-thuong-mai.css';
+@import './trang-tin-tuc.css';
+@import './trang-tai-khoan.css';
+@import './trang-bao-tri.css';
+/* Các lớp dùng chung ở cuối: responsive, theme, hiệu ứng và vá UI. */
+@import './responsive.css';
+@import './site-theme.css';
+@import './news-editorial.css';
+@import './mobile-catalog.css';
+@import './hero-actions.css';
+@import './screenshot-button-restore.css';
+@import './scroll-reveal.css';

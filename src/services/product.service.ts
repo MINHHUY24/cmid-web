@@ -1,52 +1,72 @@
-import { ApiError, apiFetch } from './api'
-import type { Product } from '../types/product'
+/*
+ * Vai trò: CRUD sản phẩm catalogue và chuyển `Product` sang payload API.
+ */
+import { ApiError, apiFetch } from "./api";
+import type { Product } from "../models/product";
 
-export function getProducts(options?: { includeModels?: boolean }): Promise<Product[]> {
-  return apiFetch<Product[]>(options?.includeModels ? '/products?include=models' : '/products')
+export function getProducts(options?: {
+  includeModels?: boolean;
+}): Promise<Product[]> {
+  return apiFetch<Product[]>(
+    options?.includeModels ? "/products?include=models" : "/products",
+  );
 }
 
 export function getProductById(id: number): Promise<Product> {
-  return apiFetch<Product>(`/products/${id}`)
+  return apiFetch<Product>(`/products/${id}`);
 }
 
-export function saveProduct(product: Product, useDemoAccess = false): Promise<Product> {
-  return apiFetch<Product>(useDemoAccess ? '/products/demo' : '/products', {
-    method: 'POST',
-    authScope: 'admin',
+export function saveProduct(
+  product: Product,
+  useDemoAccess = false,
+): Promise<Product> {
+  return apiFetch<Product>(useDemoAccess ? "/products/demo" : "/products", {
+    method: "POST",
+    authScope: "admin",
     headers: {
-      'Content-Type': 'application/json',
-      ...(useDemoAccess ? { 'X-CMID-Demo-Admin': 'true' } : {}),
+      "Content-Type": "application/json",
+      ...(useDemoAccess ? { "X-CMID-Demo-Admin": "true" } : {}),
     },
     body: JSON.stringify(toProductPayload(product)),
-  })
+  });
 }
 
-export async function deleteProduct(productId: number, useDemoAccess = false): Promise<void> {
+export async function deleteProduct(
+  productId: number,
+  useDemoAccess = false,
+): Promise<void> {
   // Older browser-only products used Date.now() as their ID. They have no
   // matching PostgreSQL row and exceed the database's signed Int range.
-  if (!isDatabaseProductId(productId)) return
+  if (!isDatabaseProductId(productId)) return;
 
   try {
-    await apiFetch<void>(useDemoAccess ? `/products/demo/${productId}` : `/products/${productId}`, {
-      method: 'DELETE',
-      authScope: 'admin',
-      headers: useDemoAccess ? { 'X-CMID-Demo-Admin': 'true' } : undefined,
-    })
+    await apiFetch<void>(
+      useDemoAccess ? `/products/demo/${productId}` : `/products/${productId}`,
+      {
+        method: "DELETE",
+        authScope: "admin",
+        headers: useDemoAccess ? { "X-CMID-Demo-Admin": "true" } : undefined,
+      },
+    );
   } catch (error) {
     // DELETE is idempotent: a stale browser cache should still be removable
     // when its server-side record has already disappeared.
-    if (error instanceof ApiError && error.status === 404) return
-    throw error
+    if (error instanceof ApiError && error.status === 404) return;
+    throw error;
   }
 }
 
 function isDatabaseProductId(productId: number) {
-  return Number.isInteger(productId) && productId > 0 && productId <= 2_147_483_647
+  return (
+    Number.isInteger(productId) && productId > 0 && productId <= 2_147_483_647
+  );
 }
 
 function toProductPayload(product: Product) {
   return {
-    ...(product.id > 0 && product.id <= 2_147_483_647 ? { id: product.id } : {}),
+    ...(product.id > 0 && product.id <= 2_147_483_647
+      ? { id: product.id }
+      : {}),
     sku: product.sku,
     name: product.name,
     nameEn: product.nameEn ?? null,
@@ -89,5 +109,5 @@ function toProductPayload(product: Product) {
       mobileReady: model.mobileReady,
       isActive: model.isActive,
     })),
-  }
+  };
 }

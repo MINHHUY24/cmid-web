@@ -1,3 +1,6 @@
+/*
+ * Vai trò: Route | Khai báo URL -> Page, lazy-load Admin, cổng maintenance/3D và lưu-phục hồi vị trí cuộn.
+ */
 import { lazy, Suspense, useEffect, useRef } from "react";
 import {
   BrowserRouter,
@@ -7,32 +10,46 @@ import {
   useLocation,
   useNavigationType,
 } from "react-router-dom";
-import { AppLayout } from "../layouts/BoCucUngDung";
-import { TrangChuPage } from "../pages/TrangChu";
-import { TrangDichVuPage } from "../pages/TrangDichVu";
-import { TrangDuAnPage } from "../pages/TrangDuAn";
-import { TrangChiTietDuAnPage } from "../pages/TrangChiTietDuAn";
-import { TrangGiaiPhapPage } from "../pages/TrangGiaiPhap";
-import { TrangHeThongShowroomPage } from "../pages/TrangHeThongTrungBay";
-import { TrangLienHePage } from "../pages/TrangLienHe";
-import { TrangSanPhamPage } from "../pages/TrangSanPham";
-import { TrangChiTietSanPham } from "../pages/TrangChiTietSanPham";
-import { TrangTraiNghiem3D } from "../pages/TrangTraiNghiem3D";
-import { TrangGioHangPage } from "../pages/TrangGioHang";
-import { TrangThanhToanPage } from "../pages/TrangThanhToan";
-import { TrangTinTucSuKienPage } from "../pages/TrangTinTucSuKien";
-import { TrangChiTietTinTucPage } from "../pages/TrangChiTietTinTuc";
-import { TrangVeCmidPage } from "../pages/TrangVeCmid";
-import { TrangDangNhapPage } from "../pages/TrangDangNhap";
-import { TrangTaiKhoanPage } from "../pages/TrangTaiKhoan";
-import { TrangBaoTriPage } from "../pages/TrangBaoTri";
-import { TrangKhongTimThayPage } from "../pages/TrangKhongTimThay";
-import { useSiteSettings } from "../contexts/ThongTinWebsiteContext";
+import { AppLayout } from "../views/layouts/BoCucUngDung";
+import { TrangChuPage } from "../views/pages/TrangChu";
+import { TrangDichVuPage } from "../views/pages/TrangDichVu";
+import { TrangDuAnPage } from "../views/pages/TrangDuAn";
+import { TrangChiTietDuAnPage } from "../views/pages/TrangChiTietDuAn";
+import { TrangGiaiPhapPage } from "../views/pages/TrangGiaiPhap";
+import { TrangHeThongShowroomPage } from "../views/pages/TrangHeThongTrungBay";
+import { TrangLienHePage } from "../views/pages/TrangLienHe";
+import { TrangSanPhamPage } from "../views/pages/TrangSanPham";
+import { TrangChiTietSanPham } from "../views/pages/TrangChiTietSanPham";
+import { TrangTraiNghiem3D } from "../views/pages/TrangTraiNghiem3D";
+import { TrangGioHangPage } from "../views/pages/TrangGioHang";
+import { TrangThanhToanPage } from "../views/pages/TrangThanhToan";
+import { TrangTinTucSuKienPage } from "../views/pages/TrangTinTucSuKien";
+import { TrangChiTietTinTucPage } from "../views/pages/TrangChiTietTinTuc";
+import { TrangVeCmidPage } from "../views/pages/TrangVeCmid";
+import { TrangDangNhapPage } from "../views/pages/TrangDangNhap";
+import { TrangTaiKhoanPage } from "../views/pages/TrangTaiKhoan";
+import { TrangYeuCauBaoGiaPage } from "../views/pages/TrangYeuCauBaoGia";
+import { TrangBaoGiaCuaToiPage } from "../views/pages/TrangBaoGiaCuaToi";
+import { TrangBaoTriPage } from "../views/pages/TrangBaoTri";
+import { TrangKhongTimThayPage } from "../views/pages/TrangKhongTimThay";
+import { useSiteSettings } from "../controllers/state/ThongTinWebsiteContext";
 
 const TrangQuanTriPage = lazy(() =>
-  import("../pages/admin/TrangQuanTri").then(({ TrangQuanTriPage }) => ({
+  import("../views/pages/admin/TrangQuanTri").then(({ TrangQuanTriPage }) => ({
     default: TrangQuanTriPage,
   })),
+);
+
+const TrangBaoGiaQuanTriPage = lazy(() =>
+  import("../views/pages/admin/TrangBaoGiaQuanTri").then(
+    ({ TrangBaoGiaQuanTriPage: page }) => ({ default: page }),
+  ),
+);
+
+const TrangKhoQuanTriPage = lazy(() =>
+  import("../views/pages/admin/TrangKhoQuanTri").then(
+    ({ TrangKhoQuanTriPage: page }) => ({ default: page }),
+  ),
 );
 
 export function AppRouter() {
@@ -61,6 +78,22 @@ function AppRoutes() {
           </Suspense>
         }
       />
+      <Route
+        path="/admin/bao-gia"
+        element={
+          <Suspense fallback={<AdminRouteFallback />}>
+            <TrangBaoGiaQuanTriPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/admin/kho"
+        element={
+          <Suspense fallback={<AdminRouteFallback />}>
+            <TrangKhoQuanTriPage />
+          </Suspense>
+        }
+      />
       <Route path="products/:id/3d" element={<ThreeDExperienceGate />} />
       <Route element={<PublicWebsiteGate />}>
         <Route index element={<TrangChuPage />} />
@@ -70,6 +103,8 @@ function AppRoutes() {
         <Route path="thanh-toan" element={<TrangThanhToanPage />} />
         <Route path="dang-nhap" element={<TrangDangNhapPage />} />
         <Route path="tai-khoan" element={<TrangTaiKhoanPage />} />
+        <Route path="yeu-cau-bao-gia" element={<TrangYeuCauBaoGiaPage />} />
+        <Route path="bao-gia-cua-toi" element={<TrangBaoGiaCuaToiPage />} />
         <Route path="giai-phap" element={<TrangGiaiPhapPage />} />
         <Route path="du-an" element={<TrangDuAnPage />} />
         <Route path="du-an/:slug" element={<TrangChiTietDuAnPage />} />
@@ -209,7 +244,8 @@ function ScrollRestoration() {
       return;
     }
 
-    const shouldRestore = navigationType === "POP" || location.state?.restoreScroll === true;
+    const shouldRestore =
+      navigationType === "POP" || location.state?.restoreScroll === true;
 
     if (shouldRestore) {
       restoringUrl.current = locationUrl;
@@ -222,14 +258,23 @@ function ScrollRestoration() {
     if (pathnameBeforeNavigation !== location.pathname) {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     }
-  }, [location.hash, location.key, location.pathname, location.state, locationUrl, navigationType]);
+  }, [
+    location.hash,
+    location.key,
+    location.pathname,
+    location.state,
+    locationUrl,
+    navigationType,
+  ]);
 
   return null;
 }
 
 function readScrollPosition(url: string) {
   try {
-    const stored = window.sessionStorage.getItem(`${SCROLL_POSITION_PREFIX}${url}`);
+    const stored = window.sessionStorage.getItem(
+      `${SCROLL_POSITION_PREFIX}${url}`,
+    );
     const value = Number(stored);
     return Number.isFinite(value) && value > 0 ? value : 0;
   } catch {
@@ -239,7 +284,10 @@ function readScrollPosition(url: string) {
 
 function writeScrollPosition(url: string, position: number) {
   try {
-    window.sessionStorage.setItem(`${SCROLL_POSITION_PREFIX}${url}`, String(Math.max(0, position)));
+    window.sessionStorage.setItem(
+      `${SCROLL_POSITION_PREFIX}${url}`,
+      String(Math.max(0, position)),
+    );
   } catch {
     // Browsing still works when session storage is blocked.
   }
@@ -267,8 +315,15 @@ function restoreScrollPosition(url: string, onFinished: () => void) {
   };
   const restore = () => {
     attempts += 1;
-    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-    window.scrollTo({ top: Math.min(target, maxScroll), left: 0, behavior: "auto" });
+    const maxScroll = Math.max(
+      0,
+      document.documentElement.scrollHeight - window.innerHeight,
+    );
+    window.scrollTo({
+      top: Math.min(target, maxScroll),
+      left: 0,
+      behavior: "auto",
+    });
 
     if (Math.abs(window.scrollY - target) <= 2 || attempts >= 300) finish();
   };

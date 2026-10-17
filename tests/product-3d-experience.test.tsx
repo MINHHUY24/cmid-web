@@ -1,13 +1,18 @@
+/*
+ * Vai trò: Trải nghiệm 3D/AR, bottom sheet và responsive mobile.
+ */
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { LanguageProvider } from '../src/contexts/NgonNguProvider'
-import { TrangTraiNghiem3D } from '../src/pages/TrangTraiNghiem3D'
-import type { Product } from '../src/types/product'
+import { LanguageProvider } from '../src/controllers/state/NgonNguProvider'
+import { TrangTraiNghiem3D } from '../src/views/pages/TrangTraiNghiem3D'
+import type { Product } from '../src/models/product'
 
-const useProduct = vi.fn()
+const useProductController = vi.fn()
 
-vi.mock('../src/hooks/useProduct', () => ({ useProduct: () => useProduct() }))
+vi.mock('../src/controllers/catalog/useProductController', () => ({
+  useProductController: () => useProductController(),
+}))
 vi.mock('@google/model-viewer', () => ({}))
 
 const product: Product = {
@@ -47,7 +52,7 @@ beforeEach(() => {
     removeListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })))
-  useProduct.mockReturnValue({ product, isLoading: false, errorMessage: null, retry: vi.fn() })
+  useProductController.mockReturnValue({ product, isLoading: false, errorMessage: null, retry: vi.fn() })
 })
 afterEach(() => {
   cleanup()
@@ -77,7 +82,7 @@ describe('dedicated 3D experience', () => {
 
     const sheet = document.querySelector<HTMLElement>('.product-3d-experience__story')
     const content = document.querySelector<HTMLElement>('#product-stage-story-content')
-    const footer = sheet?.querySelector<HTMLElement>('.product-3d-experience__story-footer')
+    const footer = sheet?.querySelector<HTMLElement>('.product-3d-experience__story-footer') ?? null
     expect(sheet).not.toBeNull()
     expect(content).not.toBeNull()
     expect(footer).not.toBeNull()
@@ -125,7 +130,7 @@ describe('dedicated 3D experience', () => {
   })
 
   it('shows a clear empty state when a product has no 3D model', () => {
-    useProduct.mockReturnValue({ product: { ...product, models3D: [] }, isLoading: false, errorMessage: null, retry: vi.fn() })
+    useProductController.mockReturnValue({ product: { ...product, models3D: [] }, isLoading: false, errorMessage: null, retry: vi.fn() })
     page()
     expect(screen.getByText('Sản phẩm chưa có mô hình 3D')).toBeTruthy()
     expect(document.querySelector('model-viewer')).toBeNull()

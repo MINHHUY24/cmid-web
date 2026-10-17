@@ -1,6 +1,9 @@
+/*
+ * Vai trò: Tương tự cho dự án Admin.
+ */
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { AdminProjectsView } from '../src/pages/admin/AdminContentViews'
+import { AdminProjectsView } from '../src/views/pages/admin/GiaoDienNoiDungQuanTri'
 import {
   getAdminProjects,
   saveProject,

@@ -1,13 +1,17 @@
+/*
+ * Vai trò: Trạng thái UI khi đang restore phiên khách hàng.
+ */
 import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { SiteHeader } from '../src/components/layout/DauTrang'
-import { siteContent } from '../src/content/site-content'
-import { CartProvider } from '../src/contexts/CartProvider'
-import { LanguageContext } from '../src/contexts/NgonNguContext'
-import { type CustomerProfile, type UserContextValue, UserContext } from '../src/contexts/NguoiDungContext'
-import { TrangDangNhapPage } from '../src/pages/TrangDangNhap'
-import { TrangTaiKhoanPage } from '../src/pages/TrangTaiKhoan'
+import { SiteHeader } from '../src/views/components/layout/DauTrang'
+import { siteContent } from '../src/models/content/site-content'
+import { CartProvider } from '../src/controllers/state/CartProvider'
+import { SiteSettingsProvider } from '../src/controllers/state/ThongTinWebsiteContext'
+import { LanguageContext } from '../src/controllers/state/NgonNguContext'
+import { type CustomerProfile, type UserContextValue, UserContext } from '../src/controllers/state/NguoiDungContext'
+import { TrangDangNhapPage } from '../src/views/pages/TrangDangNhap'
+import { TrangTaiKhoanPage } from '../src/views/pages/TrangTaiKhoan'
 
 const emptyProfile: CustomerProfile = {
   fullName: '',
@@ -93,7 +97,9 @@ describe('customer auth bootstrap', () => {
     renderWithCustomerAuth(
       <MemoryRouter>
         <CartProvider>
-          <SiteHeader />
+          <SiteSettingsProvider>
+            <SiteHeader />
+          </SiteSettingsProvider>
         </CartProvider>
       </MemoryRouter>,
     )

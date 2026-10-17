@@ -1,3 +1,6 @@
+/*
+ * Vai trò: Request/normalize dữ liệu service đơn hàng.
+ */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const serverOrder = {

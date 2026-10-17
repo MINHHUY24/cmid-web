@@ -1,3 +1,6 @@
+/*
+ * Vai trò: Request/normalize dữ liệu service dự án.
+ */
 import { describe, expect, it, vi } from 'vitest'
 import {
   getAdminProjects,

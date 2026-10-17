@@ -1,156 +1,173 @@
-import type { AdminOrder, AdminReturn } from '../pages/admin/CoSoDuLieuQuanTri'
-import { apiFetch } from './api'
+/*
+ * Vai trò: Endpoint đơn hàng khách/Admin, cập nhật trạng thái/thanh toán/hoàn tiền và type response đơn.
+ */
+import type { AdminOrder, AdminReturn } from "../models/admin-workspace";
+import { apiFetch } from "./api";
 
 export type ServerOrderStatus =
-  | 'PENDING_PAYMENT'
-  | 'PENDING_CONFIRMATION'
-  | 'PROCESSING'
-  | 'AWAITING_PICKUP'
-  | 'AWAITING_DELIVERY'
-  | 'SHIPPING'
-  | 'COMPLETED'
-  | 'PAYMENT_FAILED'
-  | 'CANCELLED'
-  | 'RETURNED'
+  | "PENDING_PAYMENT"
+  | "PENDING_CONFIRMATION"
+  | "PROCESSING"
+  | "AWAITING_PICKUP"
+  | "AWAITING_DELIVERY"
+  | "SHIPPING"
+  | "COMPLETED"
+  | "PAYMENT_FAILED"
+  | "CANCELLED"
+  | "RETURNED";
 
 export type ServerPaymentStatus =
-  | 'PENDING'
-  | 'PAID'
-  | 'FAILED'
-  | 'PARTIALLY_REFUNDED'
-  | 'REFUNDED'
+  | "PENDING"
+  | "PAID"
+  | "FAILED"
+  | "PARTIALLY_REFUNDED"
+  | "REFUNDED";
 
-export type ServerRefundStatus = 'PENDING' | 'APPROVED' | 'PROCESSING' | 'COMPLETED' | 'REJECTED'
+export type ServerRefundStatus =
+  | "PENDING"
+  | "APPROVED"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "REJECTED";
 
 type ServerOrder = {
-  id: string
-  customerName: string
-  customerEmail: string
-  customerPhone: string
-  address: string
-  note: string | null
-  subtotal: number | string
-  vat: number | string
-  shippingFee: number | string
-  total: number | string
-  refundedAmount: number | string
-  paymentMethod: 'BANK_TRANSFER' | 'COD' | 'MOMO_WALLET' | 'MOMO_CARD'
-  paymentStatus: ServerPaymentStatus
-  status: ServerOrderStatus
-  createdAt: string
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  address: string;
+  note: string | null;
+  subtotal: number | string;
+  vat: number | string;
+  shippingFee: number | string;
+  total: number | string;
+  refundedAmount: number | string;
+  paymentMethod: "BANK_TRANSFER" | "COD" | "MOMO_WALLET" | "MOMO_CARD";
+  paymentStatus: ServerPaymentStatus;
+  status: ServerOrderStatus;
+  createdAt: string;
   items: Array<{
-    productId: number
-    productName: string
-    sku: string
-    unitPrice: number | string
-    quantity: number
-    product?: { images?: Array<{ imageUrl: string; isPrimary: boolean }> }
-  }>
+    productId: number;
+    productName: string;
+    sku: string;
+    unitPrice: number | string;
+    quantity: number;
+    product?: { images?: Array<{ imageUrl: string; isPrimary: boolean }> };
+  }>;
   refunds?: Array<{
-    id: string
-    orderId: string
-    amount: number | string
-    reason: string
-    status: ServerRefundStatus
-    provider: 'MOMO' | 'MANUAL'
-    providerRefundId: string | null
-    requestedBy: string
-    processedBy: string | null
-    processedAt: string | null
-    createdAt: string
-  }>
+    id: string;
+    orderId: string;
+    amount: number | string;
+    reason: string;
+    status: ServerRefundStatus;
+    provider: "MOMO" | "MANUAL";
+    providerRefundId: string | null;
+    requestedBy: string;
+    processedBy: string | null;
+    processedAt: string | null;
+    createdAt: string;
+  }>;
   statusHistory?: Array<{
-    id: number
-    fromStatus: ServerOrderStatus | null
-    toStatus: ServerOrderStatus
-    actor: string
-    note: string | null
-    createdAt: string
-  }>
-}
+    id: number;
+    fromStatus: ServerOrderStatus | null;
+    toStatus: ServerOrderStatus;
+    actor: string;
+    note: string | null;
+    createdAt: string;
+  }>;
+};
 
 export type CreateCheckoutOrderInput = {
-  customerName: string
-  customerEmail: string
-  customerPhone: string
-  address: string
-  note?: string
-  paymentMethod: 'BANK_TRANSFER' | 'COD'
-  items: Array<{ productId: number; quantity: number }>
-}
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  address: string;
+  note?: string;
+  paymentMethod: "BANK_TRANSFER" | "COD";
+  items: Array<{ productId: number; quantity: number }>;
+};
 
-const orderStatusToServer: Record<AdminOrder['status'], ServerOrderStatus> = {
-  'Chờ thanh toán': 'PENDING_PAYMENT',
-  'Thanh toán thất bại': 'PAYMENT_FAILED',
-  'Chờ xác nhận': 'PENDING_CONFIRMATION',
-  'Đang xử lý': 'PROCESSING',
-  'Chờ lấy hàng': 'AWAITING_PICKUP',
-  'Chờ giao hàng': 'AWAITING_DELIVERY',
-  'Đang giao': 'SHIPPING',
-  'Hoàn thành': 'COMPLETED',
-  'Đã hủy': 'CANCELLED',
-  'Đã trả hàng': 'RETURNED',
-}
+const orderStatusToServer: Record<AdminOrder["status"], ServerOrderStatus> = {
+  "Chờ thanh toán": "PENDING_PAYMENT",
+  "Thanh toán thất bại": "PAYMENT_FAILED",
+  "Chờ xác nhận": "PENDING_CONFIRMATION",
+  "Đang xử lý": "PROCESSING",
+  "Chờ lấy hàng": "AWAITING_PICKUP",
+  "Chờ giao hàng": "AWAITING_DELIVERY",
+  "Đang giao": "SHIPPING",
+  "Hoàn thành": "COMPLETED",
+  "Đã hủy": "CANCELLED",
+  "Đã trả hàng": "RETURNED",
+};
 
-const orderStatusFromServer: Record<ServerOrderStatus, AdminOrder['status']> = {
-  PENDING_PAYMENT: 'Chờ thanh toán',
-  PAYMENT_FAILED: 'Thanh toán thất bại',
-  PENDING_CONFIRMATION: 'Chờ xác nhận',
-  PROCESSING: 'Đang xử lý',
-  AWAITING_PICKUP: 'Chờ lấy hàng',
-  AWAITING_DELIVERY: 'Chờ giao hàng',
-  SHIPPING: 'Đang giao',
-  COMPLETED: 'Hoàn thành',
-  CANCELLED: 'Đã hủy',
-  RETURNED: 'Đã trả hàng',
-}
+const orderStatusFromServer: Record<ServerOrderStatus, AdminOrder["status"]> = {
+  PENDING_PAYMENT: "Chờ thanh toán",
+  PAYMENT_FAILED: "Thanh toán thất bại",
+  PENDING_CONFIRMATION: "Chờ xác nhận",
+  PROCESSING: "Đang xử lý",
+  AWAITING_PICKUP: "Chờ lấy hàng",
+  AWAITING_DELIVERY: "Chờ giao hàng",
+  SHIPPING: "Đang giao",
+  COMPLETED: "Hoàn thành",
+  CANCELLED: "Đã hủy",
+  RETURNED: "Đã trả hàng",
+};
 
-const paymentStatusFromServer: Record<ServerPaymentStatus, AdminOrder['paymentStatus']> = {
-  PENDING: 'Chưa thanh toán',
-  PAID: 'Đã thanh toán',
-  FAILED: 'Thanh toán thất bại',
-  PARTIALLY_REFUNDED: 'Hoàn tiền một phần',
-  REFUNDED: 'Đã hoàn tiền',
-}
+const paymentStatusFromServer: Record<
+  ServerPaymentStatus,
+  AdminOrder["paymentStatus"]
+> = {
+  PENDING: "Chưa thanh toán",
+  PAID: "Đã thanh toán",
+  FAILED: "Thanh toán thất bại",
+  PARTIALLY_REFUNDED: "Hoàn tiền một phần",
+  REFUNDED: "Đã hoàn tiền",
+};
 
-const paymentMethodFromServer: Record<ServerOrder['paymentMethod'], string> = {
-  BANK_TRANSFER: 'Chuyển khoản ngân hàng',
-  COD: 'Thanh toán khi nhận hàng (COD)',
-  MOMO_WALLET: 'Ví MoMo',
-  MOMO_CARD: 'Thẻ qua MoMo',
-}
+const paymentMethodFromServer: Record<ServerOrder["paymentMethod"], string> = {
+  BANK_TRANSFER: "Chuyển khoản ngân hàng",
+  COD: "Thanh toán khi nhận hàng (COD)",
+  MOMO_WALLET: "Ví MoMo",
+  MOMO_CARD: "Thẻ qua MoMo",
+};
 
-const refundStatusFromServer: Record<ServerRefundStatus, AdminReturn['status']> = {
-  PENDING: 'Chờ duyệt',
-  APPROVED: 'Đã duyệt',
-  PROCESSING: 'Đang hoàn tiền',
-  COMPLETED: 'Hoàn tất',
-  REJECTED: 'Từ chối',
-}
+const refundStatusFromServer: Record<
+  ServerRefundStatus,
+  AdminReturn["status"]
+> = {
+  PENDING: "Chờ duyệt",
+  APPROVED: "Đã duyệt",
+  PROCESSING: "Đang hoàn tiền",
+  COMPLETED: "Hoàn tất",
+  REJECTED: "Từ chối",
+};
 
-const refundStatusToServer: Record<AdminReturn['status'], ServerRefundStatus> = {
-  'Chờ duyệt': 'PENDING',
-  'Đã duyệt': 'APPROVED',
-  'Đang hoàn tiền': 'PROCESSING',
-  'Hoàn tất': 'COMPLETED',
-  'Từ chối': 'REJECTED',
-}
+const refundStatusToServer: Record<AdminReturn["status"], ServerRefundStatus> =
+  {
+    "Chờ duyệt": "PENDING",
+    "Đã duyệt": "APPROVED",
+    "Đang hoàn tiền": "PROCESSING",
+    "Hoàn tất": "COMPLETED",
+    "Từ chối": "REJECTED",
+  };
 
 function adminHeaders(useDemoAccess: boolean) {
-  return useDemoAccess ? { 'X-CMID-Demo-Admin': 'true' } : undefined
+  return useDemoAccess ? { "X-CMID-Demo-Admin": "true" } : undefined;
 }
 
-function adminOrderPath(useDemoAccess: boolean, suffix = '') {
-  return `/orders/${useDemoAccess ? 'demo' : 'admin'}${suffix}`
+function adminOrderPath(useDemoAccess: boolean, suffix = "") {
+  return `/orders/${useDemoAccess ? "demo" : "admin"}${suffix}`;
 }
 
-export async function getAdminOrders(useDemoAccess = false): Promise<AdminOrder[]> {
+export async function getAdminOrders(
+  useDemoAccess = false,
+): Promise<AdminOrder[]> {
   const orders = await apiFetch<ServerOrder[]>(adminOrderPath(useDemoAccess), {
     headers: adminHeaders(useDemoAccess),
-    authScope: 'admin',
+    authScope: "admin",
     skipAuth: useDemoAccess,
-  })
-  return orders.map(toAdminOrder)
+  });
+  return orders.map(toAdminOrder);
 }
 
 /**
@@ -161,38 +178,53 @@ export async function getAdminOrders(useDemoAccess = false): Promise<AdminOrder[
  * from ever being able to enumerate another customer's orders.
  */
 export async function getCustomerOrders(): Promise<AdminOrder[]> {
-  const orders = await apiFetch<ServerOrder[]>('/orders/me')
-  return orders.map(toAdminOrder)
+  const orders = await apiFetch<ServerOrder[]>("/orders/me");
+  return orders.map(toAdminOrder);
 }
 
 export async function updateAdminOrderStatus(
   orderId: string,
-  status: AdminOrder['status'],
+  status: AdminOrder["status"],
   useDemoAccess = false,
 ) {
-  const order = await apiFetch<ServerOrder>(adminOrderPath(useDemoAccess, `/${encodeURIComponent(orderId)}/status`), {
-    method: 'PATCH',
-    authScope: 'admin',
-    headers: { 'Content-Type': 'application/json', ...adminHeaders(useDemoAccess) },
-    body: JSON.stringify({ status: orderStatusToServer[status] }),
-    skipAuth: useDemoAccess,
-  })
-  return toAdminOrder(order)
+  const order = await apiFetch<ServerOrder>(
+    adminOrderPath(useDemoAccess, `/${encodeURIComponent(orderId)}/status`),
+    {
+      method: "PATCH",
+      authScope: "admin",
+      headers: {
+        "Content-Type": "application/json",
+        ...adminHeaders(useDemoAccess),
+      },
+      body: JSON.stringify({ status: orderStatusToServer[status] }),
+      skipAuth: useDemoAccess,
+    },
+  );
+  return toAdminOrder(order);
 }
 
 export async function updateAdminPaymentStatus(
   orderId: string,
-  status: 'PAID' | 'FAILED',
+  status: "PAID" | "FAILED",
   useDemoAccess = false,
 ) {
-  const order = await apiFetch<ServerOrder>(adminOrderPath(useDemoAccess, `/${encodeURIComponent(orderId)}/payment-status`), {
-    method: 'PATCH',
-    authScope: 'admin',
-    headers: { 'Content-Type': 'application/json', ...adminHeaders(useDemoAccess) },
-    body: JSON.stringify({ status }),
-    skipAuth: useDemoAccess,
-  })
-  return toAdminOrder(order)
+  const order = await apiFetch<ServerOrder>(
+    adminOrderPath(
+      useDemoAccess,
+      `/${encodeURIComponent(orderId)}/payment-status`,
+    ),
+    {
+      method: "PATCH",
+      authScope: "admin",
+      headers: {
+        "Content-Type": "application/json",
+        ...adminHeaders(useDemoAccess),
+      },
+      body: JSON.stringify({ status }),
+      skipAuth: useDemoAccess,
+    },
+  );
+  return toAdminOrder(order);
 }
 
 export async function createAdminRefund(
@@ -200,59 +232,74 @@ export async function createAdminRefund(
   input: { amount: number; reason: string },
   useDemoAccess = false,
 ) {
-  const order = await apiFetch<ServerOrder>(adminOrderPath(useDemoAccess, `/${encodeURIComponent(orderId)}/refunds`), {
-    method: 'POST',
-    authScope: 'admin',
-    headers: { 'Content-Type': 'application/json', ...adminHeaders(useDemoAccess) },
-    body: JSON.stringify(input),
-    skipAuth: useDemoAccess,
-  })
-  return toAdminOrder(order)
+  const order = await apiFetch<ServerOrder>(
+    adminOrderPath(useDemoAccess, `/${encodeURIComponent(orderId)}/refunds`),
+    {
+      method: "POST",
+      authScope: "admin",
+      headers: {
+        "Content-Type": "application/json",
+        ...adminHeaders(useDemoAccess),
+      },
+      body: JSON.stringify(input),
+      skipAuth: useDemoAccess,
+    },
+  );
+  return toAdminOrder(order);
 }
 
 export async function updateAdminRefundStatus(
   refundId: string,
-  status: AdminReturn['status'],
+  status: AdminReturn["status"],
   useDemoAccess = false,
 ) {
-  const order = await apiFetch<ServerOrder>(adminOrderPath(useDemoAccess, `/refunds/${encodeURIComponent(refundId)}/status`), {
-    method: 'PATCH',
-    authScope: 'admin',
-    headers: { 'Content-Type': 'application/json', ...adminHeaders(useDemoAccess) },
-    body: JSON.stringify({ status: refundStatusToServer[status] }),
-    skipAuth: useDemoAccess,
-  })
-  return toAdminOrder(order)
+  const order = await apiFetch<ServerOrder>(
+    adminOrderPath(
+      useDemoAccess,
+      `/refunds/${encodeURIComponent(refundId)}/status`,
+    ),
+    {
+      method: "PATCH",
+      authScope: "admin",
+      headers: {
+        "Content-Type": "application/json",
+        ...adminHeaders(useDemoAccess),
+      },
+      body: JSON.stringify({ status: refundStatusToServer[status] }),
+      skipAuth: useDemoAccess,
+    },
+  );
+  return toAdminOrder(order);
 }
 
 export async function createCheckoutOrder(input: CreateCheckoutOrderInput) {
-  const order = await apiFetch<ServerOrder>('/orders', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const order = await apiFetch<ServerOrder>("/orders", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
-  })
-  return toAdminOrder(order)
+  });
+  return toAdminOrder(order);
 }
 
 export async function createDemoCheckoutOrder(
-  input: Omit<CreateCheckoutOrderInput, 'paymentMethod'> & {
-    paymentMethod: ServerOrder['paymentMethod']
+  input: Omit<CreateCheckoutOrderInput, "paymentMethod"> & {
+    paymentMethod: ServerOrder["paymentMethod"];
   },
 ) {
-  const order = await apiFetch<ServerOrder>('/orders/demo', {
-    method: 'POST',
+  const order = await apiFetch<ServerOrder>("/orders/demo", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...adminHeaders(true),
     },
     body: JSON.stringify(input),
     skipAuth: true,
-  })
-  return toAdminOrder(order)
+  });
+  return toAdminOrder(order);
 }
 
 export function getRefundsFromOrders(orders: AdminOrder[]) {
-  return orders.flatMap((order) => order.refunds)
+  return orders.flatMap((order) => order.refunds);
 }
 
 function toAdminOrder(order: ServerOrder): AdminOrder {
@@ -268,7 +315,10 @@ function toAdminOrder(order: ServerOrder): AdminOrder {
       sku: item.sku,
       quantity: item.quantity,
       price: Number(item.unitPrice),
-      image: item.product?.images?.find((image) => image.isPrimary)?.imageUrl ?? item.product?.images?.[0]?.imageUrl ?? '',
+      image:
+        item.product?.images?.find((image) => image.isPrimary)?.imageUrl ??
+        item.product?.images?.[0]?.imageUrl ??
+        "",
     })),
     subtotal: Number(order.subtotal),
     vat: Number(order.vat),
@@ -278,7 +328,7 @@ function toAdminOrder(order: ServerOrder): AdminOrder {
     paymentMethodCode: order.paymentMethod,
     paymentStatus: paymentStatusFromServer[order.paymentStatus],
     status: orderStatusFromServer[order.status],
-    note: order.note ?? '',
+    note: order.note ?? "",
     createdAt: order.createdAt,
     refunds: (order.refunds ?? []).map((refund) => ({
       id: refund.id,
@@ -296,11 +346,13 @@ function toAdminOrder(order: ServerOrder): AdminOrder {
     })),
     statusHistory: (order.statusHistory ?? []).map((entry) => ({
       id: entry.id,
-      fromStatus: entry.fromStatus ? orderStatusFromServer[entry.fromStatus] : null,
+      fromStatus: entry.fromStatus
+        ? orderStatusFromServer[entry.fromStatus]
+        : null,
       toStatus: orderStatusFromServer[entry.toStatus],
       actor: entry.actor,
-      note: entry.note ?? '',
+      note: entry.note ?? "",
       createdAt: entry.createdAt,
     })),
-  }
+  };
 }
