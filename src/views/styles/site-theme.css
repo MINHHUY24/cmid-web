@@ -5479,6 +5479,16 @@ html[data-theme='light'] .app-shell--site:not(.app-shell--home) .topbar {
   box-shadow: 0 1px 0 rgb(94 66 36 / 24%);
 }
 
+/* The home toolbar uses the same opaque surface on compact screens.  This
+   override is intentionally late: an earlier shared theme rule is translucent
+   and would otherwise tint it with the hero image. */
+@media (max-width: 1024px) {
+  html[data-theme='light'] .app-shell--site.app-shell--home .topbar {
+    background: #fffdf9;
+    box-shadow: 0 1px 0 rgb(94 66 36 / 24%);
+  }
+}
+
 html[data-theme='light'] .app-shell--site:not(.app-shell--home) .site-header__main {
   background: #fffdf9;
   box-shadow: 0 14px 30px rgb(60 45 30 / 14%);

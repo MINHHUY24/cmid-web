@@ -243,3 +243,18 @@ html[data-theme='light'] .app-shell--home .site-nav {
     color: var(--cmid-palette-a96f20);
   }
 }
+
+/* Match the inner-page mobile toolbar: the solid surface belongs to the full
+ * topbar, not to its narrower content wrapper.  Otherwise the exposed sides
+ * of the wrapper show the image below as two thin vertical borders. */
+@media (max-width: 1024px) {
+  html[data-theme='light'] .app-shell--site.app-shell--home :is(
+    .topbar__inner,
+    .topbar a,
+    .topbar__language,
+    .topbar__account-link,
+    .header-icon
+  ) {
+    background: transparent;
+  }
+}
